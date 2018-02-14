@@ -46,15 +46,13 @@ class TensorBoardManager:
     def add_embedding(self, emb_var, sprite=None, sprite_window=None):
         """
         Add an embedding for the projector visualization in tensorboard
-        :param emb_var: the 2D float variable that contains the embedding
-        :param name: the optional name to give to the embedding
+        :param emb_var: the 2D float variable (matrix of floats) that contains the embedding
         :param sprite: the path to the optional sprite to be attached to the embedding
         :param sprite_window: the [width, height] of a single thumbnail in the sprite
         """
         if self.__proj_config is None:
             # Format: tensorflow/contrib/tensorboard/plugins/projector/projector_config.proto
             self.__proj_config = projector.ProjectorConfig()
-        # You can add multiple embeddings. Here we add only one.
         embedding = self.__proj_config.embeddings.add()
         embedding.tensor_name = emb_var.name
         if sprite is not None:
@@ -64,6 +62,12 @@ class TensorBoardManager:
         self.__emb_list__.append((emb_var, tf.variables_initializer([emb_var])))
 
     def get_runnable(self, get_summaries=True, get_embeds=True):
+        """
+        Get all runnable elements for tensorboard to be run into a session.
+        :param get_summaries: decide whether to get all summaries
+        :param get_embeds: decide whether to get all embeddings
+        :return: a list containing all selected runnables
+        """
         ret = []
         if get_summaries and len(self.__summ_list__) > 0:
             ret.append(tf.summary.merge(self.__summ_list__))
@@ -74,6 +78,10 @@ class TensorBoardManager:
         return ret
 
     def write_embeddings(self, session):
+        """
+        Embedding variables must be written as checkpoints, this method does the job
+        :param session: the session from which the embedding values are to be taken
+        """
         projector.visualize_embeddings(TensorBoardManager.__writer, self.__proj_config)
         embedding_saver = tf.train.Saver(var_list=[emb[0] for emb in self.__emb_list__])
         embedding_saver.save(session,
@@ -82,19 +90,35 @@ class TensorBoardManager:
 
     @staticmethod
     def set_path(dir_name):
+        """
+        Change the path where tensorboard saves all data
+        :param dir_name: the new directory destination (inside the default base one)
+        """
         TensorBoardManager.__save_path = os.path.join(TensorBoardManager.__def_save_path, dir_name)
         TensorBoardManager.__writer = tf.summary.FileWriter(TensorBoardManager.__save_path)
 
     @staticmethod
     def write_step(summ, step):
+        """
+        Save all information about the summaries
+        :param summ: the summaries produced by a session running runnables
+        :param step: the step to label the summaries
+        """
         TensorBoardManager.__writer.add_summary(summ, step)
 
     @staticmethod
     def write_graph(graph):
+        """
+        Save the given graph for tensorboard to display it
+        :param graph: the graph to be displayed into tensorboard
+        """
         TensorBoardManager.__writer.add_graph(graph)
 
     @staticmethod
     def clear_data():
+        """
+        Clear the current save path from old stuff
+        """
         sh.rmtree(TensorBoardManager.__save_path)
         tf.summary.FileWriter(TensorBoardManager.__save_path)
 

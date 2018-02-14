@@ -1,13 +1,12 @@
 # THIS CLASS EXISTS BECAUSE PATH RESOLUTION IS A MESS
-# PLEASE MANUALLY SET THIS MODE DEPENDING ON HOW YOU ARE RUNNING YOUR STUFF
-
-# modes available:
-# CONSOLE - executing from source directory from console
-# IDE - executing from pycharm
 import os
 
 
 class PathManager:
+    """
+    This class automatically finds the project root folder at instantiation. It is used
+    to resolve the resources folder regardless of the current running path.
+    """
     def __init__(self):
         curpath = os.path.realpath(".")
         basepath = curpath
@@ -24,6 +23,12 @@ class PathManager:
 
 
 def list_files(basedir):
+    """
+    Provide a list of all paths of all files recursively included in some of the
+    base directories provided in basedir
+    :param basedir: An arbitrarily nested list of files and folders to consider
+    :return: a list of paths of files included in some directory in the input list
+    """
     rets = []
     if not isinstance(basedir, str):
         for d in basedir:

@@ -4,10 +4,21 @@ import numpy as np
 
 
 def get_index(array):
+    """
+    Get the index of the argmax over a collection. No clue why this function exists.
+    :param array: The array where you are supposed to extract the argmax
+    :return: The index of the argmax
+    NB: writing np.argmax(array) is faster and more clear. Do this way.
+    """
     return np.argmax(array)
 
 
 def completion(n):
+    """
+    Print fancy completion incremental bar! [===>---------]
+    :param n: should ask to @gianpy15, but should be the current progress over 100
+    :return: the fancy string of the incremental progress bar!
+    """
     c = list("[")
     if n >= 5:
         c.append('>')

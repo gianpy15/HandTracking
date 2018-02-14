@@ -1,3 +1,5 @@
+# This file encloses functions to read/write data to/from files of different formats.
+
 import scipy.io
 import os
 import numpy as np
@@ -9,10 +11,10 @@ import re
 
 def matrix_loader(filename, field_name='X_red'):
     """
-    This method loads a matrix from a file path
+    This method loads a matrix from a matlab .mat file
     :param filename: the path to the file
-    :param field_name: is the name of the field on mat file
-    :return: the matrix
+    :param field_name: is the regex matching the fields on the mat file
+    :return: an array of matrices corresponding to matching fields in the .mat file
     """
     matrix = scipy.io.loadmat(filename)
     keys = [k for k in matrix.keys() if re.compile(field_name).match(k)]
@@ -23,40 +25,49 @@ def matrix_loader(filename, field_name='X_red'):
 
 
 def save_mat(filename, **variables):
+    """
+    Save a data dictionary to a new .mat file
+    :param filename: the path to the new .mat to be created
+    :param variables: a dictionary name: value to be saved into the .mat
+    """
     scipy.io.savemat(filename, variables)
-
-
-def matrix_printer(matrix):
-    """
-    This method prints the matrix passed as a parameter
-    :param matrix: the matrix to be printed
-    """
-    print(matrix)
-    return
 
 
 def save_image_from_matrix(matrix, path):
     """
-    This method loads an image from a 3D RGB matrix
+    This method saves an image from a 3D RGB matrix
     :param matrix: the matrix representing image pixels
     :param path: path for the png image
-    :return: the image
     """
     image.imsave(path, matrix)
 
 
 def load_from_png(path):
+    """
+    This method loads an image from a 3D RGB matrix
+    :param path: path for the png image
+    :return: the image as a matrix of floating point values
+    """
     matrix = image.imread(path)
     return 1.0 * matrix
 
 
-def get_black_filter_from_png(path):
-    matrix = load_from_png(path)
-    matrix[matrix != 0] = 1
-    return matrix
-
-
 def load(path, field_name=None, force_format=None, affine_transform=None, alpha=False):
+    """
+    Load images of all supported formats (currently .mat, .jpg, .png) from all paths
+    specified, and return them as a unique batch of normalized images.
+    :param path: a list of paths with arbitrary nesting
+    :param field_name: in case .mat files are found, this field name regex is used to access all of them
+    :param force_format: forces all images to have a defined shape and size, regardless of their original shape.
+                        use: specify a list of dimensions [height, width, channels], or None to preserve original format
+                        note: if not None output images are expressed in [0.0, 1.0]
+                                floating point range, original otherwise
+    :param affine_transform: apply on each output image:
+                img = img * affine_transform[0] + affine_transform[1]
+
+    :param alpha: decide whether to keep alpha channel (bool)
+    :return: the batch of loaded images
+    """
     out = []
     # if path is not a string, then assume it is a collection of paths
     if not isinstance(path, str):

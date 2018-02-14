@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.image as img
 import utils as utils
 
+# Here you should write some scripts that are intended to be run once to prepare and reformat data
 
 def reformat_train_red():
     path_man = PathManager()
