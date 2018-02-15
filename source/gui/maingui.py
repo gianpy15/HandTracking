@@ -5,8 +5,9 @@ import gui.pinpointer_canvas as pc
 import gui.hand_helper_canvas as hh
 import scipy.io as scio
 
-
 helper_ref = None
+helptext = "Click on the image on the left to set the position of the joints of the hand.\nLeft click for visible " \
+           "joints, right click for occluded joints."
 
 
 def setup_pinner(pinner, img):
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 
     # This frame will include all side commands
     side_frame = tk.Frame(root)
-    side_frame.pack(side=tk.RIGHT)
+    side_frame.pack(side=tk.RIGHT, fill=tk.BOTH)
 
     # A sample image, for now...
     # img = np.random.uniform(low=0.0, high=1.0, size=(400, 500, 3))
@@ -68,7 +69,11 @@ if __name__ == "__main__":
     helper = hh.HelperCanvas(side_frame)
     setup_helper(helper, helper_hand)
     helper_ref = helper
-
+    descriptor = tk.Message(side_frame,
+                            text=helptext,
+                            justify=tk.LEFT,
+                            font=('Arial', 10, 'bold'))
+    descriptor.pack(side=tk.TOP)
 
     # This enables resizing, but it's quite buggy. Do it at your own risk.
     # root.bind("<Configure>", lambda event: pinner.resize(event.width-2, event.height-2))
