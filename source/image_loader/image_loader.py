@@ -110,8 +110,11 @@ def load(path, field_name=None, force_format=None, affine_transform=None, alpha=
             # if grayscale to rgb needs special manipulation:
             if np.shape(img)[-1] == 1 and np.shape(force_format)[-1] == 3:
                 img = color.gray2rgb(np.reshape(img, img.shape[0:-1]), alpha=False)
-            img = transform.resize(img, force_format, mode='constant')
-        # NOTE: output of resize is always in a [0, 1] float range
+            newformat = [force_format[idx] if force_format[idx] is not None else img.shape[idx]
+                         for idx in range(len(force_format))]
+            img = transform.resize(img, newformat, mode='constant')
+            if np.max(img) > 1.0:
+                img /= 255.0
 
         # if in need of different format, apply a transformation
         if affine_transform is not None:

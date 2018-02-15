@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+import numpy as np
 
 
 class PinpointerCanvas(tk.Canvas):
@@ -59,7 +60,13 @@ class PinpointerCanvas(tk.Canvas):
         :param bmp: the numpy array describing the image as a bitmap
         """
         self.reset()
-        self.__img = Image.fromarray(bmp, mode="RGB")
+        if bmp.dtype in [np.float16, np.float32, np.float64, np.float128]:
+            in_bmp = np.array(bmp*255, dtype=np.int8)
+        elif bmp.dtype.itemsize != 1:
+            in_bmp = np.array(bmp, dtype=np.int8)
+        else:
+            in_bmp = bmp
+        self.__img = Image.fromarray(in_bmp, mode="RGB")
         self.__update_img()
 
     def __left_clicked(self, event):
