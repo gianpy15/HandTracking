@@ -12,12 +12,12 @@ import numpy as np
 INTRINSIC = 'int'
 # EXTRINSICS are the parameters that define the world position of the camera
 EXTRINSIC = 'ext'
-DEPTHSCALE = 'dsca'     # the conversion from depth sensor units to world units
-FOCAL_X = 'fx'          # FOCAL_LENGTH/PIXEL_X_LENGTH in world units
-FOCAL_Y = 'fy'          # FOCAL_LENGTH/PIXEL_Y_LENGTH in world units
-CENTER_X = 'cx'         # IMAGE CENTER X IN PIXELS (may not be the middle pixel)
-CENTER_Y = 'cy'         # IMAGE CENTER Y IN PIXELS (may not be the middle pixel)
-SKEW = 'sk'             # FOCAL_Y * tan(alpha) where alpha is the skew angle of the pixel
+DEPTHSCALE = 'dsca'  # the conversion from depth sensor units to world units
+FOCAL_X = 'fx'  # FOCAL_LENGTH/PIXEL_X_LENGTH in world units
+FOCAL_Y = 'fy'  # FOCAL_LENGTH/PIXEL_Y_LENGTH in world units
+CENTER_X = 'cx'  # IMAGE CENTER X IN PIXELS (may not be the middle pixel)
+CENTER_Y = 'cy'  # IMAGE CENTER Y IN PIXELS (may not be the middle pixel)
+SKEW = 'sk'  # FOCAL_Y * tan(alpha) where alpha is the skew angle of the pixel
 
 # default value intrinsics describe 600x600 perfectly centered images, no skew, cubic camera
 default_intrinsic = {
@@ -65,7 +65,7 @@ def intrinsic_matrix(calibration):
 def model2image(modelpoint, calibration, makedepth=False):
     image_point = np.matmul(np.matmul(modelpoint.as_row_tr(), calibration[EXTRINSIC]),
                             intrinsic_matrix(calibration[INTRINSIC]))
-    image_point = image_point[0:2]/image_point[2]
+    image_point = image_point[0:2] / image_point[2]
     ret = ImagePoint(image_point[0], image_point[1])
     if not makedepth:
         return ret
@@ -100,8 +100,8 @@ def synth_intrinsic(resolution, fov):
     """
     intr = {
         SKEW: 0,
-        CENTER_X: resolution[0]/2,
-        CENTER_Y: resolution[1]/2
+        CENTER_X: resolution[0] / 2,
+        CENTER_Y: resolution[1] / 2
     }
     radian_half_fov = np.array(fov) * np.pi / 360.0
     focal = np.array(resolution) / (2 * np.tan(radian_half_fov))
@@ -163,12 +163,10 @@ class ModelPoint:
         return model2image(self, calibration)
 
     def __truediv__(self, other):
-        return ModelPoint(self.x/other, self.y/other, self.z/other)
+        return ModelPoint(self.x / other, self.y / other, self.z / other)
 
     def __itruediv__(self, other):
         self.x /= other
         self.y /= other
         self.z /= other
         return self
-
-

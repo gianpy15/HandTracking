@@ -7,6 +7,8 @@ MIDDLE = 'm'
 RING = 'r'
 BABY = 'b'
 
+FINGERS = (THUMB, INDEX, MIDDLE, RING, BABY)
+
 
 def hand_format(raw):
     return {

@@ -1,0 +1,206 @@
+from geometry.formatting import *
+import re
+
+
+class ModelDrawer:
+    key_rex = re.compile('[^-]+-[^-]+')
+
+    def __init__(self):
+        self.canvas = None
+        self.posx = None
+        self.posy = None
+        self.width = None
+        self.height = None
+        self.joints = {}
+        self.drawn = {}
+
+        self.__all_tag = 'allmd'
+        self.__dots_tag = 'dotmd'
+        self.__lines_tag = 'linemd'
+
+        self.dot_colors = {
+            WRIST: "white",
+            THUMB: "green",
+            INDEX: "yellow",
+            MIDDLE: "red",
+            RING: "purple",
+            BABY: "blue"
+        }
+        self.dot_radius = 5
+
+    def set_target_area(self, canvas, position=(0, 0), size=None):
+        if size is None:
+            self.width = canvas.winfo_width()
+            self.height = canvas.winfo_height()
+            canvas.bind("<Configure>", lambda e: self.set_target_area(e.widget, position))
+        else:
+            self.width = size[0]
+            self.height = size[1]
+
+        self.posx = position[0]
+        self.posy = position[1]
+
+        if self.canvas != canvas:
+            if self.canvas is not None:
+                self.canvas.delete(self.__all_tag)
+            self.canvas = canvas
+            self.drawn = {}
+
+        if self.__joints_set():
+            self.draw_model()
+
+    def draw_model(self):
+        if self.__drawn_anything():
+            self.__update_draw()
+        else:
+            self.__draw_anew()
+
+    def set_joints(self, joints):
+        self.joints = joints.copy()
+        if self.canvas is not None:
+            self.draw_model()
+
+    def __draw_anew(self):
+        # draw the wrist
+        self.drawn[WRIST] = {}
+        self.__draw_new_joint(WRIST)
+        # draw the main fingers:
+        for finger in FINGERS:
+            self.drawn[finger] = {}
+            # draw the first three joints and their outgoing section
+            for joint in range(3):
+                self.__draw_new_joint(finger, joint)
+                self.__draw_new_section(finger, joint)
+            # end up the finger drawing the last top joint
+            self.__draw_new_joint(finger, 3)
+            # and finally connect the wrist with that finger
+            self.drawn["%s-%s" % (WRIST, finger)] = self.__draw_custom_line(
+                self.joints[WRIST][0],
+                self.joints[finger][0],
+                self.dot_colors[WRIST]
+            )
+        # now make the hand palm with lines connecting the base finger joints
+        for idx in range(len(FINGERS) - 1):
+            key = "%s-%s" % (FINGERS[idx], FINGERS[idx + 1])
+            self.drawn[key] = self.__draw_custom_line(
+                self.joints[FINGERS[idx]][0],
+                self.joints[FINGERS[idx + 1]][0],
+                self.dot_colors[WRIST]
+            )
+        # and finally set all points on the top layer
+        self.canvas.tag_raise(self.__dots_tag)
+
+    def __update_draw(self):
+        # update the wrist
+        self.__update_joint(WRIST)
+        for finger in FINGERS:
+            # now update the base joints
+            for joint in range(4):
+                self.__update_joint(finger, joint)
+            # and update the finger sections
+            for joint in range(3):
+                key = "%d-%d" % (joint, joint + 1)
+                self.__update_line(self.drawn[finger][key],
+                                   self.joints[finger][joint],
+                                   self.joints[finger][joint + 1])
+        # then find out all base lines
+        linelist = [[key] + key.split('-') for key in self.drawn.keys() if re.match(ModelDrawer.key_rex, key)]
+        # and adjust them
+        for (compound_key, key1, key2) in linelist:
+            self.__update_line(self.drawn[compound_key],
+                               self.joints[key1][0],
+                               self.joints[key2][0])
+
+    def __draw_new_joint(self, finger, joint=0):
+        drawx, drawy = self.__get_coordinates(self.joints[finger][joint])
+        self.drawn[finger][joint] = self.canvas.create_oval(drawx - self.dot_radius,
+                                                            drawy - self.dot_radius,
+                                                            drawx + self.dot_radius,
+                                                            drawy + self.dot_radius,
+                                                            fill=self.dot_colors[finger],
+                                                            tags=[self.__all_tag, self.__dots_tag]
+                                                            )
+
+    def __draw_new_section(self, finger, basejoint):
+        self.drawn[finger]["%d-%d" % (basejoint, basejoint + 1)] = self.__draw_custom_line(
+            self.joints[finger][basejoint],
+            self.joints[finger][basejoint + 1],
+            self.dot_colors[finger]
+        )
+
+    def __draw_custom_line(self, point1, point2, color):
+        drawx1, drawy1 = self.__get_coordinates(point1)
+        drawx2, drawy2 = self.__get_coordinates(point2)
+        return self.canvas.create_line(drawx1,
+                                       drawy1,
+                                       drawx2,
+                                       drawy2,
+                                       fill=color,
+                                       width=self.dot_radius / 2,
+                                       tags=[self.__all_tag, self.__lines_tag]
+                                       )
+
+    def __update_joint(self, finger, joint=0):
+        drawx, drawy = self.__get_coordinates(self.joints[finger][joint])
+        self.canvas.coords(self.drawn[finger][joint],
+                           drawx - self.dot_radius,
+                           drawy - self.dot_radius,
+                           drawx + self.dot_radius,
+                           drawy + self.dot_radius
+                           )
+
+    def __update_line(self, lineid, point1, point2):
+        drawx1, drawy1 = self.__get_coordinates(point1)
+        drawx2, drawy2 = self.__get_coordinates(point2)
+        self.canvas.coords(lineid,
+                           drawx1,
+                           drawy1,
+                           drawx2,
+                           drawy2,
+                           )
+
+    def __get_coordinates(self, point):
+        return self.posx + self.width * point[0], self.posy + self.height * point[1]
+
+    def __joints_set(self):
+        return len(self.joints.keys()) > 0
+
+    def __drawn_anything(self):
+        return len(self.drawn.keys()) > 0
+
+
+# testing with some random movements!
+if __name__ == '__main__':
+    import tkinter as tk
+    import scipy.io as scio
+    import data_manager.path_manager as path_manager
+    import gui.pinpointer_canvas as ppc
+    import time
+    import threading
+    import numpy as np
+
+    pm = path_manager.PathManager()
+    root = tk.Tk()
+    frame = tk.Frame(root)
+    frame.pack()
+    helper_hand = scio.loadmat(pm.resources_path("gui/hand.mat"))
+    test_subject = ppc.PinpointerCanvas(frame)
+    test_subject.set_bitmap(helper_hand['data'])
+    test_subject.pack()
+    md = ModelDrawer()
+    md.set_joints(hand_format(helper_hand['labels']))
+    md.set_target_area(test_subject)
+
+    # here we define random periodical moves
+    def loop():
+        while True:
+            label_data = helper_hand['labels'].copy()
+            for elem in label_data:
+                elem[0] += np.random.normal(scale=0.003)
+                elem[1] += np.random.normal(scale=0.003)
+            md.set_joints(hand_format(label_data))
+            time.sleep(0.08)
+
+
+    threading.Thread(target=loop).start()
+    root.mainloop()
