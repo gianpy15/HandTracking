@@ -169,7 +169,7 @@ class ModelDrawer:
         return len(self.drawn.keys()) > 0
 
 
-# testing with some random movements!
+# testing with some fancy animations!
 if __name__ == '__main__':
     import tkinter as tk
     import scipy.io as scio
@@ -177,6 +177,8 @@ if __name__ == '__main__':
     import gui.pinpointer_canvas as ppc
     import time
     import threading
+    import geometry.transforms as tr
+    import geometry.calibration as cal
     import numpy as np
 
     pm = path_manager.PathManager()
@@ -191,15 +193,41 @@ if __name__ == '__main__':
     md.set_joints(hand_format(helper_hand['labels']))
     md.set_target_area(test_subject)
 
-    # here we define random periodical moves
+    # here we define the flat rotation with random constellation
+    # points must appear correctly on the image, but their distance should be
+    # different and randomized (the constellation effect)
+    # and then they should rotate rigidly around their center
     def loop():
+        label_data = helper_hand['labels'].copy()
+        resolution = helper_hand['data'].shape[0:2]
+        camera_calib = {
+            cal.INTRINSIC: cal.synth_intrinsic(resolution, (50, 50)),
+            cal.EXTRINSIC: cal.default_extrinsic,
+            cal.DEPTHSCALE: cal.default_depth_scale
+        }
+        # Here we arbitrarily set their depth to make the constellation effect
+        flat_3d = [cal.ImagePoint(elem[0]*resolution[0], elem[1]*resolution[1], depth=10+np.random.random())
+                       .to_camera_model(calibration=camera_calib)
+                       .as_row()
+                   for elem in label_data]
+        # compute the center of the constellation
+        center = np.average(flat_3d, axis=0)
+        # compute the rotation matrix
+        rotation = tr.get_rotation_matrix(axis=1, angle=np.pi / 180)
+
         while True:
-            label_data = helper_hand['labels'].copy()
-            for elem in label_data:
-                elem[0] += np.random.normal(scale=0.003)
-                elem[1] += np.random.normal(scale=0.003)
-            md.set_joints(hand_format(label_data))
-            time.sleep(0.08)
+            # rotate the 3D dataset
+            flat_3d = [np.matmul(rotation, elem-center)+center for elem in flat_3d]
+            # project it into image space
+            flat_2d = [cal.ModelPoint(elem[0], elem[1], elem[2])
+                           .to_image_space(calibration=camera_calib)
+                           .as_row()
+                       for elem in flat_3d]
+            # normalize it before feeding to the model drawer
+            flat_2d_norm = [(x/resolution[0], y/resolution[1]) for (x, y) in flat_2d]
+            # feed to model drawer
+            md.set_joints(hand_format(flat_2d_norm))
+            time.sleep(0.04)
 
 
     threading.Thread(target=loop).start()
