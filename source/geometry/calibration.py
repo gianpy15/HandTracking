@@ -90,6 +90,26 @@ def image2cameramodeldirectin(imagepoint, calibration):
     return sample
 
 
+def synth_intrinsic(resolution, fov):
+    """
+    Synthesize an intrinsic dictionary configuration based on desired resolution and field of view.
+    The given intrinsics will have the image center in the middle and no skew.
+    :param resolution: a tuple describing the number of pixels for each dimension: (pixx, pixy)
+    :param fov: a tuple describing the desired field of view in degrees for each axis: (hor_fov, vert_fov)
+    :return: a dictionary containing the desired intrinsic configuration
+    """
+    intr = {
+        SKEW: 0,
+        CENTER_X: resolution[0]/2,
+        CENTER_Y: resolution[1]/2
+    }
+    radian_half_fov = np.array(fov) * np.pi / 360.0
+    focal = np.array(resolution) / (2 * np.tan(radian_half_fov))
+    intr[FOCAL_X] = focal[0]
+    intr[FOCAL_Y] = focal[1]
+    return intr
+
+
 def __depth_from_model(modelpoint, calibration):
     camera_model_point = np.matmul(modelpoint.as_row_tr(), calibration[EXTRINSIC])
     return calibration[DEPTHSCALE] * camera_model_point[2]
@@ -150,4 +170,5 @@ class ModelPoint:
         self.y /= other
         self.z /= other
         return self
+
 
