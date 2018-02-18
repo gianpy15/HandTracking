@@ -47,6 +47,10 @@ default_calibration = {
 current_calibration = default_calibration
 
 
+def set_current_calib(cal):
+    global current_calibration
+    current_calibration = cal
+
 def intrinsic_matrix(calibration):
     """
     Extract the intrinsic matrix transformation from the calibration settings
@@ -65,8 +69,11 @@ def intrinsic_matrix(calibration):
 def model2image(modelpoint, calibration, makedepth=False):
     image_point = np.matmul(np.matmul(modelpoint.as_row_tr(), calibration[EXTRINSIC]),
                             intrinsic_matrix(calibration[INTRINSIC]))
-    image_point = image_point[0:2] / image_point[2]
-    ret = ImagePoint(image_point[0], image_point[1])
+    if image_point[2] != 0:
+        image_point = image_point[0:2] / image_point[2]
+    else:
+        image_point = np.zeros(shape=(2,))
+    ret = ImagePoint(image_point[0:2])
     if not makedepth:
         return ret
     else:
@@ -78,13 +85,13 @@ def depthimage2cameramodel(imagepoint, calibration):
     if imagepoint.depth is None:
         return image2cameramodeldirectin(imagepoint, calibration)
     z = imagepoint.depth / calibration[DEPTHSCALE]
-    x = (imagepoint.x - calibration[INTRINSIC][CENTER_X]) * z / calibration[INTRINSIC][FOCAL_X]
-    y = (imagepoint.y - calibration[INTRINSIC][CENTER_Y]) * z / calibration[INTRINSIC][FOCAL_Y]
-    return ModelPoint(x, y, z)
+    x = (imagepoint.coords[0] - calibration[INTRINSIC][CENTER_X]) * z / calibration[INTRINSIC][FOCAL_X]
+    y = (imagepoint.coords[1] - calibration[INTRINSIC][CENTER_Y]) * z / calibration[INTRINSIC][FOCAL_Y]
+    return ModelPoint((x, y, z))
 
 
 def image2cameramodeldirectin(imagepoint, calibration):
-    sample = ImagePoint(imagepoint.x, imagepoint.y, depth=calibration[DEPTHSCALE])
+    sample = ImagePoint(imagepoint.coords, depth=calibration[DEPTHSCALE])
     sample = depthimage2cameramodel(sample, calibration)
     sample /= np.linalg.norm(sample.as_row(), ord=2)
     return sample
@@ -110,16 +117,24 @@ def synth_intrinsic(resolution, fov):
     return intr
 
 
+def calibration(intr=default_intrinsic, ext=default_extrinsic, depthscale=default_depth_scale):
+    return {
+        INTRINSIC: intr,
+        EXTRINSIC: ext,
+        DEPTHSCALE: depthscale
+    }
+
+
 def __depth_from_model(modelpoint, calibration):
     camera_model_point = np.matmul(modelpoint.as_row_tr(), calibration[EXTRINSIC])
     return calibration[DEPTHSCALE] * camera_model_point[2]
 
 
 class ImagePoint:
-    def __init__(self, x, y, depth=None):
-        self.x = x
-        self.y = y
+    def __init__(self, coords, depth=None):
+        self.coords = coords[0:2]
         self.depth = depth
+        self.visible = True if depth is not None else False
 
     def to_camera_model(self, calibration=None):
         if calibration is None:
@@ -127,35 +142,33 @@ class ImagePoint:
         return depthimage2cameramodel(self, calibration=calibration)
 
     def as_row(self):
-        return np.array([self.x, self.y])
+        return np.array(self.coords[0:2])
 
     def as_col(self):
-        return np.array([[self.x], [self.y]])
+        return np.transpose([self.coords[0:2]])
 
     def as_row_tr(self):
-        return np.array([self.x, self.y, 1])
+        return np.concatenate((self.coords[0:2], [1]))
 
     def as_col_tr(self):
-        return np.array([[self.x], [self.y], [1]])
+        return np.transpose([self.as_row_tr()])
 
 
 class ModelPoint:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, coords):
+        self.coords = coords[0:3]
 
     def as_row(self):
-        return np.array([self.x, self.y, self.z])
+        return np.array(self.coords[0:3])
 
     def as_col(self):
-        return np.array([[self.x], [self.y], [self.z]])
+        return np.transpose([self.coords[0:3]])
 
     def as_row_tr(self):
-        return np.array([self.x, self.y, self.z, 1])
+        return np.concatenate((self.coords[0:3], [1]))
 
     def as_col_tr(self):
-        return np.array([[self.x], [self.y], [self.z], [1]])
+        return np.transpose([self.as_row_tr()])
 
     def to_image_space(self, calibration=None):
         if calibration is None:
@@ -163,10 +176,11 @@ class ModelPoint:
         return model2image(self, calibration)
 
     def __truediv__(self, other):
-        return ModelPoint(self.x / other, self.y / other, self.z / other)
+        return ModelPoint(self.coords/other)
 
     def __itruediv__(self, other):
-        self.x /= other
-        self.y /= other
-        self.z /= other
+        self.coords /= other
         return self
+
+    def __sub__(self, other):
+        return ModelPoint(np.array(self.coords)-np.array(other.coords))

@@ -19,7 +19,7 @@ class ModelDrawer:
         self.__lines_tag = 'linemd'
 
         self.dot_colors = {
-            WRIST: "white",
+            WRIST: "black",
             THUMB: "green",
             INDEX: "yellow",
             MIDDLE: "red",
@@ -172,25 +172,23 @@ class ModelDrawer:
 # testing with some fancy animations!
 if __name__ == '__main__':
     import tkinter as tk
-    import scipy.io as scio
-    import data_manager.path_manager as path_manager
+    import image_loader.hand_io as hio
     import gui.pinpointer_canvas as ppc
     import time
     import threading
     import geometry.transforms as tr
-    import geometry.calibration as cal
+    from geometry.calibration import *
     import numpy as np
 
-    pm = path_manager.PathManager()
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
-    helper_hand = scio.loadmat(pm.resources_path("gui/hand.mat"))
+    helper_hand_img, helper_hand_lab = hio.load("gui/hand.mat")
     test_subject = ppc.PinpointerCanvas(frame)
-    test_subject.set_bitmap(helper_hand['data'])
+    test_subject.set_bitmap(helper_hand_img)
     test_subject.pack()
     md = ModelDrawer()
-    md.set_joints(hand_format(helper_hand['labels']))
+    md.set_joints(hand_format(helper_hand_lab))
     md.set_target_area(test_subject)
 
     # here we define the flat rotation with random constellation
@@ -198,15 +196,11 @@ if __name__ == '__main__':
     # different and randomized (the constellation effect)
     # and then they should rotate rigidly around their center
     def loop():
-        label_data = helper_hand['labels'].copy()
-        resolution = helper_hand['data'].shape[0:2]
-        camera_calib = {
-            cal.INTRINSIC: cal.synth_intrinsic(resolution, (50, 50)),
-            cal.EXTRINSIC: cal.default_extrinsic,
-            cal.DEPTHSCALE: cal.default_depth_scale
-        }
+        label_data = helper_hand_lab.copy()
+        resolution = helper_hand_img.shape[0:2]
+        camera_calib = calibration(intr=synth_intrinsic(resolution, (50, 50)))
         # Here we arbitrarily set their depth to make the constellation effect
-        flat_3d = [cal.ImagePoint(elem[0]*resolution[0], elem[1]*resolution[1], depth=10+np.random.random())
+        flat_3d = [ImagePoint((elem[0]*resolution[0], elem[1]*resolution[1]), depth=10+np.random.random())
                        .to_camera_model(calibration=camera_calib)
                        .as_row()
                    for elem in label_data]
@@ -219,7 +213,7 @@ if __name__ == '__main__':
             # rotate the 3D dataset
             flat_3d = [np.matmul(rotation, elem-center)+center for elem in flat_3d]
             # project it into image space
-            flat_2d = [cal.ModelPoint(elem[0], elem[1], elem[2])
+            flat_2d = [ModelPoint(elem)
                            .to_image_space(calibration=camera_calib)
                            .as_row()
                        for elem in flat_3d]
