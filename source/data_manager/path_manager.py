@@ -8,7 +8,7 @@ class PathManager:
     to resolve the resources folder regardless of the current running path.
     """
     def __init__(self):
-        curpath = os.path.realpath(".")
+        curpath = os.path.realpath(__file__)
         basepath = curpath
         while basepath.split('/')[-1] != 'source':
             newpath = os.path.split(basepath)[0]
