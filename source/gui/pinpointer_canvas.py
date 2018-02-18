@@ -22,9 +22,7 @@ class PinpointerCanvas(tk.Canvas):
 
         # binding mouse events to event handlers...
         self.bind("<Button-1>", self.__left_clicked)
-        # double bind for OS compatibility
         self.bind("<Button-2>", self.__right_clicked)
-        self.bind("<Button-3>", self.__right_clicked)
 
         # class keys to reference elements in the class dictionaries (see next attributes)
         self.left = "LEFT"
