@@ -1,0 +1,15 @@
+<application>
+  <component name="PyTestFrameworkService">
+    <option name="SDK_TO_PYTEST">
+      <map>
+        <entry key="C:\Users\mikib\AppData\Local\Programs\Python\Python36\python.exe" value="false" />
+        <entry key="C:\Users\mikib\Miniconda3\envs\tensorflow\python.exe" value="false" />
+      </map>
+    </option>
+    <option name="SDK_TO_NOSETEST">
+      <map>
+        <entry key="C:\Users\mikib\Miniconda3\envs\tensorflow\python.exe" value="true" />
+      </map>
+    </option>
+  </component>
+</application>
