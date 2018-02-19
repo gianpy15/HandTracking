@@ -3,6 +3,11 @@ import re
 
 
 class ModelDrawer:
+    """
+    This class manages the objects related to drawing a hand model into a canvas.
+    It can manage one canvas at a time and takes care of canvas object instantiation,
+    update and deletion when needed.
+    """
     key_rex = re.compile('[^-]+-[^-]+')
 
     def __init__(self):
@@ -29,6 +34,13 @@ class ModelDrawer:
         self.dot_radius = 5
 
     def set_target_area(self, canvas, position=(0, 0), size=None):
+        """
+        Set the canvas where the drawing will be performed and the region of the canvas
+        where the points should be drawn
+        :param canvas: the target canvas of the drawing
+        :param position: the offset to give to points with respect to the canvas. Defaults to zero.
+        :param size: the size we want our drawn window to have. Defaults to canvas whole dimensions.
+        """
         if size is None:
             self.width = canvas.winfo_width()
             self.height = canvas.winfo_height()
@@ -49,16 +61,23 @@ class ModelDrawer:
         if self.__joints_set():
             self.draw_model()
 
+    def set_joints(self, joints):
+        """
+        Set or update the joints data to be drawn, and automagically draw them.
+        :param joints: the hand joints in rich dictionary standard format (see geometry.formatting)
+        """
+        self.joints = joints.copy()
+        if self.canvas is not None:
+            self.draw_model()
+
     def draw_model(self):
+        """
+        Draw the model. Already called by set_joints.
+        """
         if self.__drawn_anything():
             self.__update_draw()
         else:
             self.__draw_anew()
-
-    def set_joints(self, joints):
-        self.joints = joints.copy()
-        if self.canvas is not None:
-            self.draw_model()
 
     def __draw_anew(self):
         # draw the wrist

@@ -1,18 +1,12 @@
 import numpy as np
-import os
 import skvideo.io as skio
+
+from hand_data_management.index import *
 from image_loader.hand_io import *
 
 BASECODE = 32
 SEPARATOR = chr(126)
 CONTRACTION = 4
-
-FLAG_PROCESSING = '6'
-FLAG_LABELED = '0'
-FLAG_UNLABELED = '1'
-
-framebase = pm.resources_path("framedata")
-contributors = pm.resources_path("framedata/contributors.txt")
 
 
 def encode_image(img):
@@ -56,24 +50,11 @@ def build_frame_root_from_vid(videopath):
     build_empty_index_file(os.path.join(framesdir, index_name(videoname)), len(videodata))
 
 
-def build_empty_index_file(complete_filename, index_len):
-    f = open(complete_filename, "x")
-    f.write(FLAG_UNLABELED * index_len)
-    f.close()
-
-
-def set_index_flag(complete_filename, flag, idx):
-    f = open(complete_filename, "r+")
-    f.seek(idx)
-    f.write(flag)
-    f.close()
-
-
 def save_labels(labels, frame):
     vidn = get_vidname(frame)
     framedir = os.path.join(framebase, vidn)
     frame = os.path.join(framedir, frame)
-    data = load(frame)
+    data, _ = load(frame)
     store(frame, data=data, labels=labels)
     set_index_flag(os.path.join(framedir, index_name(vidn)),
                    flag=FLAG_LABELED,
@@ -86,6 +67,13 @@ def select_best_frame(vidname):
     flagset = index.read()
     index.close()
 
+    # give precedence to first and last frame for interpolation
+    if flagset[0] == FLAG_UNLABELED:
+        return 0, len(flagset)
+    elif flagset[-1] == FLAG_UNLABELED:
+        return len(flagset)-1, len(flagset)
+
+    # or find the frame that minimizes the largest unlabeled interval
     best_start = flagset.find(FLAG_UNLABELED)
     if best_start == -1:
         return -1, -1
@@ -110,6 +98,9 @@ def select_best_frame(vidname):
 def select_best_overall_frame():
     vids = os.listdir(framebase)
     bestvid = ('', -1, -1)
+    vids = [os.path.join(framebase, vid) for vid in vids]
+    vids = [vid_dir for vid_dir in vids if os.path.isdir(vid_dir)]
+    vids = [vid.split('/')[-1] for vid in vids]
     for vidname in vids:
         selected_frame, frames_interval = select_best_frame(vidname)
         if frames_interval > bestvid[2]:
@@ -120,24 +111,9 @@ def select_best_overall_frame():
     selected_frame_name = os.path.join(selected_vid_dir,
                                        frame_name(bestvid[0],
                                                   bestvid[1]))
-    return load(selected_frame_name), frame_name(bestvid[0],
-                                                 bestvid[1])
-
-
-def tick_index_counters(vidname):
-    index_path = get_index_from_vidname(vidname)
-    index = open(index_path, "r+")
-    content = index.read()
-    updated_content = ''
-    for frameno in range(len(content)):
-        framecode = content[frameno]
-        if framecode == FLAG_UNLABELED or framecode == FLAG_LABELED:
-            updated_content += framecode
-        else:
-            updated_content += str(int(framecode) - 1)
-    index.seek(0)
-    index.write(updated_content)
-    index.close()
+    fdata, _ = load(selected_frame_name)
+    return fdata, frame_name(bestvid[0],
+                             bestvid[1])
 
 
 def add_contributor(nick):
@@ -171,41 +147,3 @@ def register_labels(labelstring, frame, contributor=None):
     else:
         add_contributor("Anonymous")
     tick_index_counters(get_vidname(frame))
-
-
-def frame_name(vidname, frameno):
-    return "%s%04d.mat" % (vidname, frameno)
-
-
-def index_name(vidname):
-    return "%s-index.txt" % (vidname,)
-
-
-def get_frameno(filename):
-    return int(filename[-8:-4])
-
-
-def get_vidname(filename):
-    return filename.split("/")[-1][0:-8]
-
-
-def get_index_content(vidname):
-    index_complete_path = get_index_from_vidname(vidname)
-    index = open(index_complete_path, "r")
-    content = index.read()
-    index.close()
-    return content
-
-
-def get_index_from_vidname(vidname):
-    viddir = os.path.join(framebase, vidname)
-    return os.path.join(viddir, index_name(vidname))
-
-
-def get_index_from_frame(framename):
-    return get_index_from_vidname(get_vidname(framename))
-
-
-def get_complete_frame_path(framename):
-    vidname = get_vidname(framename)
-    return os.path.join(os.path.join(framebase, vidname), framename)

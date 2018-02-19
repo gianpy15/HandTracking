@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
 
-from php_called_scripts.utils import *
+from hand_data_management.utils import *
 
 if __name__ == '__main__':
     img, name = select_best_overall_frame()
@@ -10,4 +10,4 @@ if __name__ == '__main__':
     print(name + SEPARATOR + imgstr)
     set_index_flag(get_index_from_frame(name),
                    flag=FLAG_PROCESSING,
-                   idx=get_index_from_frame(name))
+                   idx=get_frameno(name))
