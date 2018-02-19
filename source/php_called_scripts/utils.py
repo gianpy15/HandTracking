@@ -7,9 +7,9 @@ BASECODE = 32
 SEPARATOR = chr(126)
 CONTRACTION = 4
 
-FLAG_LABELED = '2'
-FLAG_PROCESSING = '1'
-FLAG_UNLABELED = '0'
+FLAG_PROCESSING = '6'
+FLAG_LABELED = '0'
+FLAG_UNLABELED = '1'
 
 framebase = pm.resources_path("framedata")
 contributors = pm.resources_path("framedata/contributors.txt")
@@ -124,6 +124,22 @@ def select_best_overall_frame():
                                                  bestvid[1])
 
 
+def tick_index_counters(vidname):
+    index_path = get_index_from_vidname(vidname)
+    index = open(index_path, "r+")
+    content = index.read()
+    updated_content = ''
+    for frameno in range(len(content)):
+        framecode = content[frameno]
+        if framecode == FLAG_UNLABELED or framecode == FLAG_LABELED:
+            updated_content += framecode
+        else:
+            updated_content += str(int(framecode) - 1)
+    index.seek(0)
+    index.write(updated_content)
+    index.close()
+
+
 def add_contributor(nick):
     contribs = open(contributors, "r+")
     c = contribs.readline()
@@ -136,8 +152,25 @@ def add_contributor(nick):
         contribs.write(nick + " 0001\n")
     else:
         current_amount = int(c.split(' ')[1])
-        contribs.seek(pos-len(c))
+        contribs.seek(pos - len(c))
         contribs.write(nick + " %04d" % (current_amount + 1,))
+
+
+def register_labels(labelstring, frame, contributor=None):
+    tokens = labelstring.split(',')
+    if len(tokens) != 63:
+        exit(-1)
+    raw_labels = []
+    for idx in range(21):
+        raw_labels.append((float(tokens[3*idx]),
+                           float(tokens[3*idx+1]),
+                           1 if tokens[3*idx+2] in ('true', 'True', 'TRUE') else 0))
+    save_labels(labels=raw_labels, frame=frame)
+    if contributor is not None:
+        add_contributor(contributor.replace(" ", ""))
+    else:
+        add_contributor("Anonymous")
+    tick_index_counters(get_vidname(frame))
 
 
 def frame_name(vidname, frameno):
@@ -156,10 +189,21 @@ def get_vidname(filename):
     return filename.split("/")[-1][0:-8]
 
 
-def get_index_from_frame(framename):
-    vidname = get_vidname(framename)
+def get_index_content(vidname):
+    index_complete_path = get_index_from_vidname(vidname)
+    index = open(index_complete_path, "r")
+    content = index.read()
+    index.close()
+    return content
+
+
+def get_index_from_vidname(vidname):
     viddir = os.path.join(framebase, vidname)
     return os.path.join(viddir, index_name(vidname))
+
+
+def get_index_from_frame(framename):
+    return get_index_from_vidname(get_vidname(framename))
 
 
 def get_complete_frame_path(framename):
