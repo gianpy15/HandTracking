@@ -12,3 +12,5 @@ gen
 source/**/__pycache__
 source/**/*.pyc
 source/**/.DS_Store
+.DS_Store
+
