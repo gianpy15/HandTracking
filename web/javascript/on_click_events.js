@@ -90,8 +90,10 @@ function on_commit_event(e, exit) {
       var data = get_data(junctions);
       console.log(data.toString());
       // Create the server request
-      var httpc = new XMLHttpRequest();
+      // var httpc = new XMLHttpRequest();
       var url = "test.php";
+
+      /*
       httpc.open("POST", url, true);
       httpc.setRequestHeader("Content-Type", "application/data");
       httpc.setRequestHeader("labels", data.toString());
@@ -103,7 +105,7 @@ function on_commit_event(e, exit) {
                location.href='thanks.html';
             } else {
                //TODO: Manage the new image
-               drawImage(/* New image */ document.getElementById("left_c").getContext("2d"));
+               drawImage(/* New image / document.getElementById("left_c").getContext("2d"));
                junctions.reset();
             }
          } else {
@@ -111,7 +113,12 @@ function on_commit_event(e, exit) {
          }
       }
 
-    httpc.send();
+    httpc.send();*/
+
+    var data = $.post(url, {labels: data.toString()})
+      .done(data => console.log("Data loaded: " + data)
+      .success((response) => on_response(response, exit)));
+
    }
    else
       alert("Please fill all the points");
@@ -125,6 +132,16 @@ function get_data(points) {
       ret.push(points.selected_points[i].occluded);
    }
    return ret;
+}
+
+function on_response(response, exit_condition) {
+   if (exit) {
+      location.href='thanks.html';
+   } else {
+      //TODO: Manage the new image
+      drawImage(/* New image */ document.getElementById("left_c").getContext("2d"));
+      junctions.reset();
+   }
 }
 
 
