@@ -36,6 +36,10 @@ def get_index_from_frame(framename):
     return get_index_from_vidname(get_vidname(framename))
 
 
+def get_vid_dir_from_vidname(vidname):
+    return os.path.join(framebase, vidname, TEMPDIR)
+
+
 def get_complete_frame_path(framename):
     vidname = get_vidname(framename)
     return os.path.join(os.path.join(framebase, vidname), framename)
