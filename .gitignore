@@ -4,6 +4,7 @@
 
 # IntelliJ project files
 .idea
+web/.idea
 out
 gen
 .venv
