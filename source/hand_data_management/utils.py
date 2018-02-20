@@ -3,6 +3,7 @@ import skvideo.io as skio
 
 from hand_data_management.index import *
 from image_loader.hand_io import *
+from hand_data_management.frame_caching import *
 
 BASECODE = 32
 SEPARATOR = chr(126)
@@ -45,6 +46,7 @@ def build_frame_root_from_vid(videopath):
 
     videodata = skio.vread(pm.resources_path(videopath))
     os.makedirs(framesdir)
+    os.makedirs(os.path.join(framesdir, TEMPDIR))
     for frameidx in range(len(videodata)):
         store(os.path.join(framesdir, frame_name(videoname, frameidx)), videodata[frameidx])
     build_empty_index_file(os.path.join(framesdir, index_name(videoname)), len(videodata))
@@ -146,4 +148,5 @@ def register_labels(labelstring, frame, contributor=None):
         add_contributor(contributor.replace(" ", ""))
     else:
         add_contributor("Anonymous")
+    uncache_frame(frame)
     tick_index_counters(get_vidname(frame))

@@ -417,8 +417,8 @@ if __name__ == '__main__':
         while True:
             hand_model = raw(hand_locator.out_model.copy())
             # rotate the 3D dataset
-            # center = np.average(hand_model, axis=0)
-            # hand_model = [np.matmul(current_rotation, elem - center) + center for elem in hand_model]
+            center = np.average(hand_model, axis=0)
+            hand_model = [np.matmul(current_rotation, elem - center) + center for elem in hand_model]
             # project it into image space
             flat_2d = [ModelPoint(elem)
                            .to_image_space()

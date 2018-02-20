@@ -4,6 +4,7 @@ import os
 
 framebase = pm.resources_path("framedata")
 contributors = pm.resources_path("framedata/contributors.txt")
+TEMPDIR = "tmp"
 
 
 def frame_name(vidname, frameno):
@@ -12,6 +13,10 @@ def frame_name(vidname, frameno):
 
 def index_name(vidname):
     return "%s-index.txt" % (vidname,)
+
+
+def cached_frame_name(vidname, frameno):
+    return "%s%04d.png" % (vidname, frameno)
 
 
 def get_frameno(filename):
@@ -34,3 +39,9 @@ def get_index_from_frame(framename):
 def get_complete_frame_path(framename):
     vidname = get_vidname(framename)
     return os.path.join(os.path.join(framebase, vidname), framename)
+
+
+def get_tmp_dir_from_vidname(vidname):
+    viddir = os.path.join(framebase, vidname)
+    return os.path.join(viddir, TEMPDIR)
+

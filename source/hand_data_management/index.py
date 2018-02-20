@@ -1,4 +1,4 @@
-from hand_data_management.naming import *
+from hand_data_management.frame_caching import *
 
 FLAG_PROCESSING = '6'
 FLAG_LABELED = '0'
@@ -23,7 +23,10 @@ def tick_index_counters(vidname):
         if framecode == FLAG_UNLABELED or framecode == FLAG_LABELED:
             updated_content += framecode
         else:
-            updated_content += str(int(framecode) - 1)
+            newval = str(int(framecode) - 1)
+            updated_content += newval
+            if newval == FLAG_UNLABELED:
+                uncache_frame(frame_name(vidname, frameno))
     index.seek(0)
     index.write(updated_content)
     index.close()
