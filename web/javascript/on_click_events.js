@@ -17,10 +17,16 @@ function on_commit_event(exit) {
     if(junctions.selected_points.length === junctions.N_POINTS) {
         var data = get_data(junctions);
         console.log(data.toString());
-        $.post("test.php", { labels: data.toString() });
-        location.href = exit ? "thanks.html" : "prepare_data.php";
-    }
 
+        let labels_resp = new XMLHttpRequest();
+        labels_resp.open('POST', "label.php", true);
+        labels_resp.onreadystatechange = function () {
+            if(labels_resp.readyState === XMLHttpRequest.DONE && labels_resp.status === 200)
+                location.href = exit ? "prepare_data.php" : "thanks.html";
+        };
+        labels_resp.setRequestHeader("Content_type", "labels");
+        labels_resp.send({ labels: data.toString() });
+    }
     else
         alert("Please fill all the points");
 }
