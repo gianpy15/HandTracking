@@ -18,12 +18,11 @@ TOP = 'tp'
 WIDE = 'wd'
 
 ANGLE_DOMAINS = {
-    WIDE: (-np.pi/180*10, np.pi/180*10),
-    BASE: (-np.pi/180*20, np.pi/2),
-    MID: (0, np.pi/2),
-    TOP: (0, np.pi/2)
+    WIDE: (-np.pi / 180 * 10, np.pi / 180 * 10),
+    BASE: (-np.pi / 180 * 20, np.pi / 2),
+    MID: (0, np.pi / 2),
+    TOP: (0, np.pi / 2)
 }
-
 
 LOSSES = (POINT_DISTANCE,
           LINE_DISTANCE,
@@ -34,9 +33,9 @@ def build_default_hand_model():
     SCALE_FACTOR = 1
     img, raw_positions = load("gui/sample_hand.mat")
 
-    raw_positions = [(x*img.shape[1], y*img.shape[0]) for (x, y, f) in raw_positions]
-    cal = calibration(intr=synth_intrinsic(resolution=img.shape[0:2], fov=(50, 50*img.shape[0]/img.shape[1])))
-    points = np.array([ImagePoint(elem, depth=0.2 + np.random.normal(loc=0.0, scale=1e-6)).to_camera_model(
+    raw_positions = [(x * img.shape[1], (1 - y) * img.shape[0]) for (x, y, f) in raw_positions]
+    cal = calibration(intr=synth_intrinsic(resolution=img.shape[0:2], fov=(50, 50 * img.shape[0] / img.shape[1])))
+    points = np.array([ImagePoint(elem, depth=0.2).to_camera_model(
         calibration=cal).as_row()
                        for elem in raw_positions * SCALE_FACTOR])
     return hand_format(points - np.average(points, axis=0))
@@ -49,6 +48,7 @@ class HandLocator:
     def __init__(self):
         init_dict = hand_format(np.zeros(shape=(21,)))
         self.loss_weights = {}
+        self.joints_weights = {}
 
         # Data inputs
         self.data_placeholders = {}
@@ -91,6 +91,13 @@ class HandLocator:
             LINE_DISTANCE: 1,
             JOINTS_ANGLE: 1
         }
+        self.joints_weights = {
+            WRIST: 10,
+            0: 10,
+            1: 6,
+            2: 3,
+            3: 2
+        }
         self.data_placeholders = {
             (WRIST, 0): tf.placeholder(dtype=HandLocator.dtype, shape=(3,), name=code_name(WRIST, append='-d'))
         }
@@ -119,15 +126,21 @@ class HandLocator:
 
         for finger in FINGERS:
             # First rotate all fingers by the base angles
-            base_versor = HandLocator.normalized_internal_cross(self.base_model[WRIST][0],
-                                                                self.base_model[finger][0],
-                                                                self.base_model[finger][1])
+            base_versor = HandLocator.get_finger_rot_axis(self.base_model[WRIST][0],
+                                                          self.base_model[finger][0],
+                                                          self.base_model[finger][1])
             finger_directed_versor = HandLocator.normalized_diff(self.base_model[finger][1],
                                                                  self.base_model[finger][0])
             basechange_mat = HandLocator.get_base_change_mat(base_versor, finger_directed_versor)
             self.base_rotated_model[WRIST][0] = self.base_model[WRIST][0]
             self.base_rotated_model[finger][0] = self.base_model[finger][0]
-            for idx in range(1, 4):
+            if finger != THUMB:
+                first = 1
+                center = self.base_model[finger][0]
+            else:
+                first = 0
+                center = self.base_model[WRIST][0]
+            for idx in range(first, 4):
                 self.base_rotated_model[finger][idx] = \
                     tf.matmul(tf.transpose(basechange_mat),
                               tf.matmul(HandLocator.get_rotation_matrix(axis=2,
@@ -137,14 +150,14 @@ class HandLocator:
                                                                                       finger]),
                                                   tf.matmul(basechange_mat,
                                                             HandLocator.ascol(self.base_model[finger][idx] -
-                                                                              self.base_model[finger][0]))))) + \
-                    HandLocator.ascol(self.base_model[finger][0])
+                                                                              center))))) + \
+                    HandLocator.ascol(center)
                 self.base_rotated_model[finger][idx] = HandLocator.asrow(self.base_rotated_model[finger][idx])
 
             # Then rotate mids and tips by the mid angles
-            base_versor = HandLocator.normalized_internal_cross(self.base_rotated_model[finger][0],
-                                                                self.base_rotated_model[finger][1],
-                                                                self.base_rotated_model[finger][2])
+            base_versor = HandLocator.get_finger_rot_axis(self.base_rotated_model[finger][0],
+                                                          self.base_rotated_model[finger][1],
+                                                          self.base_rotated_model[finger][2])
             finger_directed_versor = HandLocator.normalized_diff(self.base_rotated_model[finger][2],
                                                                  self.base_rotated_model[finger][1])
             basechange_mat = HandLocator.get_base_change_mat(base_versor, finger_directed_versor)
@@ -162,9 +175,9 @@ class HandLocator:
                     HandLocator.ascol(self.base_rotated_model[finger][1])
                 self.mid_rotated_model[finger][idx] = HandLocator.asrow(self.mid_rotated_model[finger][idx])
             # Then rotate tips by the tip angles
-            base_versor = HandLocator.normalized_internal_cross(self.mid_rotated_model[finger][1],
-                                                                self.mid_rotated_model[finger][2],
-                                                                self.mid_rotated_model[finger][3])
+            base_versor = HandLocator.get_finger_rot_axis(self.mid_rotated_model[finger][1],
+                                                          self.mid_rotated_model[finger][2],
+                                                          self.mid_rotated_model[finger][3])
             finger_directed_versor = HandLocator.normalized_diff(self.mid_rotated_model[finger][3],
                                                                  self.mid_rotated_model[finger][2])
             basechange_mat = HandLocator.get_base_change_mat(base_versor, finger_directed_versor)
@@ -242,12 +255,14 @@ class HandLocator:
 
     # LD - LINE_DISTANCE
     def line_distance_losses(self):
-        losses = [HandLocator.linewise_loss(self.final_model[WRIST][0], self.data_placeholders[(WRIST, 0)])]
+        losses = [self.joints_weights[WRIST] * HandLocator.linewise_loss(self.final_model[WRIST][0],
+                                                                         self.data_placeholders[(WRIST, 0)])]
         losses[-1] *= self.flags_placeholders[(WRIST, 0)]
         for finger in FINGERS:
             for joint in range(4):
-                losses.append(HandLocator.linewise_loss(self.final_model[finger][joint],
-                                                        self.data_placeholders[(finger, joint)]))
+                losses.append(self.joints_weights[joint] * HandLocator.linewise_loss(self.final_model[finger][joint],
+                                                                                     self.data_placeholders[
+                                                                                         (finger, joint)]))
                 losses[-1] *= self.flags_placeholders[(finger, joint)]
         return tf.reduce_sum(losses)
 
@@ -262,9 +277,9 @@ class HandLocator:
 
     @staticmethod
     def interval_loss(value, interval):
-        tr = (interval[1]+interval[0])/2
-        dw = (interval[1]-interval[0])/2
-        return tf.exp(180 / np.pi * tf.nn.relu(tf.abs(value-tr)-dw)) - 1
+        tr = (interval[1] + interval[0]) / 2
+        dw = (interval[1] - interval[0]) / 2
+        return tf.exp(180 / np.pi * tf.nn.relu(tf.abs(value - tr) - dw)) - 1
 
     @staticmethod
     def fixed_point_loss(var, ph):
@@ -272,7 +287,7 @@ class HandLocator:
 
     @staticmethod
     def linewise_loss(var, ph):
-        return tf.norm(HandLocator.cross_product(var, ph) + HandLocator.epsilon)
+        return tf.square(tf.norm(HandLocator.cross_product(var, ph) + HandLocator.epsilon))
 
     @staticmethod
     def inner_cosine(v1, v2, v3):
@@ -293,6 +308,13 @@ class HandLocator:
     def plane_versor(v1, v2, v3):
         return HandLocator.cross_product(HandLocator.normalized_diff(v2, v1),
                                          HandLocator.normalized_diff(v3, v1))
+
+    @staticmethod
+    def get_finger_rot_axis(p1, p2, p3):
+        diff1 = tf.subtract(p3, p2)
+        diff2 = HandLocator.normalized_internal_cross(p1, p2, p3)
+        cross = HandLocator.cross_product(diff1, diff2)
+        return cross / (HandLocator.epsilon + tf.norm(cross))
 
     @staticmethod
     def normalized_internal_cross(p1, p2, p3):
@@ -395,8 +417,8 @@ if __name__ == '__main__':
         while True:
             hand_model = raw(hand_locator.out_model.copy())
             # rotate the 3D dataset
-            center = np.average(hand_model, axis=0)
-            hand_model = [np.matmul(current_rotation, elem - center) + center for elem in hand_model]
+            # center = np.average(hand_model, axis=0)
+            # hand_model = [np.matmul(current_rotation, elem - center) + center for elem in hand_model]
             # project it into image space
             flat_2d = [ModelPoint(elem)
                            .to_image_space()
