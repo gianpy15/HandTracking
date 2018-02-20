@@ -51,10 +51,18 @@
        <script src="javascript/points.js" type="text/javascript"></script>
        <script type="text/javascript">
             var sample_img_url = "http://dreamicus.com/data/hand/hand-07.jpg";
-            var target_img_url = "http://dreamicus.com/data/hand/hand-07.jpg";
+            var target_img_url = "<?php
+
+                $script_base = "/home/luca/repos/HandTracking/";
+                $python_interpreter = "/home/luca/miniconda3/envs/tensorflow/bin/python";
+                $script = "source/php_called_scripts/get_frame.py";
+                $args = "";
+                $cmd = $python_interpreter." ".$script_base.$script." ".$args;
+                $imgurl = exec($cmd);
+                echo $imgurl;
+                ?>";
             var target_joints = [new Point(0.3, 0.3, false), new Point(0.5, 0.5, false), new Point(0.7, 0.7, false)];
        </script>
-
        <script src="javascript/hand_tracking_samples.js" type="text/javascript"></script>
       <script src="javascript/on_click_events.js" type="text/javascript"></script>
       <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>

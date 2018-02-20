@@ -18,7 +18,7 @@ function on_commit_event(exit) {
         var data = get_data(junctions);
         console.log(data.toString());
         $.post("test.php", { labels: data.toString() });
-        location.href = exit ? "thanks.html" : "prepare_data.html";
+        location.href = exit ? "thanks.html" : "prepare_data.php";
     }
 
     else

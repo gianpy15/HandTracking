@@ -4,7 +4,7 @@ sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], ".."))
 
 from hand_data_management.utils import *
 
-SERVER_SYMLINK = "framedata"
+SERVER_SYMLINK = "/framedata"
 
 if __name__ == '__main__':
     _, name = select_best_overall_frame()
