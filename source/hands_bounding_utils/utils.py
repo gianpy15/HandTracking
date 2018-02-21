@@ -145,11 +145,8 @@ def __get_coords_from_heatmap(heatmap, precision, height_shrink_rate, width_shri
 
 def __get_biggest_connected_area_from_point(heatmap, precision, lista):
     in_list = np.zeros(heatmap.shape)
-    used = np.zeros(heatmap.shape)
     in_list[lista[0][0]][lista[0][1]] = 1
     for p in lista:
-        if used[p[0]][p[1]] == 0:
-            used[p[0]][p[1]] = 1
             if p[0] > 0 and heatmap[p[0]-1][p[1]] >= precision and in_list[p[0]-1][p[1]] != 1:
                 lista.append([p[0]-1, p[1]])
                 in_list[p[0] - 1][p[1]] = 1
@@ -338,7 +335,7 @@ matp = "Poselet_186.mat"
 heatmap1 = get_heatmap_from_mat(imagep, matp)
 # showimage(__heatmap_to_rgb(heatmap1))
 start = time.time()
-# showimages(get_crops_from_heatmap(imagep, heatmap1))
+#showimages(get_crops_from_heatmap(imagep, heatmap1))
 get_crops_from_heatmap(imagep, heatmap1, precision=0.7)
 end = time.time()
 print((end-start))
