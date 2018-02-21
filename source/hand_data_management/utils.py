@@ -11,9 +11,8 @@ CONTRACTION = 4
 
 def build_frame_root_from_vid(videopath, post_process=lambda f: None):
     videopath = pm.resources_path(videopath)
-    videoname = videopath.split('/')[-1].split('.')[0]
-    framesdir = os.path.join(framebase, videoname)
-
+    videoname = os.path.splitext(os.path.split(videopath)[1])[0]
+    framesdir = get_vid_dir_from_vidname(videoname)
     if os.path.exists(framesdir):
         return False
 

@@ -25,7 +25,7 @@ if __name__ == '__main__':
         exit(-1)
 
     for v in VIDS:
-        vidname = v.split("/")[-1]
+        vidname = os.path.split(v)[1]
         print("Processing video %s..." % vidname)
         if ut.build_frame_root_from_vid(v, post_process=edit_permissions):
             print("Successfully built %s video filesystem." % vidname)

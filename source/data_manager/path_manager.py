@@ -10,7 +10,7 @@ class PathManager:
     def __init__(self):
         curpath = os.path.realpath(__file__)
         basepath = curpath
-        while basepath.split('/')[-1] != 'source':
+        while os.path.split(basepath)[1] != 'source':
             newpath = os.path.split(basepath)[0]
             if newpath == basepath:
                 print("ERROR: unable to find source from path "+curpath)
