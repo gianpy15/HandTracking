@@ -9,7 +9,7 @@ l_canvas.addEventListener('click', e => on_click_events(e, 'l'), false);
 l_canvas.addEventListener('contextmenu', e => on_click_events(e, 'r'), false);
 l_canvas.oncontextmenu = function() { return false; };
 undo_b.addEventListener('click', () => junctions.undo(), false);
-submit_b.addEventListener('click', e => on_commit_event(e, true), false);
+submit_b.addEventListener('click', e => on_commit_event(e, true), true);
 new_sample_b.addEventListener('click', () => on_commit_event(false), false);
 
 window.onload = function () {

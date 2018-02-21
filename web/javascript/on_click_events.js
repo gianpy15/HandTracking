@@ -22,7 +22,7 @@ function on_commit_event(exit) {
         labels_resp.open('POST', "label.php", true);
         labels_resp.onreadystatechange = function () {
             if(labels_resp.readyState === XMLHttpRequest.DONE && labels_resp.status === 200)
-                location.href = exit ? "prepare_data.php" : "thanks.html";
+                location.href = exit ? "thanks.html": "prepare_data.php";
         };
         labels_resp.setRequestHeader("Content_type", "labels");
         labels_resp.send({ labels: data.toString() });

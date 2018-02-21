@@ -51,12 +51,12 @@
                   </div>
              </div>
              <div>
-                 <!--<button id="undo_b">Undo</button>-->
-                 <a id="undo_b" class="btn btn-primary btn-sm" href="" role="button">Undo</a>
-                 <!--<button id="new_sample_b">Submit and get other sample</button>-->
-                 <a id="new_sample_b" class="btn btn-primary btn-sm" href="" role="button">Submit and get other sample</a>
-                 <!--<button id="submit_b">Submit and exit</button>-->
-                 <a id="submit_b" class="btn btn-primary btn-sm" href="" role="button">Submit and exit</a>
+                 <button id="undo_b">Undo</button>
+                 <!--<a id="undo_b" class="btn btn-primary btn-sm" href="" role="button">Undo</a>-->
+                 <button id="new_sample_b">Submit and get other sample</button>
+                 <!--<a id="new_sample_b" class="btn btn-primary btn-sm" href="" role="button">Submit and get other sample</a>-->
+                 <button id="submit_b">Submit and exit</button>
+                 <!--<a id="submit_b" class="btn btn-primary btn-sm" href="" role="button">Submit and exit</a>-->
              </div>
        </div>
 
