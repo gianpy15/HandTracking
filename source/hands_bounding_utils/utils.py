@@ -151,19 +151,18 @@ def __get_biggest_connected_area_from_point(heatmap, precision, lista, in_list=[
     for p in lista:
         if used[p[0]][p[1]] == 0:
             used[p[0]][p[1]] = 1
-            if p[0] > 0 and heatmap[p[0]-1, p[1]] >= precision and in_list[p[0]-1][p[1]] != 1 and used[p[0]-1][p[1]] == 0:
+            if p[0] > 0 and heatmap[p[0]-1][p[1]] >= precision and in_list[p[0]-1][p[1]] != 1:
                 lista.append([p[0]-1, p[1]])
                 in_list[p[0] - 1][p[1]] = 1
-            if p[0] < heatmap.shape[0]-1 and heatmap[p[0]+1, p[1]] >= precision and in_list[p[0]+1][p[1]] != 1 and used[p[0]+1][p[1]] == 0:
+            if p[0] < heatmap.shape[0]-1 and heatmap[p[0]+1][p[1]] >= precision and in_list[p[0]+1][p[1]] != 1:
                 lista.append([p[0]+1, p[1]])
                 in_list[p[0] + 1][p[1]] = 1
-            if p[1] < heatmap.shape[1]-1 and heatmap[p[0], p[1]+1] >= precision and in_list[p[0]][p[1]+1] != 1 and used[p[0]][p[1]+1] == 0:
+            if p[1] < heatmap.shape[1]-1 and heatmap[p[0]][p[1]+1] >= precision and in_list[p[0]][p[1]+1] != 1:
                 lista.append([p[0], p[1]+1])
                 in_list[p[0]][p[1]+1] = 1
-            if p[1] > 0 and heatmap[p[0], p[1]-1] >= precision and in_list[p[0]][p[1]-1] != 1 and used[p[0]][p[1]-1] == 0:
+            if p[1] > 0 and heatmap[p[0]][p[1]-1] >= precision and in_list[p[0]][p[1]-1] != 1:
                 lista.append([p[0], p[1]-1])
                 in_list[p[0]][p[1] - 1] = 1
-            return __get_biggest_connected_area_from_point(heatmap, precision, lista, in_list, used)
     list_x = np.array([p[0] for p in lista])
     list_y = np.array([p[1] for p in lista])
     min_x = np.min(list_x)
@@ -341,6 +340,6 @@ matp = "Poselet_186.mat"
 heatmap1 = get_heatmap_from_mat(imagep, matp)
 #showimage(__heatmap_to_rgb(heatmap1))
 #showimages(get_crops_from_heatmap(imagep, heatmap1))
-get_crops_from_heatmap(imagep, heatmap1)
+get_crops_from_heatmap(imagep, heatmap1, precision=0.7)
 end = time.time()
 print((end-start))
