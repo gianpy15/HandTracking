@@ -1,4 +1,7 @@
 import numpy as np
+import time
+
+import tensorflow
 from scipy import io as scio
 from os import path as os_p
 from skimage import io
@@ -7,6 +10,8 @@ import math
 
 
 # ################### READING FILES ###########################
+from tensorflow import device
+
 
 def __read_image(path):
     """opens the image at the given path and returns its numpy version"""
@@ -138,20 +143,27 @@ def __get_coords_from_heatmap(heatmap, precision, height_shrink_rate, width_shri
     return np.array(coords)
 
 
-def __get_biggest_connected_area_from_point(heatmap, precision, lista):
+def __get_biggest_connected_area_from_point(heatmap, precision, lista, in_list=[], used=[]):
+    if len(lista) == 1:
+        in_list = np.zeros(heatmap.shape)
+        used = np.zeros(heatmap.shape)
+        in_list[lista[0][0]][lista[0][1]] = 1
     for p in lista:
-        if p[0] > 0 and heatmap[p[0]-1, p[1]] >= precision and not lista.__contains__([p[0]-1, p[1]]):
-            lista.append([p[0]-1, p[1]])
-            return __get_biggest_connected_area_from_point(heatmap, precision, lista)
-        if p[0] < heatmap.shape[0]-1 and heatmap[p[0]+1, p[1]] >= precision and not lista.__contains__([p[0]+1, p[1]]):
-            lista.append([p[0]+1, p[1]])
-            return __get_biggest_connected_area_from_point(heatmap, precision, lista)
-        if p[1] < heatmap.shape[1]-1 and heatmap[p[0], p[1]+1] >= precision and not lista.__contains__([p[0], p[1]+1]):
-            lista.append([p[0], p[1]+1])
-            return __get_biggest_connected_area_from_point(heatmap, precision, lista)
-        if p[1] > 0 and heatmap[p[0], p[1]-1] >= precision and not lista.__contains__([p[0], p[1]-1]):
-            lista.append([p[0], p[1]-1])
-            return __get_biggest_connected_area_from_point(heatmap, precision, lista)
+        if used[p[0]][p[1]] == 0:
+            used[p[0]][p[1]] = 1
+            if p[0] > 0 and heatmap[p[0]-1, p[1]] >= precision and in_list[p[0]-1][p[1]] != 1 and used[p[0]-1][p[1]] == 0:
+                lista.append([p[0]-1, p[1]])
+                in_list[p[0] - 1][p[1]] = 1
+            if p[0] < heatmap.shape[0]-1 and heatmap[p[0]+1, p[1]] >= precision and in_list[p[0]+1][p[1]] != 1 and used[p[0]+1][p[1]] == 0:
+                lista.append([p[0]+1, p[1]])
+                in_list[p[0] + 1][p[1]] = 1
+            if p[1] < heatmap.shape[1]-1 and heatmap[p[0], p[1]+1] >= precision and in_list[p[0]][p[1]+1] != 1 and used[p[0]][p[1]+1] == 0:
+                lista.append([p[0], p[1]+1])
+                in_list[p[0]][p[1]+1] = 1
+            if p[1] > 0 and heatmap[p[0], p[1]-1] >= precision and in_list[p[0]][p[1]-1] != 1 and used[p[0]][p[1]-1] == 0:
+                lista.append([p[0], p[1]-1])
+                in_list[p[0]][p[1] - 1] = 1
+            return __get_biggest_connected_area_from_point(heatmap, precision, lista, in_list, used)
     list_x = np.array([p[0] for p in lista])
     list_y = np.array([p[1] for p in lista])
     min_x = np.min(list_x)
@@ -322,9 +334,13 @@ def showimage(image):
     plt.show()
 
 
+start = time.time()
 imagep = "Poselet_186.jpg"
 matp = "Poselet_186.mat"
-showimages(cropimage(imagep, matp))
+#showimages(cropimage(imagep, matp))
 heatmap1 = get_heatmap_from_mat(imagep, matp)
-showimage(__heatmap_to_rgb(heatmap1))
-showimages(get_crops_from_heatmap(imagep, heatmap1))
+#showimage(__heatmap_to_rgb(heatmap1))
+#showimages(get_crops_from_heatmap(imagep, heatmap1))
+get_crops_from_heatmap(imagep, heatmap1)
+end = time.time()
+print((end-start))
