@@ -53,8 +53,7 @@
             var sample_img_url = "http://dreamicus.com/data/hand/hand-07.jpg";
             var target_img_url = "<?php
 
-                $script_base = "/home/gianpaolo/HandTracking/";
-                $python_interpreter = "/home/gianpaolo/miniconda3/envs/server/bin/python3.6";
+                include 'local_paths.php';
                 $script = "source/php_called_scripts/get_frame.py";
                 $args = "2>&1";
                 $cmd = $python_interpreter." ".$script_base.$script." ".$args;

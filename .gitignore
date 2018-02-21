@@ -5,6 +5,7 @@
 # IntelliJ project files
 .idea
 web/.idea
+web/local_paths.php
 out
 gen
 .venv
