@@ -117,7 +117,7 @@ def add_contributor(nick):
 def register_labels(labelstring, frame, contributor=None):
     tokens = labelstring.split(',')
     if len(tokens) != 63:
-        exit(-1)
+        return False
     raw_labels = []
     for idx in range(21):
         raw_labels.append((float(tokens[3*idx]),
@@ -130,3 +130,4 @@ def register_labels(labelstring, frame, contributor=None):
         add_contributor("Anonymous")
     uncache_frame(frame)
     tick_index_counters(get_vidname(frame))
+    return True

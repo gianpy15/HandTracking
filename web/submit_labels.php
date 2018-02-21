@@ -1,18 +1,17 @@
 <?php
     include 'local_paths.php';
-    $frame = $_REQUEST["framename"];
-    $labels = $_REQUEST["labels"];
-    $nick = $_REQUEST["nick"];
+    $frame = $_POST["framename"];
+    $labels = $_POST["labels"];
+    $nick = $_POST["nick"];
 
     $script = "source/php_called_scripts/register_labels.py";
     $args = $labels." ".$frame." ".$nick." 2>&1";
     $cmd = $python_interpreter." ".$script_base.$script." ".$args;
-
     $out = system($cmd, $errorcode);
 
-    if ($errorcode == 0){
+    if ($errorcode == 0 && $out == ""){
         echo "OK";
-    else{
-        echo $out;
+    }else{
+        echo $cmd."\n\n".$out;
     }
 ?>

@@ -17,15 +17,25 @@ function on_commit_event(exit) {
     if(junctions.selected_points.length === junctions.N_POINTS) {
         var data = get_data(junctions);
         console.log(data.toString());
+        console.log(nickname);
 
         let labels_resp = new XMLHttpRequest();
-        labels_resp.open('POST', "label.php", true);
+        labels_resp.open('POST', "submit_labels.php", true);
         labels_resp.onreadystatechange = function () {
-            if(labels_resp.readyState === XMLHttpRequest.DONE && labels_resp.status === 200)
-                location.href = exit ? "thanks.html": "prepare_data.php";
+            if(labels_resp.readyState === XMLHttpRequest.DONE && labels_resp.status === 200){
+                var nick_append = (nickname != "") ? "?nick="+nickname : "";
+                if (labels_resp.responseText != "OK") {
+                    alert(labels_resp.responseText);
+                }
+                location.href = exit ? "prepare_data.php"+nick_append : "thanks.html"+nick_append;
+            }
         };
-        labels_resp.setRequestHeader("Content_type", "labels");
-        labels_resp.send({ labels: data.toString() });
+        labels_resp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        params = "labels="+data.toString()+"&framename="+target_img_url+"&nick="+nickname;
+        // labels_resp.setRequestHeader("labels", data.toString());
+        // labels_resp.setRequestHeader("framename", target_img_url);
+        // labels_resp.setRequestHeader("nick", nickname);
+        labels_resp.send(params);
     }
     else
         alert("Please fill all the points");

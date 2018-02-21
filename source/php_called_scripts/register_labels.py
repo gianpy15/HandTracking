@@ -11,4 +11,5 @@ if __name__ == '__main__':
         contributor = sys.argv[3].replace(" ", "")
     else:
         contributor = None
-    register_labels(labelstring=labels, frame=frame, contributor=contributor)
+    if not register_labels(labelstring=labels, frame=frame, contributor=contributor):
+        print("Error: label number is incorrect")
