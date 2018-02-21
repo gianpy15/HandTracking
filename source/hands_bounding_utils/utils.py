@@ -143,11 +143,10 @@ def __get_coords_from_heatmap(heatmap, precision, height_shrink_rate, width_shri
     return np.array(coords)
 
 
-def __get_biggest_connected_area_from_point(heatmap, precision, lista, in_list=[], used=[]):
-    if len(lista) == 1:
-        in_list = np.zeros(heatmap.shape)
-        used = np.zeros(heatmap.shape)
-        in_list[lista[0][0]][lista[0][1]] = 1
+def __get_biggest_connected_area_from_point(heatmap, precision, lista):
+    in_list = np.zeros(heatmap.shape)
+    used = np.zeros(heatmap.shape)
+    in_list[lista[0][0]][lista[0][1]] = 1
     for p in lista:
         if used[p[0]][p[1]] == 0:
             used[p[0]][p[1]] = 1
@@ -333,13 +332,13 @@ def showimage(image):
     plt.show()
 
 
-start = time.time()
 imagep = "Poselet_186.jpg"
 matp = "Poselet_186.mat"
-#showimages(cropimage(imagep, matp))
+# showimages(cropimage(imagep, matp))
 heatmap1 = get_heatmap_from_mat(imagep, matp)
-#showimage(__heatmap_to_rgb(heatmap1))
-#showimages(get_crops_from_heatmap(imagep, heatmap1))
+# showimage(__heatmap_to_rgb(heatmap1))
+start = time.time()
+# showimages(get_crops_from_heatmap(imagep, heatmap1))
 get_crops_from_heatmap(imagep, heatmap1, precision=0.7)
 end = time.time()
 print((end-start))
