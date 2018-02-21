@@ -15,13 +15,13 @@
          <div class="collapse navbar-collapse" id="navbarsExampleDefault">
            <ul class="navbar-nav mr-auto">
              <li class="nav-item active">
-               <a class="nav-link" href="file:///Users/mattiadifatta/Desktop/web/index.html">Home <span class="sr-only">(current)</span></a>
+               <a class="nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
              </li>
              <li class="nav-item">
-               <a class="nav-link" href="file:///Users/mattiadifatta/Desktop/web/index.html/#learn_more">Learn More</a>
+               <a class="nav-link" href="index.html/#learn_more">Learn More</a>
              </li>
              <li class="nav-item">
-               <a class="nav-link" href="file:///Users/mattiadifatta/Desktop/web/index.html/#about_us">About us</a>
+               <a class="nav-link" href="index.html/#about_us">About us</a>
            </ul>
          </div>
        </nav>
@@ -53,16 +53,18 @@
             var sample_img_url = "http://dreamicus.com/data/hand/hand-07.jpg";
             var target_img_url = "<?php
 
-                $script_base = "/home/luca/repos/HandTracking/";
-                $python_interpreter = "/home/luca/miniconda3/envs/tensorflow/bin/python";
+                $script_base = "/home/gianpaolo/HandTracking/";
+                $python_interpreter = "/home/gianpaolo/miniconda3/envs/server/bin/python3.6";
                 $script = "source/php_called_scripts/get_frame.py";
-                $args = "";
+                $args = "2>&1";
                 $cmd = $python_interpreter." ".$script_base.$script." ".$args;
                 $imgurl = exec($cmd);
                 echo $imgurl;
                 ?>";
             var target_joints = [new Point(0.3, 0.3, false), new Point(0.5, 0.5, false), new Point(0.7, 0.7, false)];
        </script>
+       <?php echo $imgurl ?>
+       <?php echo "new" ?>
        <script src="javascript/hand_tracking_samples.js" type="text/javascript"></script>
       <script src="javascript/on_click_events.js" type="text/javascript"></script>
       <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
