@@ -3,12 +3,15 @@ import os
 
 
 framebase = pm.resources_path("framedata")
-contributors = pm.resources_path("framedata/contributors.txt")
+contributors = os.path.join(framebase, "contributors.txt")
 TEMPDIR = "tmp"
+NUMDIGITS = 4
+NUMREPR = "%0"+str(NUMDIGITS)+"d"
+FRAME_NAME_BASE = "%s"+NUMREPR
 
 
 def frame_name(vidname, frameno):
-    return "%s%04d.mat" % (vidname, frameno)
+    return (FRAME_NAME_BASE+".mat") % (vidname, frameno)
 
 
 def index_name(vidname):
@@ -16,15 +19,15 @@ def index_name(vidname):
 
 
 def cached_frame_name(vidname, frameno):
-    return "%s%04d.png" % (vidname, frameno)
+    return (FRAME_NAME_BASE+".png") % (vidname, frameno)
 
 
 def get_frameno(filename):
-    return int(filename[-8:-4])
+    return int(os.path.splitext(filename)[0][-NUMDIGITS:])
 
 
 def get_vidname(filename):
-    return filename.split("/")[-1][0:-8]
+    return os.path.splitext(os.path.split(filename)[1])[0][0:-NUMDIGITS]
 
 
 def get_index_from_vidname(vidname):
@@ -36,12 +39,14 @@ def get_index_from_frame(framename):
     return get_index_from_vidname(get_vidname(framename))
 
 
+def get_vid_dir_from_vidname(vidname):
+    return os.path.join(framebase, vidname)
+
+
 def get_complete_frame_path(framename):
     vidname = get_vidname(framename)
     return os.path.join(os.path.join(framebase, vidname), framename)
 
 
 def get_tmp_dir_from_vidname(vidname):
-    viddir = os.path.join(framebase, vidname)
-    return os.path.join(viddir, TEMPDIR)
-
+    return os.path.join(framebase, vidname, TEMPDIR)

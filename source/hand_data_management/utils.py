@@ -1,4 +1,3 @@
-import numpy as np
 import skvideo.io as skio
 
 from hand_data_management.index import *
@@ -10,46 +9,27 @@ SEPARATOR = chr(126)
 CONTRACTION = 4
 
 
-def encode_image(img):
-    res = "%dx%dx%d%s" % (img.shape[0], img.shape[1], img.shape[2], SEPARATOR)
-    for row in img:
-        for pix in row:
-            for ch in pix:
-                res += chr(ch // CONTRACTION + BASECODE)
-    return res
-
-
-def decode_image(base):
-    header, data = base.split(SEPARATOR)
-    h, w, c = header.split('x')
-    h = int(h)
-    w = int(w)
-    c = int(c)
-    img = np.empty(shape=(h, w, c), dtype=np.uint8)
-    idx = 0
-    for row in range(h):
-        for pix in range(w):
-            for ch in range(c):
-                img[row][pix][ch] = (ord(data[idx]) - BASECODE) * CONTRACTION
-                idx += 1
-    return img
-
-
-def build_frame_root_from_vid(videopath):
+def build_frame_root_from_vid(videopath, post_process=lambda f: None):
     videopath = pm.resources_path(videopath)
-    videoname = videopath.split('/')[-1].split('.')[0]
-    framesdir = os.path.join(framebase, videoname)
-
+    videoname = os.path.splitext(os.path.split(videopath)[1])[0]
+    framesdir = get_vid_dir_from_vidname(videoname)
     if os.path.exists(framesdir):
-        print("%s ALREADY EXISTS. VIDEO WILL NOT BE EXPANDED." % framesdir)
-        return
+        return False
 
     videodata = skio.vread(pm.resources_path(videopath))
     os.makedirs(framesdir)
-    os.makedirs(os.path.join(framesdir, TEMPDIR))
+    post_process(framesdir)
+    tmp = os.path.join(framesdir, TEMPDIR)
+    os.makedirs(tmp)
+    post_process(tmp)
     for frameidx in range(len(videodata)):
-        store(os.path.join(framesdir, frame_name(videoname, frameidx)), videodata[frameidx])
-    build_empty_index_file(os.path.join(framesdir, index_name(videoname)), len(videodata))
+        framefile = os.path.join(framesdir, frame_name(videoname, frameidx))
+        store(framefile, videodata[frameidx])
+        post_process(framefile)
+    idxfile = os.path.join(framesdir, index_name(videoname))
+    build_empty_index_file(idxfile, len(videodata))
+    post_process(idxfile)
+    return True
 
 
 def save_labels(labels, frame):
@@ -137,7 +117,7 @@ def add_contributor(nick):
 def register_labels(labelstring, frame, contributor=None):
     tokens = labelstring.split(',')
     if len(tokens) != 63:
-        exit(-1)
+        return False
     raw_labels = []
     for idx in range(21):
         raw_labels.append((float(tokens[3*idx]),
@@ -150,3 +130,4 @@ def register_labels(labelstring, frame, contributor=None):
         add_contributor("Anonymous")
     uncache_frame(frame)
     tick_index_counters(get_vidname(frame))
+    return True

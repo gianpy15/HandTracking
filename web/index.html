@@ -30,11 +30,23 @@
          <div class="container">
            <h1 class="display-3">Hand Tracking: a deep learning project</h1>
            <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
-           <p>
-               <a class="btn btn-primary btn-lg" href="prepare_data.html" role="button">Get a new sample &raquo;</a>
-           </p>
+           <hr class="my-4">
+           <p>Leave nick ...</p>
+           <label for="usr">Nick:</label>
+           <input type="text" name="nick" id="nickname"/><br><br>
+           <input class="btn btn-primary btn-lg" type="submit" value="Get a new sample &raquo;" id="submit"/>
          </div>
        </div>
+
+       <script>
+           let nick_field = document.getElementById("nickname");
+           let submit_btn = document.getElementById("submit");
+
+           let site = "prepare_data.php?nick=" + nick_field.value;
+           console.log(nick_field.value);
+
+           submit_btn.onclick = () => location.href = site;
+       </script>
 
        <a name="learn_more"></a>
        <hr class="featurette-divider">
