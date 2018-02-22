@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.optimize import fsolve
-import timeit
 
 
 def get_rotation_matrix(axis, angle):
@@ -63,6 +62,17 @@ def get_mapping_rot(v1, v2):
     n1 = np.linalg.norm(v1)
     n2 = np.linalg.norm(v2)
     axis = cross_product(v1, v2)
+    if np.linalg.norm(axis) == 0:
+        if np.dot(v1, v2) > 0:
+            return np.eye(3)
+        if v1[2] != 0:
+            axis = cross_product(v1, [1, 0, 0])
+            axis = axis / np.linalg.norm(axis)
+            return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
+        else:
+            axis = cross_product(v1, [0, 0, 1])
+            axis = axis / np.linalg.norm(axis)
+            return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
     return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
 
 
@@ -115,6 +125,7 @@ def get_points_projections_to_lines(basepts, lines, maxerr=1e-3, maxrestart=1000
                 bestsol = -sol
             else:
                 bestsol = sol
+    print("WARNING: Maxrestarts expired, the proposed solution has error %f" % besterr)
     return np.array([lines[i] * bestsol[i] for i in range(3)])
 
 
