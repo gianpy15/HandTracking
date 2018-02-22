@@ -1,4 +1,4 @@
 <?php
-    $script_base = "/home/luca/repos/HandTracking/";
-    $python_interpreter = "/home/luca/miniconda3/envs/tensorflow/bin/python";
+    $script_base = "/home/gianpaolo/HandTracking/";
+    $python_interpreter = "/home/gianpaolo/miniconda3/envs/server/bin/python";
 ?>

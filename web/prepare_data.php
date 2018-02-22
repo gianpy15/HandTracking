@@ -51,21 +51,31 @@
                   </div>
              </div>
              <div>
-                 <button id="undo_b">Undo</button>
-                 <!--<a id="undo_b" class="btn btn-primary btn-sm" href="" role="button">Undo</a>-->
-                 <button id="new_sample_b">Submit and get other sample</button>
-                 <!--<a id="new_sample_b" class="btn btn-primary btn-sm" href="" role="button">Submit and get other sample</a>-->
-                 <button id="submit_b">Submit and exit</button>
-                 <!--<a id="submit_b" class="btn btn-primary btn-sm" href="" role="button">Submit and exit</a>-->
+                 <!--<button id="undo_b">Undo</button>-->
+                 <a id="undo_b" class="btn btn-primary btn-sm" role="button">Undo</a>
+                 <!--<button id="new_sample_b">Submit and get other sample</button>-->
+                 <a id="new_sample_b" class="btn btn-primary btn-sm" role="button">Submit and get other sample</a>
+                 <!--<button id="submit_b">Submit and exit</button>-->
+                 <a id="submit_b" class="btn btn-primary btn-sm" role="button">Submit and exit</a>
              </div>
        </div>
 
        <script src="javascript/points.js" type="text/javascript"></script>
        <script type="text/javascript">
             var nickname = "<?php echo $nick; ?>";
-            var sample_img_url = "http://dreamicus.com/data/hand/hand-07.jpg";
+            var sample_img_url = "framedata/sample_hand.png";
             var target_img_url = "<?php echo $imgurl; ?>";
-            var target_joints = [new Point(0.3, 0.3, false), new Point(0.5, 0.5, false), new Point(0.7, 0.7, false)];
+            var target_joints = [new Point(0.552764, 0.898438, false), new Point(0.334171, 0.822266, false),
+                                 new Point(0.206030, 0.642578, false), new Point(0.125628, 0.537109, false),
+                                 new Point(0.032663, 0.417969, false), new Point(0.399497, 0.421875, false),
+                                 new Point(0.371859, 0.287109, false), new Point(0.361809, 0.167969, false),
+                                 new Point(0.359296, 0.050781, false), new Point(0.557789, 0.404297, false),
+                                 new Point(0.565327, 0.257812, false), new Point(0.562814, 0.140625, false),
+                                 new Point(0.565327, 0.011719, false), new Point(0.713568, 0.433594, false),
+                                 new Point(0.733668, 0.291016, false), new Point(0.771357, 0.177734, false),
+                                 new Point(0.781407, 0.066406, false), new Point(0.846734, 0.472656, false),
+                                 new Point(0.902010, 0.365234, false), new Point(0.932161, 0.283203, false),
+                                 new Point(0.964824, 0.205078, false)];
        </script>
        <?php echo "Nickname: ".$nick; ?>
        <script src="javascript/hand_tracking_samples.js" type="text/javascript"></script>

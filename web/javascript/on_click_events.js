@@ -27,7 +27,7 @@ function on_commit_event(exit) {
                 if (labels_resp.responseText != "OK") {
                     alert(labels_resp.responseText);
                 }
-                location.href = exit ? "prepare_data.php"+nick_append : "thanks.html"+nick_append;
+                location.href = exit ? "thanks.html"+nick_append: "prepare_data.php"+nick_append;
             }
         };
         labels_resp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
