@@ -36,7 +36,9 @@
        <div class="jumbotron">
          <div class="container">
            <h1>Let's begin</h1>
-           <p>Here you're asked to set a green point on every visible junction and a red one on every non-visible junction</p>
+           <p>Here you're asked to arrange a green point (left click on the mouse) on every visible junction and a red one (right click on the mouse) on every non-visible junction on the LEFT picture.</p>
+           <p>Please follow the order imposed by the yellow points appearing on the junctions on the right picture in arranging your points. Be as more accurate as you can.</p>
+           <p>If you make a mistake use the 'Undo' button below; when you end either click on 'submit and get new sample' or 'submit and exit'.</p>
          </div>
        </div>
        <div class="container">
@@ -52,11 +54,11 @@
              </div>
              <div>
                  <!--<button id="undo_b">Undo</button>-->
-                 <a id="undo_b" class="btn btn-primary btn-sm" role="button">Undo</a>
+                 <button id="undo_b" class="btn btn-primary btn-sm" role="button">Undo</button>
                  <!--<button id="new_sample_b">Submit and get other sample</button>-->
-                 <a id="new_sample_b" class="btn btn-primary btn-sm" role="button">Submit and get other sample</a>
+                 <button id="new_sample_b" class="btn btn-primary btn-sm" role="button">Submit and get other sample</button>
                  <!--<button id="submit_b">Submit and exit</button>-->
-                 <a id="submit_b" class="btn btn-primary btn-sm" role="button">Submit and exit</a>
+                 <button id="submit_b" class="btn btn-primary btn-sm" role="button">Submit and exit</button>
              </div>
        </div>
 
