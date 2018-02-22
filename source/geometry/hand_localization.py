@@ -78,7 +78,7 @@ class HandLocator:
         self.feed_dict = {}
         self.losses = {}
         self.loss = None
-        self.lr = 0.005
+        self.lr = 0.01
         self.active = False
         self.out_model = {}
         self.currloss = np.inf
@@ -94,9 +94,9 @@ class HandLocator:
         self.joints_weights = {
             WRIST: 10,
             0: 10,
-            1: 6,
-            2: 3,
-            3: 2
+            1: 5,
+            2: 5,
+            3: 7
         }
         self.data_placeholders = {
             (WRIST, 0): tf.placeholder(dtype=HandLocator.dtype, shape=(3,), name=code_name(WRIST, append='-d'))
