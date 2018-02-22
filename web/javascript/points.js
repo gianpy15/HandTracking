@@ -12,7 +12,7 @@ class Point {
 
 class Points {
     constructor(l_canvas, r_canvas, target_joints) {
-        this.N_POINTS = 3;
+        this.N_POINTS = 21;
         // Pixel width
         this.PW = 10;
         this.selected_points = [];

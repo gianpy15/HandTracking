@@ -7,7 +7,7 @@ from hand_data_management.utils import *
 if __name__ == '__main__':
     labels = sys.argv[1]
     frame = sys.argv[2]
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 3:
         contributor = sys.argv[3].replace(" ", "")
     else:
         contributor = None

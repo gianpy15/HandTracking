@@ -35,7 +35,7 @@ def build_frame_root_from_vid(videopath, post_process=lambda f: None):
 def save_labels(labels, frame):
     vidn = get_vidname(frame)
     framedir = os.path.join(framebase, vidn)
-    frame = os.path.join(framedir, frame)
+    frame = get_complete_frame_path(frame_name(vidn, get_frameno(frame)))
     data, _ = load(frame)
     store(frame, data=data, labels=labels)
     set_index_flag(os.path.join(framedir, index_name(vidn)),
