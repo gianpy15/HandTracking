@@ -1,7 +1,5 @@
 import numpy as np
 import time
-
-import tensorflow
 from scipy import io as scio
 from os import path as os_p
 from skimage import io
@@ -61,17 +59,12 @@ def __get_bounds(coord):
 
 def __copy_area(image, up, down, left, right):
     """copies from image, the specified area"""
-    ris = []
+    start = time.time()
     up = int(up)
     down = int(down)
     left = int(left)
     right = int(right)
-    for i in range(up, down):
-        row = []
-        for j in range(left, right):
-            row.append(image[i][j])
-        ris.append(row)
-    return ris
+    return image[up:down, left:right]
 
 
 def cropimage(imagepath, matfilepath, save=False, enlarge=0.3):
@@ -205,6 +198,7 @@ def get_crops_from_heatmap(imagepath, heatmap, height_shrink_rate=10, width_shri
     :type accept_crop_minimum_dimension_pixels: due to noise is may be possible that single pixels or small areas
     will be detected as possible crops. All crops that are smaller than this parameter (square_pixels) are deleted
     The default value for this parameter is 1000px,"""
+    start = time.time()
     image = __read_image(imagepath)
     coords = __get_coords_from_heatmap(heatmap, precision, height_shrink_rate, width_shrink_rate,
                                        accept_crop_minimum_dimension_pixels)
@@ -333,7 +327,7 @@ imagep = "Poselet_186.jpg"
 matp = "Poselet_186.mat"
 # showimages(cropimage(imagep, matp))
 heatmap1 = get_heatmap_from_mat(imagep, matp)
-# showimage(__heatmap_to_rgb(heatmap1))
+showimage(__heatmap_to_rgb(heatmap1))
 start = time.time()
 #showimages(get_crops_from_heatmap(imagep, heatmap1))
 get_crops_from_heatmap(imagep, heatmap1, precision=0.7)
