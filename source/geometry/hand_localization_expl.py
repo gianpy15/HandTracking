@@ -188,7 +188,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
-    helper_hand_img, helper_hand_lab = hio.load("gui/hand_v2.mat")
+    helper_hand_img, helper_hand_lab = hio.load("gui/hand.mat")
     test_subject = ppc.PinpointerCanvas(frame)
     test_subject.set_bitmap(helper_hand_img)
     test_subject.pack()
@@ -227,13 +227,11 @@ if __name__ == '__main__':
             rotated_model = [np.matmul(current_rotation, elem - center) + center for elem in hand_model]
             # project it into image space
             flat_2d = [ModelPoint(elem)
-                           .to_image_space(calibration=cal)
-                           .as_row()
+                           .to_image_space(calibration=cal, makedepth=True)
                        for elem in rotated_model]
             # normalize it before feeding to the model drawer
-            flat_2d_norm = [(x / resolution[1], y / resolution[0]) for (x, y) in flat_2d]
             # feed to model drawer
-            md.set_joints(hand_format(flat_2d_norm))
+            md.set_joints(flat_2d, resolution=resolution)
             current_rotation = np.matmul(current_rotation, rotation)
             time.sleep(0.02)
 
