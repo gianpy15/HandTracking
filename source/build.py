@@ -15,7 +15,7 @@ for g in grp.getgrall():
 
 
 def edit_permissions(filename):
-    os.chmod(filename, 0o777)
+    os.chmod(filename, 0o775)
     os.chown(filename, wwwgrp, wwwgrp)
 
 

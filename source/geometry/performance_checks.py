@@ -60,4 +60,3 @@ if __name__ == '__main__':
     print("Minimum call execution time: %f" % np.min(gtms))
     print("Call execution time variance: %f" % np.var(gtms))
     print("Total calls: %d" % len(gtms))
-
