@@ -20,7 +20,7 @@ def setup_pinner(pinner, img):
             save_labels(event.widget.click_sequence)
 
     def save_labels(labels):
-        il.save_mat(pm.resources_path("gui/hand.mat"), data=data, labels=labels)
+        il.save_mat(pm.resources_path("gui/hand2.mat"), data=data, labels=labels)
 
     # Load the image into the pinner canvas, ready for pinpointing
     pinner.set_bitmap(img)
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # A sample image, for now...
     # img = np.random.uniform(low=0.0, high=1.0, size=(400, 500, 3))
-    img = il.load(pm.resources_path("gui/hand.jpg"), force_format=[None, None, 3])[0]
+    img = il.load(pm.resources_path("gui/hand2.jpg"), force_format=[None, None, 3])[0]
 
     # Setup the pinner
     pinner = pc.PinpointerCanvas(canvas_frame)
