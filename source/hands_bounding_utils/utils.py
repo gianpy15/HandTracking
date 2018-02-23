@@ -11,7 +11,7 @@ import math
 from tensorflow import device
 
 
-def __read_image(path):
+def read_image(path):
     """opens the image at the given path and returns its numpy version"""
     return np.array(io.imread(path))
 
@@ -76,7 +76,7 @@ def cropimage(imagepath, matfilepath, save=False, enlarge=0.3):
     if enlarge < 0:
         raise AttributeError("enlarge must be non-negative")
     coords = __read_coords_from_mat_file(matfilepath)
-    image = __read_image(imagepath)
+    image = read_image(imagepath)
     crops = []
     for coord in coords:
         cropped_image = __crop_from_coords(image, coord, enlarge)
@@ -250,7 +250,7 @@ def __count_minus_one(a, b, c, d):
     return acc
 
 
-def __heatmap_to_rgb(heat):
+def heatmap_to_rgb(heat):
     """converts a bi-dimensional heatmap, whose values are in [0,1] to a rgb image"""
     heat2 = np.zeros((heat.shape[0], heat.shape[1], 3))
     for i in range(heat.shape[0]):
@@ -259,7 +259,7 @@ def __heatmap_to_rgb(heat):
     return np.uint8(heat2)
 
 
-def get_heatmap_from_mat(imagepath, matfilepath, heigth_shrink_rate=10, width_shrink_rate=10, overlapping_penalty=0.9):
+def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink_rate=10, overlapping_penalty=0.9):
     """given an image and a .mat file containing coordinates of the rectangles where hands are present,
     returns a heatmap that, according to high values, defines where hands are present. Note that the heatmap
     is re-sized w.r.t the original image size. The shrink rates are defined by height_shrink_rate and width_shrink_rate.
@@ -270,7 +270,6 @@ def get_heatmap_from_mat(imagepath, matfilepath, heigth_shrink_rate=10, width_sh
     if width_shrink_rate < 1:
         raise AttributeError("width_shrink_rate should be greated than 1")
     coords = __read_coords_from_mat_file(matfilepath)
-    image = __read_image(imagepath)
     image_height = len(image)
     image_width = len(image[0])
     heatmap_height = int(math.ceil(image_height / heigth_shrink_rate))
@@ -310,17 +309,18 @@ def showimage(image):
     plt.show()
 
 
-imagep = "Poselet_186.jpg"
-matp = "Poselet_186.mat"
-image1 = __read_image(imagep)
-# showimages(cropimage(imagep, matp))
-heatmap1 = get_heatmap_from_mat(imagep, matp)
-# showimage(__heatmap_to_rgb(heatmap1))
-# showimages(get_crops_from_heatmap(image1, heatmap1, enlarge=0.2))
+if __name__ == '__main__':
+    imagep = "dataset/images/Poselet_186.jpg"
+    matp = "dataset/annotations/Poselet_186.mat"
+    image1 = read_image(imagep)
+    # showimages(cropimage(imagep, matp))
+    heatmap1 = get_heatmap_from_mat(image1, matp)
+    showimage(heatmap_to_rgb(heatmap1))
+    showimages(get_crops_from_heatmap(image1, heatmap1, enlarge=0.2))
 
 
-def timetest():
-    get_crops_from_heatmap(image1, heatmap1, precision=0.7)
+    def timetest():
+        get_crops_from_heatmap(image1, heatmap1, precision=0.7)
 
 
-print(time.timeit(stmt=timetest, number=1))
+    # print(time.timeit(stmt=timetest, number=1))
