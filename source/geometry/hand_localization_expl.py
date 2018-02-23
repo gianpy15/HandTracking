@@ -3,6 +3,7 @@ from geometry.formatting import *
 from geometry.transforms import *
 from numpy.linalg import norm
 from geometry.hand_localization import build_default_hand_model
+import timeit
 
 
 def compute_hand_world_joints(base_hand_model, image_joints, calibration=None):
@@ -29,7 +30,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, calibration=None):
         finger_position, loss = build_finger(first_hand_model[finger][0], lengths, world_image_info[finger][1:])
         for idx in range(1, 4):
                 end_model[finger][idx] = finger_position[idx-1]
-        print("Finger: %s\tLoss: %f" % (finger, loss))
+        # print("Finger: %s\tLoss: %f" % (finger, loss))
 
     end_model[THUMB] = [0, 0, 0, 0]
     lines = [world_image_info[THUMB][1]]
@@ -52,7 +53,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, calibration=None):
                               first_hand_model[THUMB][0]-first_hand_model[WRIST][0]) \
               + first_hand_model[WRIST][0]
     end_model[THUMB][0] = thumbzero
-    print("Finger: %s\tLoss: %f" % (THUMB, loss))
+    # print("Finger: %s\tLoss: %f" % (THUMB, loss))
 
     return end_model
 
@@ -99,8 +100,8 @@ def get_best_first_transform(base_hand_model, world_image_info, cal):
     base_triangle_lines = [world_image_info[WRIST][0], world_image_info[INDEX][0], world_image_info[BABY][0]]
     model1, model2 = get_points_projection_to_lines_pair(base_triangle_pts, base_triangle_lines)
 
-    drawpnt(model2, cal=cal)
-    drawpnt(model1, cal=cal)
+    # drawpnt(model2, cal=cal)
+    # drawpnt(model1, cal=cal)
 
     tr1 = model1[0]
     tr2 = model2[0]
@@ -135,8 +136,6 @@ def get_best_first_transform(base_hand_model, world_image_info, cal):
     # try to find a way to distinguish them
     loss1 = norm(first_transform_point(rotmat1, tr1, base_triangle_pts[2])-model1[2])
     loss2 = norm(first_transform_point(rotmat2, tr2, base_triangle_pts[2])-model2[2])
-    print(np.linalg.det(rotmat1))
-    print(np.linalg.det(rotmat2))
 
     if loss1 > loss2:
         return rotmat2, tr2
@@ -210,8 +209,15 @@ if __name__ == '__main__':
         # compute the rotation matrix
         rotation = tr.get_rotation_matrix(axis=1, angle=np.pi / 180)
 
-        hand_model = raw(compute_hand_world_joints(build_default_hand_model(),
-                                                   formatted_data, calibration=cal))
+        def total():
+            global hand_model
+            hand_model = raw(compute_hand_world_joints(build_default_hand_model(),
+                                                       formatted_data, calibration=cal))
+
+        # make sure that the GUI-related load is expired before measuring performance
+        time.sleep(1)
+        rep = 100
+        print("Model computation %d times took %f seconds." % (rep, timeit.timeit(total, number=rep)))
 
         current_rotation = tr.get_rotation_matrix(axis=1, angle=0)
         time.sleep(1)

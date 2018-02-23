@@ -1,6 +1,7 @@
 import numpy as np
 from geometry.transforms import *
 from geometry.calibration import *
+import timeit
 
 
 def inner_angle(v1, v2):
@@ -44,7 +45,7 @@ def projections_benchmark(repeat=1000):
 
 
 if __name__ == '__main__':
-    tms, gtms = projections_benchmark(1000)
+    tms, gtms = projections_benchmark(100)
     print("-------------------------------------")
     print("Results:")
     print("Average call execution time: %f" % np.average(tms))
