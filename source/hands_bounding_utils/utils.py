@@ -1,5 +1,5 @@
 import numpy as np
-import time
+import timeit as time
 from scipy import io as scio
 from os import path as os_p
 from skimage import io
@@ -59,7 +59,6 @@ def __get_bounds(coord):
 
 def __copy_area(image, up, down, left, right):
     """copies from image, the specified area"""
-    start = time.time()
     up = int(up)
     down = int(down)
     left = int(left)
@@ -174,32 +173,24 @@ def __resize_coords(coords, height_shrink_rate, width_shrink_rate):
     """this function serves the get_crops_from_heatmap function.
     Since heatmaps have a scaled dimension w.r.t. the original image, this function computes the inverse
     re-scaling, converting the heatmap coordinates to image coordinates, and returns the new coordinates set"""
-    coords_new = []
-    for co in coords:
-        co_new = []
-        for p in co:
-            co_new.append([p[0]*height_shrink_rate, p[1]*width_shrink_rate])
-        coords_new.append(co_new)
+    coords_new = coords*[height_shrink_rate, width_shrink_rate]
     return coords_new
 
 
-def get_crops_from_heatmap(imagepath, heatmap, height_shrink_rate=10, width_shrink_rate=10, precision=0.5,
-                           enlarge=0.5, save=False, accept_crop_minimum_dimension_pixels=1000):
+def get_crops_from_heatmap(image, heatmap, height_shrink_rate=10, width_shrink_rate=10, precision=0.5,
+                           enlarge=0.5, accept_crop_minimum_dimension_pixels=1000):
     """given an image path and a heatmap, returns an array of images representing the crops of the image w.r.t.
     the given heatmap.
-    :type imagepath: string representing the path of the image to crop
+    :type image: the image to crop
     :type heatmap: a matrix containing all values in the range [0,1] that represents where hands are most likely
     present in the given image.
     :type enlarge: must be non-negative, crops are enlarged by the given percentage. Default is 0,3 (30%)
     :type precision: represents which values of the heatmap will be taken into account for the crops
     :type height_shrink_rate: the ratio used to rescale from the image height to heatmap height
     :type width_shrink_rate: the ratio used to rescale from the image width to heatmap width
-    :type save: set true to save the crops as .jpg
     :type accept_crop_minimum_dimension_pixels: due to noise is may be possible that single pixels or small areas
     will be detected as possible crops. All crops that are smaller than this parameter (square_pixels) are deleted
     The default value for this parameter is 1000px,"""
-    start = time.time()
-    image = __read_image(imagepath)
     coords = __get_coords_from_heatmap(heatmap, precision, height_shrink_rate, width_shrink_rate,
                                        accept_crop_minimum_dimension_pixels)
     coords = __resize_coords(coords, height_shrink_rate, width_shrink_rate)
@@ -207,10 +198,6 @@ def get_crops_from_heatmap(imagepath, heatmap, height_shrink_rate=10, width_shri
     for coord in coords:
         cropped_image = __crop_from_coords(image, coord, enlarge)
         crops.append(cropped_image)
-    if save:
-        split = os_p.splitext(imagepath)
-        for i in range(0, len(crops)):
-            io.imsave(split[0]+"_crop"+str(i)+split[1], crops[i])
     return crops
 
 
@@ -325,11 +312,15 @@ def showimage(image):
 
 imagep = "Poselet_186.jpg"
 matp = "Poselet_186.mat"
+image1 = __read_image(imagep)
 # showimages(cropimage(imagep, matp))
 heatmap1 = get_heatmap_from_mat(imagep, matp)
-showimage(__heatmap_to_rgb(heatmap1))
-start = time.time()
-#showimages(get_crops_from_heatmap(imagep, heatmap1))
-get_crops_from_heatmap(imagep, heatmap1, precision=0.7)
-end = time.time()
-print((end-start))
+# showimage(__heatmap_to_rgb(heatmap1))
+# showimages(get_crops_from_heatmap(image1, heatmap1, enlarge=0.2))
+
+
+def timetest():
+    get_crops_from_heatmap(image1, heatmap1, precision=0.7)
+
+
+print(time.timeit(stmt=timetest, number=1))
