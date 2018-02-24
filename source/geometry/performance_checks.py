@@ -1,5 +1,6 @@
 import numpy as np
 from geometry.transforms import *
+from geometry.numerical import *
 from geometry.calibration import *
 import timeit
 

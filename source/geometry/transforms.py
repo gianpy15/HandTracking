@@ -1,5 +1,9 @@
 import numpy as np
-from scipy.optimize import fsolve
+
+
+def column_matmul(m, v):
+    res = np.matmul(m, np.expand_dims(v, 1))
+    return np.reshape(res, (3,))
 
 
 def get_rotation_matrix(axis, angle):
@@ -33,7 +37,7 @@ def get_cross_matrix(v):
 
 def cross_product(v1, v2):
     mat = get_cross_matrix(v1)
-    return np.reshape(np.matmul(mat, np.expand_dims(v2, 1)), (3,))
+    return column_matmul(mat, v2)
 
 
 def normalize(vec):
@@ -76,70 +80,3 @@ def get_mapping_rot(v1, v2):
             axis = normalize(cross_product(v1, [0, 0, 1]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
     return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
-
-
-def line_projection_system(sols, params):
-    return (sols[0] ** 2 - 2 * params["c01"] * sols[0] * sols[1] + sols[1] ** 2 - params["d01"] ** 2,
-            sols[0] ** 2 - 2 * params["c02"] * sols[0] * sols[2] + sols[2] ** 2 - params["d02"] ** 2,
-            sols[1] ** 2 - 2 * params["c12"] * sols[1] * sols[2] + sols[2] ** 2 - params["d12"] ** 2)
-
-
-def line_projection_system_jac(sols, params):
-    return [[2 * sols[0] - 2 * params["c01"] * sols[1],
-            2 * sols[0] - 2 * params["c02"] * sols[2],
-            0],
-            [-2 * params["c01"] * sols[0] + 2 * sols[1],
-             0,
-             2 * sols[1] - 2 * params["c12"] * sols[2]],
-            [0,
-             -2 * params["c02"] * sols[0] + 2 * sols[2],
-             -2 * params["c12"] * sols[1] + 2 * sols[2]]]
-
-
-def get_points_projections_to_lines(basepts, lines, maxerr=1e-3, maxrestart=1000):
-    params = {
-        "c01": np.dot(lines[0], lines[1]),
-        "c02": np.dot(lines[0], lines[2]),
-        "c12": np.dot(lines[1], lines[2]),
-        "d01": np.linalg.norm(basepts[0]-basepts[1]),
-        "d02": np.linalg.norm(basepts[0]-basepts[2]),
-        "d12": np.linalg.norm(basepts[1]-basepts[2])
-    }
-
-    dists = np.array([params["d01"], params["d02"], params["d12"]])
-    cosines = np.array([params["c01"], params["c02"], params["c12"]])
-    # avg = np.average(dists)
-    # variance = np.var(dists)
-    avg = dists[np.argmax(cosines)]/np.max(cosines)
-    variance = np.var(dists / cosines)
-    bestsol = None
-    besterr = np.inf
-    for i in range(maxrestart):
-        start = np.random.normal(loc=avg, scale=variance, size=(3,))
-        sol, info, stat, msg = fsolve(line_projection_system, start, params, fprime=line_projection_system_jac, full_output=True)
-        err = np.linalg.norm(info["fvec"])
-        if err < maxerr:
-            if sol[0] < 0:
-                sol = -sol
-            return np.array([lines[i] * sol[i] for i in range(3)])
-        if err < besterr:
-            if sol[0] < 0:
-                bestsol = -sol
-            else:
-                bestsol = sol
-    print("WARNING: Maxrestarts expired, the proposed solution has error %f" % besterr)
-    return np.array([lines[i] * bestsol[i] for i in range(3)])
-
-
-def get_points_projection_to_lines_pair(basepts, lines, maxerr=1e-3, maxrestart=10, maxtrials=10):
-    pts = get_points_projections_to_lines(basepts=basepts, lines=lines)
-    pts2 = get_points_projections_to_lines(basepts=basepts, lines=lines)
-
-    count = 1
-    while np.linalg.norm(pts - pts2) < 1e-5 and count < maxtrials:
-        count += 1
-        pts2 = get_points_projections_to_lines(basepts=basepts,
-                                               lines=lines,
-                                               maxerr=maxerr,
-                                               maxrestart=maxrestart)
-    return pts, pts2

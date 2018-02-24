@@ -33,7 +33,7 @@ def build_default_hand_model():
     SCALE_FACTOR = 1
     img, raw_positions = load("gui/shand2.mat")
 
-    raw_positions = [(x * img.shape[1], y * img.shape[0]) for (x, y, f) in raw_positions]
+    raw_positions = [((1-x) * img.shape[1], y * img.shape[0]) for (x, y, f) in raw_positions]
     cal = calibration(intr=synth_intrinsic(resolution=img.shape[0:2], fov=(50, 50 * img.shape[0] / img.shape[1])))
     points = np.array([ImagePoint(elem, depth=0.2).to_camera_model(
         calibration=cal).as_row()
