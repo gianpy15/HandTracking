@@ -1,5 +1,9 @@
 import source.hands_bounding_utils.utils as u
 import os
+from data_manager import path_manager
+import random
+import math
+pm = path_manager.PathManager()
 
 
 def __list_objects_in_path(path):
@@ -13,8 +17,9 @@ def __clean_list(lista):
     return lista
 
 
-def get_samples_from_dataset(imagesfolderpath, annotationsfolderpath, number, height_shrink_rate=10,
-                             width_shrink_rate=10, overlapping_penalty=0.9):
+def get_samples_from_dataset_in_order_from_beginning(imagesfolderpath, annotationsfolderpath, number,
+                                                     height_shrink_rate=10, width_shrink_rate=10,
+                                                     overlapping_penalty=0.9):
     """gets a number of samples from the dataset that will be used to train the network that locates hands from images,
     as first step of the computation of the 3D model of the hands
     :type imagesfolderpath: the path of THE FOLDER that contains the images.
@@ -26,7 +31,7 @@ def get_samples_from_dataset(imagesfolderpath, annotationsfolderpath, number, he
     :type width_shrink_rate: the factor that represents how much the width of heatmaps will be shrunk w.r.t.
     the original image
     :type overlapping_penalty: how much overlapping of hands is penalized in the heatmaps
-    Note that for this function to work properly, annotations and images must eb in DIFFERENT folders and must have
+    Note that for this function to work properly, annotations and images must be in DIFFERENT folders and must have
     THE SAME NAME, except for the extension"""
     images_paths = __clean_list(__list_objects_in_path(imagesfolderpath))
     annots_paths = __clean_list(__list_objects_in_path(annotationsfolderpath))
@@ -44,12 +49,40 @@ def get_samples_from_dataset(imagesfolderpath, annotationsfolderpath, number, he
     return images, heatmaps
 
 
+def get_ordered_batch(images, heatmaps, batch_size, batch_number):
+    """from the given sets "images" and "heatmaps", returns a batch of size batch_size.
+    The images are picked in order, starting from batch_size*batch_number. It will return less elements if
+    the end of the list is reached before."""
+    real_size = batch_size
+    if batch_size*(batch_number+1) > len(images):
+        real_size = batch_size*(batch_number+1) - len(images) + 1
+    start = batch_size*batch_number
+    end = start + real_size
+    return images[start:end], heatmaps[start:end]
+
+
+def get_random_batch(images, heatmaps, batch_size):
+    """returns a random batch of size batch_size. The elements are taken from the given sets images and heatmaps."""
+    size = 0
+    tot = len(images)
+    ims = []
+    heats = []
+    while size < batch_size:
+        rand = math.floor(random.uniform(0, tot))
+        ims.append(images[rand])
+        heats.append(heatmaps[rand])
+        size += 1
+    return ims, heats
+
+
 if __name__ == '__main__':
-    im_f = "dataset/images"
-    an_f = "dataset/annotations"
+    im_f = pm.resources_path("hands_bounding_dataset/images")
+    an_f = pm.resources_path("hands_bounding_dataset/annotations")
     print(__clean_list(__list_objects_in_path(im_f)))
     print(__clean_list(__list_objects_in_path(an_f)))
-    images1, heatmaps1 = get_samples_from_dataset(im_f, an_f, -1)
+    images1, heatmaps1 = get_samples_from_dataset_in_order_from_beginning(im_f, an_f, 100)
+    # images1, heatmaps1 = get_ordered_batch(images1, heatmaps1, 1, 1)
+    images1, heatmaps1 = get_random_batch(images1, heatmaps1, 1)
     u.showimages(images1)
     for heat1 in heatmaps1:
         u.showimage(u.heatmap_to_rgb(heat1))

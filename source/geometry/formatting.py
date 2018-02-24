@@ -43,5 +43,19 @@ def raw(form):
                            form[BABY]))
 
 
+def get_label_and_index(rawidx):
+    if rawidx == 0:
+        return WRIST, 0
+    if rawidx <= 4:
+        return THUMB, rawidx - 1
+    if rawidx <= 8:
+        return INDEX, rawidx - 5
+    if rawidx <= 12:
+        return MIDDLE, rawidx - 9
+    if rawidx <= 16:
+        return RING, rawidx - 13
+    return BABY, rawidx - 17
+
+
 def __finger_from(raw, index):
     return [raw[index], raw[index+1], raw[index+2], raw[index+3]]

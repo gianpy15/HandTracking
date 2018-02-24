@@ -1,5 +1,7 @@
 from geometry.formatting import *
+from geometry.calibration import *
 import re
+import numpy as np
 
 
 class ModelDrawer:
@@ -18,6 +20,8 @@ class ModelDrawer:
         self.height = None
         self.joints = {}
         self.drawn = {}
+        self.depthwise_ordering = []
+        self.need_depth_update = False
 
         self.__all_tag = 'allmd'
         self.__dots_tag = 'dotmd'
@@ -61,12 +65,26 @@ class ModelDrawer:
         if self.__joints_set():
             self.draw_model()
 
-    def set_joints(self, joints):
+    def set_joints(self, joints, resolution=(1.0, 1.0)):
         """
         Set or update the joints data to be drawn, and automagically draw them.
         :param joints: the hand joints in rich dictionary standard format (see geometry.formatting)
         """
-        self.joints = joints.copy()
+        if isinstance(joints, dict):
+            joints = raw(joints)
+        if isinstance(joints[0], ImagePoint):
+            new_depthwise_ordering = np.argsort([p.depth
+                                                 if p.depth is not None
+                                                 else np.inf
+                                                 for p in joints])[::-1]
+            if np.min(new_depthwise_ordering) != np.inf and \
+                    (len(self.depthwise_ordering) < 21 or
+                     np.any(self.depthwise_ordering - new_depthwise_ordering)):
+                self.depthwise_ordering = new_depthwise_ordering
+                self.need_depth_update = True
+            self.joints = hand_format([(p.coords[0] / resolution[1], p.coords[1] / resolution[0]) for p in joints])
+        else:
+            self.joints = hand_format([(p[0] / resolution[1], p[1] / resolution[0]) for p in joints])
         if self.canvas is not None:
             self.draw_model()
 
@@ -78,6 +96,9 @@ class ModelDrawer:
             self.__update_draw()
         else:
             self.__draw_anew()
+        if self.need_depth_update:
+            self.__top_depthwise()
+            self.need_depth_update = False
 
     def __draw_anew(self):
         # draw the wrist
@@ -178,6 +199,21 @@ class ModelDrawer:
                            drawy2,
                            )
 
+    def __top_depthwise(self):
+        if len(self.depthwise_ordering) < 21:
+            return
+        drawnkeys = self.drawn.keys()
+        for idx in self.depthwise_ordering:
+            finger, index = get_label_and_index(idx)
+            for key in drawnkeys:
+                if re.match("%s-[^-]+" % finger, key):
+                    self.canvas.tag_raise(self.drawn[key])
+            if finger != WRIST:
+                for key in self.drawn[finger].keys():
+                    if re.match("[^-]+-%d" % index, str(key)):
+                        self.canvas.tag_raise(self.drawn[finger][key])
+            self.canvas.tag_raise(self.drawn[finger][index])
+
     def __get_coordinates(self, point):
         return self.posx + self.width * point[0], self.posy + self.height * point[1]
 
@@ -210,6 +246,7 @@ if __name__ == '__main__':
     md.set_joints(hand_format(helper_hand_lab))
     md.set_target_area(test_subject)
 
+
     # here we define the flat rotation with random constellation
     # points must appear correctly on the image, but their distance should be
     # different and randomized (the constellation effect)
@@ -219,7 +256,7 @@ if __name__ == '__main__':
         resolution = helper_hand_img.shape[0:2]
         camera_calib = calibration(intr=synth_intrinsic(resolution, (50, 50)))
         # Here we arbitrarily set their depth to make the constellation effect
-        flat_3d = [ImagePoint((elem[0]*resolution[0], elem[1]*resolution[1]), depth=10+np.random.random())
+        flat_3d = [ImagePoint((elem[0] * resolution[0], elem[1] * resolution[1]), depth=10 + np.random.random())
                        .to_camera_model(calibration=camera_calib)
                        .as_row()
                    for elem in label_data]
@@ -230,14 +267,14 @@ if __name__ == '__main__':
 
         while True:
             # rotate the 3D dataset
-            flat_3d = [np.matmul(rotation, elem-center)+center for elem in flat_3d]
+            flat_3d = [np.matmul(rotation, elem - center) + center for elem in flat_3d]
             # project it into image space
             flat_2d = [ModelPoint(elem)
                            .to_image_space(calibration=camera_calib)
                            .as_row()
                        for elem in flat_3d]
             # normalize it before feeding to the model drawer
-            flat_2d_norm = [(x/resolution[0], y/resolution[1]) for (x, y) in flat_2d]
+            flat_2d_norm = [(x / resolution[0], y / resolution[1]) for (x, y) in flat_2d]
             # feed to model drawer
             md.set_joints(hand_format(flat_2d_norm))
             time.sleep(0.04)

@@ -5,10 +5,11 @@ from os import path as os_p
 from skimage import io
 import matplotlib.pyplot as plt
 import math
+from data_manager import path_manager
+pm = path_manager.PathManager()
 
 
 # ################### READING FILES ###########################
-from tensorflow import device
 
 
 def read_image(path):
@@ -25,6 +26,7 @@ def __get_points_list_from_boxes_structures_hand_mat(structures):
     """returns an array of shape (4,2,n) where n=len(structures) excluding
     eventual "None" values present in structures"""
     coord_sets = []
+    structures = structures.reshape([-1])
     for struct in structures:
         if struct is not None:
             mat = []
@@ -290,7 +292,9 @@ def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink
                     else:
                         heatmap[i][j] = (1-overlapping_penalty)*(((c_down-c_up)*(c_right-c_left)) /
                                                                  (heigth_shrink_rate*width_shrink_rate)+heatmap[i][j])
-    heatmap = heatmap / np.max(heatmap)
+    maxvalue = np.max(heatmap)
+    if maxvalue != 0:
+        heatmap = heatmap / np.max(heatmap)
     return heatmap
 
 
@@ -315,12 +319,12 @@ if __name__ == '__main__':
     image1 = read_image(imagep)
     # showimages(cropimage(imagep, matp))
     heatmap1 = get_heatmap_from_mat(image1, matp)
-    showimage(heatmap_to_rgb(heatmap1))
-    showimages(get_crops_from_heatmap(image1, heatmap1, enlarge=0.2))
+    # showimage(heatmap_to_rgb(heatmap1))
+    # showimages(get_crops_from_heatmap(image1, heatmap1, enlarge=0.2))
 
 
     def timetest():
         get_crops_from_heatmap(image1, heatmap1, precision=0.7)
 
 
-    # print(time.timeit(stmt=timetest, number=1))
+    print(time.timeit(stmt=timetest, number=1))

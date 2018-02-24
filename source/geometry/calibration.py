@@ -51,6 +51,7 @@ def set_current_calib(cal):
     global current_calibration
     current_calibration = cal
 
+
 def intrinsic_matrix(calibration):
     """
     Extract the intrinsic matrix transformation from the calibration settings
@@ -170,10 +171,10 @@ class ModelPoint:
     def as_col_tr(self):
         return np.transpose([self.as_row_tr()])
 
-    def to_image_space(self, calibration=None):
+    def to_image_space(self, calibration=None, makedepth=False):
         if calibration is None:
             calibration = current_calibration
-        return model2image(self, calibration)
+        return model2image(self, calibration, makedepth=makedepth)
 
     def __truediv__(self, other):
         return ModelPoint(self.coords/other)

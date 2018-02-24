@@ -2,8 +2,12 @@ from hand_data_management.naming import *
 from image_loader.hand_io import *
 import os
 
+# define symbols for the gapflags
+LABELED = 1
+UNLABELED = 0
 
-def load_labeled_video(vidname):
+
+def load_labeled_video(vidname, fillgaps=True, gapflags=False):
     """
     Load all frames of a video in a 4-dimentional numpy array, with all available labels.
     Missing labels are written linearly interpolating the available data.
@@ -18,13 +22,22 @@ def load_labeled_video(vidname):
     frames.sort(key=get_frameno)
     frame_data = []
     label_data = []
+    gap_list = []
     for frame in frames:
         fdata, ldata = load(frame)
         frame_data.append(fdata)
         label_data.append(ldata)
-    if label_data[0] is None or label_data[-1] is None:
-        return None
-    linear_fill(label_data)
+        gap_list.append(UNLABELED if ldata is None else LABELED)
+    if fillgaps:
+        if label_data[0] is None or label_data[-1] is None:
+            # unable to fill gaps, None labels are returned as a precaution
+            if gapflags:
+                # expecting three-tuple output
+                return frame_data, None, None
+            return frame_data, None
+        linear_fill(label_data)
+    if gapflags:
+        return frame_data, label_data, gap_list
     return frame_data, label_data
 
 
