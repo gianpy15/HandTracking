@@ -36,6 +36,10 @@ def cross_product(v1, v2):
     return np.reshape(np.matmul(mat, np.expand_dims(v2, 1)), (3,))
 
 
+def normalize(vec):
+    return vec / np.linalg.norm(vec)
+
+
 def get_rotation_matrix_from_quat(a, b, c, d):
     a2 = a * a
     b2 = b * b
@@ -54,7 +58,7 @@ def get_rotation_matrix_from_quat(a, b, c, d):
 
 def get_quat_from_axis_angle(axis, angle):
     semi = angle / 2
-    normax = np.sin(semi) * axis / np.linalg.norm(axis)
+    normax = np.sin(semi) * normalize(axis)
     return np.cos(semi), normax[0], normax[1], normax[2]
 
 
@@ -62,16 +66,14 @@ def get_mapping_rot(v1, v2):
     n1 = np.linalg.norm(v1)
     n2 = np.linalg.norm(v2)
     axis = cross_product(v1, v2)
-    if np.linalg.norm(axis) == 0:
+    if np.linalg.norm(axis) <= n1 * n2 * 1e-10:
         if np.dot(v1, v2) > 0:
             return np.eye(3)
         if v1[2] != 0:
-            axis = cross_product(v1, [1, 0, 0])
-            axis = axis / np.linalg.norm(axis)
+            axis = normalize(cross_product(v1, [1, 0, 0]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
         else:
-            axis = cross_product(v1, [0, 0, 1])
-            axis = axis / np.linalg.norm(axis)
+            axis = normalize(cross_product(v1, [0, 0, 1]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
     return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
 
