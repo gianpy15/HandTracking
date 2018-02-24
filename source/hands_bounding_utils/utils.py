@@ -261,6 +261,14 @@ def heatmap_to_rgb(heat):
     return np.uint8(heat2)
 
 
+def heatmap_to_3d(heat):
+    heat2 = np.zeros((heat.shape[0], heat.shape[1], 1))
+    for i in range(heat.shape[0]):
+        for j in range(heat.shape[1]):
+            heat2[i][j] = [heat[i][j]]
+    return heat2
+
+
 def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink_rate=10, overlapping_penalty=0.9):
     """given an image and a .mat file containing coordinates of the rectangles where hands are present,
     returns a heatmap that, according to high values, defines where hands are present. Note that the heatmap
@@ -274,8 +282,8 @@ def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink
     coords = __read_coords_from_mat_file(matfilepath)
     image_height = len(image)
     image_width = len(image[0])
-    heatmap_height = int(math.ceil(image_height / heigth_shrink_rate))
-    heatmap_width = int(math.ceil(image_width / width_shrink_rate))
+    heatmap_height = int(math.ceil(image_height // heigth_shrink_rate))
+    heatmap_width = int(math.ceil(image_width // width_shrink_rate))
     heatmap = np.zeros((heatmap_height, heatmap_width))
     for coord in coords:
         up, down, left, right = __get_bounds(coord)
@@ -314,8 +322,8 @@ def showimage(image):
 
 
 if __name__ == '__main__':
-    imagep = "dataset/images/Poselet_186.jpg"
-    matp = "dataset/annotations/Poselet_186.mat"
+    imagep = pm.resources_path("hands_bounding_dataset/train/images/Poselet_186.jpg")
+    matp = pm.resources_path("hands_bounding_dataset/train/annotations/Poselet_186.mat")
     image1 = read_image(imagep)
     # showimages(cropimage(imagep, matp))
     heatmap1 = get_heatmap_from_mat(image1, matp)
