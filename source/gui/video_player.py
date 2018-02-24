@@ -40,12 +40,15 @@ if __name__ == '__main__':
     root = Tk()
     root.title("Player")
 
+    topframe = Frame(root, height=image_height, width=cmd_width+image_width)
+    topframe.pack(side=TOP)
+
     # Frame for buttons
-    cmd = Frame(root, height=cmd_height, width=cmd_width)
+    cmd = Frame(topframe, height=cmd_height, width=cmd_width)
     cmd.pack(side=RIGHT)
 
     # Canvas for frames and labels
-    canvas = Canvas(root, width=image_width, height=image_height)
+    canvas = Canvas(topframe, width=image_width, height=image_height)
     canvas.pack(side=LEFT)
 
     # Play button
@@ -65,4 +68,11 @@ if __name__ == '__main__':
     pause_button.bind('<Button-1>', lambda e: player.pause())
     play_button.bind('<Button-1>', lambda e: player.play())
     root.after(50, player.nextframe, root)
+
+    slider = Scale(root,
+                   from_=-5., to=5., resolution=0.1,
+                   orient=HORIZONTAL, tickinterval=1.0,
+                   command=lambda v: player.set_speed_mult(v))
+    slider.set(1)
+    slider.pack(side=BOTTOM, fill=BOTH)
     root.mainloop()

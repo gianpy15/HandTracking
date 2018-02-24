@@ -12,6 +12,7 @@ class PlayerThread:
         self.labels = labels
         self.canvas = canvas
         self.current_fps = fps
+        self.speed_mult = 1.0
         self.model_drawer = modeldrawer
         self.pic_height = 168
         self.pic_width = 298
@@ -66,20 +67,29 @@ class PlayerThread:
             self.model_drawer.set_joints(self.labels[self.current_frame])
 
     def nextframe(self, root):
+        if self.speed_mult == 0:
+            root.after(int(1000 // self.current_fps), self.nextframe, root)
+            return
         if self.play_flag:
             # update the frame counter
-            self.current_frame += 1 if self.current_fps > 0 else -1
+            self.current_frame += 1 if self.speed_mult > 0 else -1
             self.current_frame %= len(self.framebuff)
             # update self.current_photoimage
             self.make_photoimage(self.framebuff[self.current_frame])
             # display the current photoimage
             self.update_frame()
         # make the tkinter main loop to call after the needed time
-        root.after(1000 // abs(self.current_fps), self.nextframe, root)
+        root.after(int(1000 // (self.current_fps * abs(self.speed_mult))), self.nextframe, root)
 
     def play(self):
         self.play_flag = True
 
     def pause(self):
         self.play_flag = False
+
+    def set_fps(self, newfps):
+        self.current_fps = int(newfps)
+
+    def set_speed_mult(self, mult):
+        self.speed_mult = float(mult)
 
