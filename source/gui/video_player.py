@@ -70,7 +70,7 @@ if __name__ == '__main__':
     root.after(50, player.nextframe, root)
 
     slider = Scale(root,
-                   from_=-5., to=5., resolution=0.1,
+                   from_=-2., to=3., resolution=0.05,
                    orient=HORIZONTAL, tickinterval=1.0,
                    command=lambda v: player.set_speed_mult(v))
     slider.set(1)
