@@ -1,50 +1,85 @@
-from multiprocessing import *
-from time import sleep
-import numpy as np
-from geometry.formatting import hand_format
 from tkinter import *
 from gui.model_drawer import *
 from PIL import ImageTk, Image
 
 
-class PlayerThread(Process):
+class PlayerThread:
     """
     Thread used to print video frames and corresponding labels
     """
 
-    def __init__(self,frames, labels, canvas, md, flag):
-        Process.__init__(self)
-
-        self.delay = .01
-        self.frames = frames
+    def __init__(self, frames, canvas, modeldrawer=None, labels=None, fps=60):
         self.labels = labels
         self.canvas = canvas
-        self.model_drawer = md
+        self.current_fps = fps
+        self.model_drawer = modeldrawer
         self.pic_height = 168
         self.pic_width = 298
-        self.play_flag = flag
-
-    def run(self):
-        if np.array(self.frames).dtype in [np.float16, np.float32, np.float64, np.float128]:
-            frames_list = np.array(self.frames * 255, dtype=np.int8)
-        elif np.array(self.frames).dtype.itemsize != 1:
-            frames_list = np.array(self.frames, dtype=np.int8)
+        self.play_flag = False
+        # Build the frame buffer at once
+        self.framebuff = []
+        if frames[0].dtype in [np.float16, np.float32, np.float64, np.float128]:
+            self.framebuff = np.array(frames * 255, dtype=np.int8)
+        elif frames[0].dtype.itemsize != 1:
+            self.framebuff = np.array(frames, dtype=np.int8)
         else:
-            frames_list = self.frames
+            self.framebuff = frames
 
-        self.play_flag.set()
-        for i in range(len(frames_list)):
-            self.play_flag.wait()
-            image = Image.fromarray(frames_list[i], mode="RGB")
-            photo_image = ImageTk.PhotoImage(image)
-            img = self.canvas.create_image(self.pic_width, self.pic_height, image=photo_image)
-            self.model_drawer.set_joints(hand_format(self.labels[i]))
-            print(i)
-            n = self.delay
-            #sleep(n)
-            #while n > 0:
-            #    n = n - 1
-            self.canvas.update()
+        # keep track of image and photoimage, otherwise they get garbage-collected
+        self.current_photoimg = None
+        self.current_img = None
 
-    def set_delay(self, value):
-        self.delay = value
+        # frame counter
+        self.current_frame = 0
+
+        # persistent image canvas ID to be able to update it
+        self.imageid = self.make_canvas_image()
+        # if labels are provided, then draw them
+        if self.labels is not None and self.model_drawer is not None:
+            self.model_drawer.set_joints(self.labels[self.current_frame])
+
+    def make_photoimage(self, buffer):
+        """
+        Produce a new photoimage from the given buffer.
+        :param buffer: the array buffer describing the image
+        """
+        self.current_img = Image.fromarray(buffer, mode="RGB")
+        self.current_photoimg = ImageTk.PhotoImage(image=self.current_img)
+        return self.current_photoimg
+
+    def make_canvas_image(self):
+        """
+        Create the image object into the canvas, call just once on setup.
+        The image is initialized with the current frame.
+        :return: the ID of the created canvas
+        """
+        return self.canvas.create_image(0, 0, anchor=NW,
+                                        image=self.make_photoimage(self.framebuff[self.current_frame]))
+
+    def update_frame(self):
+        """
+        Update the photoimage reference of the canvas image object,
+        if any label has been given, update them as well
+        """
+        self.canvas.itemconfig(self.imageid, image=self.current_photoimg)
+        if self.labels is not None and self.model_drawer is not None:
+            self.model_drawer.set_joints(self.labels[self.current_frame])
+
+    def nextframe(self, root):
+        if self.play_flag:
+            # update the frame counter
+            self.current_frame += 1 if self.current_fps > 0 else -1
+            self.current_frame %= len(self.framebuff)
+            # update self.current_photoimage
+            self.make_photoimage(self.framebuff[self.current_frame])
+            # display the current photoimage
+            self.update_frame()
+        # make the tkinter main loop to call after the needed time
+        root.after(1000 // abs(self.current_fps), self.nextframe, root)
+
+    def play(self):
+        self.play_flag = True
+
+    def pause(self):
+        self.play_flag = False
+
