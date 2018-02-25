@@ -5,15 +5,20 @@ from geometry.transforms import *
 from numpy.linalg import norm
 from geometry.hand_localization import build_default_hand_model
 import timeit
+import concurrent.futures as fut
 
+# Maximum rotation angles of any joints around the median rotation axis
 maxangle = {
-    THUMB: np.pi / 180 * 40,
+    THUMB: np.pi / 180 * 35,
     INDEX: np.pi / 180 * 55,
     MIDDLE: np.pi / 180 * 50,
     RING: np.pi / 180 * 46,
     BABY: np.pi / 180 * 47
 }
 
+# The angles defining where is the median rotation axis of the finger.
+# Median rotation is the one pointing at this angle in between the
+# palm and the finger direction
 normdirangles = {
     THUMB: np.pi / 180 * 45,
     INDEX: np.pi / 180 * 45,
@@ -32,6 +37,7 @@ THUMBAXIS = 'thax'
 LEFT = -1
 RIGHT = 1
 
+# Number of fast finger estimates to find out what direction is the palm
 SIDE_N_ESTIM = 3
 
 normdirrates = {}
@@ -42,51 +48,112 @@ for finger in FINGERS:
     }
 
 
-def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=None):
+def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=None, executor=None):
+    """
+    Compute the hand model in the space
+    :param base_hand_model: the standard hand prototype to use for interpolation
+    :param image_joints: the image points of the joints
+    :param side: one of RIGHT or LEFT, the side of the hand
+    :param cal: the calibration of the image joints to use
+    :return: The space model of the hand
+    """
+
+    # First thing is: compute the world model correspondences of the image points
+    # This way we have defined the lines that we have to interpolate
     if cal is None:
         cal = current_calibration
     world_image_info = hand_format([joint.to_camera_model(calibration=cal).as_row()
                                     for joint in raw(image_joints)])
 
     # for now we assume that no point is visible, so they are all directional versors.
+
+    # the hand model is normalized with respect to the wrist
     base_hand_model = hand_format([elem - base_hand_model[WRIST][0] for elem in raw(base_hand_model)])
+
+    # based on the palm plane, extract the transformation that maps the model to the lines
+    # conserving the distances between all points.
+    # this transformation provides exact correspondence between prototype and image
     tr, rotmat = get_best_first_transform(base_hand_model, world_image_info, side=side)
 
+    # apply this first transformation to the whole model
     first_hand_model = hand_format([first_transform_point(rotmat, tr, p)
                                     for p in raw(base_hand_model)])
 
-    palm_base_axis = normalize(cross_product(first_hand_model[INDEX][0] - first_hand_model[WRIST][0],
-                                             first_hand_model[BABY][0] - first_hand_model[WRIST][0]))
-
-    # drawpnt(raw(first_hand_model), cal=calibration)
-
-    conf = {NORM_DIR: palm_base_axis}
+    # now we have to face the fingers: start getting the palm direction
+    palm_base_axis = normalize(np.cross(first_hand_model[INDEX][0] - first_hand_model[WRIST][0],
+                                        first_hand_model[BABY][0] - first_hand_model[WRIST][0]))
 
     end_model = {WRIST: first_hand_model[WRIST]}
-    for finger in (INDEX, MIDDLE, RING, BABY):
-        conf[START_DIR] = normalize(first_hand_model[finger][1] - first_hand_model[finger][0])
-        conf[AROUND_DIR] = normalize(conf[START_DIR] * normdirrates[finger][START_DIR]
-                                     + conf[NORM_DIR] * normdirrates[finger][NORM_DIR])
-        conf[MAXANGLE] = maxangle[finger]
-        conf[MAXWIDEANGLE] = maxangle[finger] / 3
-        conf[THUMBAXIS] = None
-        end_model[finger] = [first_hand_model[finger][0], 0, 0, 0]
-        lengths = []
-        for idx in range(3):
-            lengths.append(norm(first_hand_model[finger][idx + 1] - first_hand_model[finger][idx]))
-        finger_position = build_finger_num(basejoint=first_hand_model[finger][0],
-                                           lengths=lengths,
-                                           jointversors=world_image_info[finger][1:],
-                                           config=conf,
-                                           cal=cal)
-        for idx in range(1, 4):
-            end_model[finger][idx] = finger_position[idx - 1]
 
-    end_model[THUMB] = [0, 0, 0, 0]
-    conf[START_DIR] = normalize(first_hand_model[THUMB][1] - first_hand_model[WRIST][0])
-    # conf[NORM_DIR] = (cross_product(palm_base_axis, conf[START_DIR]) + palm_base_axis) / np.sqrt(2)
+    if executor is None:
+        # if no executor pool has been provided, take care of all the fingers yourself
+        for finger in (INDEX, MIDDLE, RING, BABY):
+            finger_position = compute_generic_finger(first_hand_model,
+                                                     palm_base_axis,
+                                                     world_image_info,
+                                                     finger)
+            end_model[finger] = [first_hand_model[finger][0], 0, 0, 0]
+            for idx in range(1, 4):
+                end_model[finger][idx] = finger_position[idx - 1]
+
+        # the thumb has special rotations that need peculiar attention:
+        end_model[THUMB] = compute_thumb(first_hand_model,
+                                         palm_base_axis,
+                                         world_image_info)
+    else:
+        # if some angel provided any executor, schedule the four fingers
+        futures = {}
+        task = compute_generic_finger_wrap(first_hand_model,
+                                           palm_base_axis,
+                                           world_image_info)
+        for finger in (INDEX, MIDDLE, RING, BABY):
+            futures[finger] = executor.submit(task, finger)
+
+        # and then solve the thumb problem
+        end_model[THUMB] = compute_thumb(first_hand_model,
+                                         palm_base_axis,
+                                         world_image_info)
+
+        # finally harvest the results
+        for finger in (INDEX, MIDDLE, RING, BABY):
+            end_model[finger] = [first_hand_model[finger][0], 0, 0, 0]
+            for idx in range(1, 4):
+                end_model[finger][idx] = futures[finger].result()[idx - 1]
+
+    # and finally we have it
+    return end_model
+
+
+def compute_generic_finger_wrap(first_hand_model, palm_base_axis, world_image_info):
+    return lambda f: compute_generic_finger(first_hand_model, palm_base_axis, world_image_info, finger=f)
+
+
+def compute_generic_finger(first_hand_model, palm_base_axis, world_image_info, finger):
+    # the build finger utility needs complex configuration, here we build it
+    conf = {NORM_DIR: palm_base_axis,
+            START_DIR: normalize(first_hand_model[finger][1] - first_hand_model[finger][0])
+            }
+    lengths = []
+    conf[AROUND_DIR] = normalize(conf[START_DIR] * normdirrates[finger][START_DIR]
+                                 + conf[NORM_DIR] * normdirrates[finger][NORM_DIR])
+    conf[MAXANGLE] = maxangle[finger]
+    conf[MAXWIDEANGLE] = maxangle[finger] / 3
+    conf[THUMBAXIS] = None
+    for idx in range(3):
+        lengths.append(norm(first_hand_model[finger][idx + 1] - first_hand_model[finger][idx]))
+    finger_position = build_finger_num(basejoint=first_hand_model[finger][0],
+                                       lengths=lengths,
+                                       jointversors=world_image_info[finger][1:],
+                                       config=conf)
+    return finger_position
+
+
+def compute_thumb(first_hand_model, palm_base_axis, world_image_info):
+    conf = {NORM_DIR: palm_base_axis,
+            START_DIR: normalize(first_hand_model[THUMB][1] - first_hand_model[WRIST][0])}
+    end_model = [0, 0, 0, 0]
     thumbrotation = get_rotation_matrix(-conf[START_DIR], angle=np.pi / 6)
-    conf[NORM_DIR] = column_matmul(thumbrotation, palm_base_axis)
+    conf[NORM_DIR] = thumbrotation @ palm_base_axis
     conf[AROUND_DIR] = normalize(conf[START_DIR] * normdirrates[THUMB][START_DIR] \
                                  + conf[NORM_DIR] * normdirrates[THUMB][NORM_DIR])
     conf[MAXANGLE] = maxangle[THUMB]
@@ -100,27 +167,27 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     thmbend = build_finger_num(basejoint=first_hand_model[WRIST][0],
                                lengths=lengths,
                                jointversors=lines,
-                               config=conf,
-                               cal=cal)
+                               config=conf)
     for idx in range(1, 4):
-        end_model[THUMB][idx] = thmbend[idx - 1]
+        end_model[idx] = thmbend[idx - 1]
 
+    # the point zero of the thumb is not a real articulation,
+    # for this reason it is artificially aligned to the rest
     alignmat = get_mapping_rot(-first_hand_model[WRIST][0] + first_hand_model[THUMB][1],
-                               -end_model[WRIST][0] + thmbend[0])
-    thumbzero = column_matmul(alignmat,
-                              first_hand_model[THUMB][0] - first_hand_model[WRIST][0]) \
+                               -first_hand_model[WRIST][0] + thmbend[0])
+    thumbzero = (alignmat @ (first_hand_model[THUMB][0] - first_hand_model[WRIST][0])) \
                 + first_hand_model[WRIST][0]
-    end_model[THUMB][0] = thumbzero
-    # print("Finger: %s\tLoss: %f" % (THUMB, loss))
-
-    # end_check(base_hand_model, end_model)
-
-    # drawpnts(raw(world_image_info)*5000, cal=cal)
+    end_model[0] = thumbzero
 
     return end_model
 
 
 def end_check(model1, model2):
+    """
+    DEBUG UTILITY
+    Check whether the two given models have any length differences
+    """
+
     def segment_len(model, finger, idx):
         return norm(model[finger][idx] - model[finger][idx + 1])
 
@@ -134,13 +201,17 @@ def end_check(model1, model2):
 
 
 def first_transform_point(rotmat, translation, point):
-    return column_matmul(rotmat, point) + translation
+    """
+    The first transformation done in the process of hand building.
+    This is an affine transformation of the whole model
+    """
+    return (rotmat @ point) + translation
 
 
 def get_rotation_angle_around_axis(axis, p1, p2):
     v1 = normalize(p1 - axis * np.dot(p1, axis))
     v2 = normalize(p2 - axis * np.dot(p2, axis))
-    cross = cross_product(v1, v2)
+    cross = np.cross(v1, v2)
     if np.dot(axis, cross) > 0:
         return np.arccos(np.dot(v1, v2))
     return -np.arccos(np.dot(v1, v2))
@@ -158,11 +229,11 @@ def drawpnts(ptd, fill=None, cal=global_calibration):
         ptd = [ModelPoint(pt).to_image_space(global_calibration).as_row() for pt in ptd]
     for pt in ptd:
         global_canvas.create_oval(pt[0] - 5,
-                           pt[1] - 5,
-                           pt[0] + 5,
-                           pt[1] + 5,
-                           fill=fill,
-                           tag="debug")
+                                  pt[1] - 5,
+                                  pt[0] + 5,
+                                  pt[1] + 5,
+                                  fill=fill,
+                                  tag="debug")
 
 
 def get_best_first_transform(base_hand_model, world_image_info, side):
@@ -178,8 +249,7 @@ def get_best_first_transform(base_hand_model, world_image_info, side):
         # find out the transformation to align the baby as well
         axis = normalize(model[1] - model[0])
         angle = get_rotation_angle_around_axis(axis,
-                                               column_matmul(rotmat,
-                                                             base_triangle_pts[2]),
+                                               rotmat @ base_triangle_pts[2],
                                                model[2] - model[0])
         # correct the rotation to align all the three
         rotmat = np.matmul(get_rotation_matrix(axis, angle), rotmat)
@@ -187,15 +257,15 @@ def get_best_first_transform(base_hand_model, world_image_info, side):
 
     tr1, rotmat1 = get_transformation_from_model(model1)
 
-    model_axis_unnorm = cross_product(model1[1] - model1[0], model1[2] - model1[0]) * side
+    model_axis_unnorm = np.cross(model1[1] - model1[0], model1[2] - model1[0]) * side
     SIDE_N_ESTIM = 3
     avg_fingers = np.array([0., 0., 0.])
     for finger in FINGERS:
         base = first_transform_point(rotmat1, tr1, base_hand_model[finger][0])
         joints, _ = build_finger_fast(basejoint=base,
-                                      lengths=[norm(base_hand_model[finger][idx+1] - base_hand_model[finger][idx])
+                                      lengths=[norm(base_hand_model[finger][idx + 1] - base_hand_model[finger][idx])
                                                for idx in range(SIDE_N_ESTIM)],
-                                      jointversors=[world_image_info[finger][idx+1] for idx in range(SIDE_N_ESTIM)])
+                                      jointversors=[world_image_info[finger][idx + 1] for idx in range(SIDE_N_ESTIM)])
         # drawpnts(joints, fill="magenta")
         avg_fingers = avg_fingers + np.average(joints)
     avg_fingers = avg_fingers / len(FINGERS)
@@ -210,17 +280,17 @@ def cone_project(axis, vec, coneangle):
     Compute the projection of vector vec with respect to the cone having axis as base axis
     and with aperture coneangle
     """
-    rotax = normalize(cross_product(vec, axis))
-    rotangle = np.arccos(np.dot(axis, vec) / norm(vec)) - coneangle
-    rotmat = get_rotation_matrix(rotax, rotangle)
-    return column_matmul(rotmat, vec)
+    rotangle = max(0, np.arccos(np.dot(axis, vec) / norm(vec)) - coneangle)
+    if rotangle == 0:
+        return vec
+    rotax = normalize(np.cross(vec, axis))
+    return get_rotation_matrix(rotax, rotangle) @ vec
 
 
 def plane_rot_project(plane_versors, vec):
     comp1 = np.dot(plane_versors[0], vec) * plane_versors[0]
     comp2 = np.dot(plane_versors[1], vec) * plane_versors[1]
-    rotmat = get_mapping_rot(vec, comp1 + comp2)
-    return column_matmul(rotmat, vec)
+    return get_mapping_rot(vec, comp1 + comp2) @ vec
 
 
 def sphere_line_intersection(center, radius, line):
@@ -230,7 +300,7 @@ def sphere_line_intersection(center, radius, line):
     delta = bh ** 2 - norm(center) + radius ** 2
     if delta < 0:
         sol = - bh * line
-        return sol, sol, norm(cross_product(sol, line)) * 1e+20, True
+        return sol, sol, norm(np.cross(sol, line)) * 1e+20, True
     return (np.sqrt(delta) - bh) * line, (-bh - np.sqrt(delta)) * line, 0, False
 
 
@@ -243,17 +313,25 @@ def build_finger_num(basejoint, lengths, jointversors, config=None, cal=global_c
             return None
         rotmat = get_mapping_rot(config[START_DIR], proposed_sol - basejoint)
         newconf = config.copy()
-        newconf[START_DIR] = column_matmul(rotmat, config[START_DIR])
+        newconf[START_DIR] = rotmat @ config[START_DIR]
         if config[THUMBAXIS] is not None:
             axisrot = get_rotation_angle_around_axis(axis=config[THUMBAXIS],
                                                      p1=config[START_DIR],
                                                      p2=proposed_sol - basejoint)
             rotmat = np.matmul(get_rotation_matrix(axis=newconf[START_DIR], angle=axisrot), rotmat)
-        newconf[AROUND_DIR] = column_matmul(rotmat, config[AROUND_DIR])
-        newconf[NORM_DIR] = column_matmul(rotmat, config[NORM_DIR])
+        newconf[AROUND_DIR] = rotmat @ config[AROUND_DIR]
+        newconf[NORM_DIR] = rotmat @ config[NORM_DIR]
         newconf[MAXWIDEANGLE] /= 10
         newconf[THUMBAXIS] = None
         return newconf
+
+    suggest = build_finger_fast(basejoint=basejoint,
+                                lengths=[lengths[0]],
+                                jointversors=[jointversors[0]])[0]
+
+    suggest.append(cone_project(axis=config[AROUND_DIR],
+                                vec=suggest[0] - basejoint,
+                                coneangle=config[MAXANGLE]) + basejoint)
 
     joint = find_best_point_in_cone(center=basejoint,
                                     radius=lengths[0],
@@ -262,8 +340,7 @@ def build_finger_num(basejoint, lengths, jointversors, config=None, cal=global_c
                                     tang_vers=config[NORM_DIR],
                                     normcos=np.cos(config[MAXANGLE]),
                                     planecos=np.cos(config[MAXWIDEANGLE]),
-                                    dbgcanvas=global_canvas,
-                                    dbgcal=cal)
+                                    suggestion=suggest)
     return [joint] + build_finger_num(joint, lengths[1:], jointversors[1:], compute_config(joint), cal=cal)
 
 
@@ -316,6 +393,8 @@ if __name__ == '__main__':
     md.set_joints(hand_format(helper_hand_lab))
     md.set_target_area(test_subject)
 
+    pool = fut.ThreadPoolExecutor(10)
+
 
     # here we define the hand model setup and running procedure
     # NB: not working at all.
@@ -334,11 +413,13 @@ if __name__ == '__main__':
         def total():
             global hand_model
             hand_model = raw(compute_hand_world_joints(build_default_hand_model(),
-                                                       formatted_data, cal=cal))
+                                                       formatted_data,
+                                                       cal=cal,
+                                                       executor=None))
 
         # make sure that the GUI-related load is expired before measuring performance
-        # time.sleep(1)
-        rep = 1
+        time.sleep(1)
+        rep = 100
         print("Model computation %d times took %f seconds." % (rep, timeit.timeit(total, number=rep)))
 
         current_rotation = tr.get_rotation_matrix(axis=1, angle=0)

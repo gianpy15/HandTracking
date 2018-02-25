@@ -2,8 +2,10 @@ import numpy as np
 
 
 def column_matmul(m, v):
-    res = np.matmul(m, np.expand_dims(v, 1))
-    return np.reshape(res, (3,))
+    return m @ v
+    #return np.apply_along_axis(np.dot, 1, m, v)
+    # res = np.matmul(m, np.expand_dims(v, 1))
+    # return np.reshape(res, (3,))
 
 
 def get_rotation_matrix(axis, angle):
@@ -35,11 +37,6 @@ def get_cross_matrix(v):
                      [-v[1], v[0], 0.]])
 
 
-def cross_product(v1, v2):
-    mat = get_cross_matrix(v1)
-    return column_matmul(mat, v2)
-
-
 def normalize(vec):
     return vec / np.linalg.norm(vec)
 
@@ -69,14 +66,14 @@ def get_quat_from_axis_angle(axis, angle):
 def get_mapping_rot(v1, v2):
     n1 = np.linalg.norm(v1)
     n2 = np.linalg.norm(v2)
-    axis = cross_product(v1, v2)
+    axis = np.cross(v1, v2)
     if np.linalg.norm(axis) <= n1 * n2 * 1e-10:
         if np.dot(v1, v2) > 0:
             return np.eye(3)
         if v1[2] != 0:
-            axis = normalize(cross_product(v1, [1, 0, 0]))
+            axis = normalize(np.cross(v1, [1, 0, 0]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
         else:
-            axis = normalize(cross_product(v1, [0, 0, 1]))
+            axis = normalize(np.cross(v1, [0, 0, 1]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
     return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
