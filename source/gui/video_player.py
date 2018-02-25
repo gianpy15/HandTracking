@@ -34,7 +34,8 @@ if __name__ == '__main__':
     cmd_height = image_height
 
     # Load frames and labels
-    frames, labels = load_labeled_video("snap")  # TODO add choice of video
+    vidname = "snap"
+    frames, labels, indexes = load_labeled_video(vidname, gapflags=True)  # TODO add choice of video
 
     # Root window of GUI
     root = Tk()
@@ -59,12 +60,36 @@ if __name__ == '__main__':
     pause_button = Button(cmd, text="Pause")
     pause_button.pack(fill=BOTH)
 
+    # Labeled/unlabeled message field
+    msg = StringVar()
+    frame_status = Label(root, textvariable=msg)
+    frame_status.pack()
+
+    # Discard commands
+    discard_button = Button(cmd, text="Discard")
+    discard_button.pack(fill=BOTH)
+    discard = StringVar()
+    discard_label = Label(root, textvariable=discard)
+    discard_label.pack()
+
+    # Save button
+    save_button = Button(cmd, text="Save")
+    save_button.pack(fill=BOTH)
+
     # Build the model drawer
     md = ModelDrawer()
     md.set_target_area(canvas)
 
     # Build and run the thread
-    player = PlayerThread(frames=frames, labels=labels, canvas=canvas, modeldrawer=md)
+    player = PlayerThread(
+        frames=frames,
+        labels=labels,
+        canvas=canvas,
+        modeldrawer=md,
+        status=msg,
+        indexes=indexes,
+        discard=discard
+    )
     pause_button.bind('<Button-1>', lambda e: player.pause())
     play_button.bind('<Button-1>', lambda e: player.play())
     root.after(50, player.nextframe, root)
@@ -75,4 +100,9 @@ if __name__ == '__main__':
                    command=lambda v: player.set_speed_mult(v))
     slider.set(1)
     slider.pack(side=BOTTOM, fill=BOTH)
+
+    discard_button.bind('<Button-1>', lambda e: player.set_changes())
+
+    save_button.bind('<Button-1>', lambda e: player.print_changes("snap"))
+
     root.mainloop()

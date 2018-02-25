@@ -1,6 +1,10 @@
 from tkinter import *
+
+import os
+
 from gui.model_drawer import *
 from PIL import ImageTk, Image
+from random import randint
 import time
 
 
@@ -9,7 +13,7 @@ class PlayerThread:
     Thread used to print video frames and corresponding labels
     """
 
-    def __init__(self, frames, canvas, modeldrawer=None, labels=None, fps=30):
+    def __init__(self, frames, canvas, status, indexes, discard, modeldrawer=None, labels=None, fps=30):
         self.labels = labels
         self.canvas = canvas
         self.current_fps = fps
@@ -18,6 +22,9 @@ class PlayerThread:
         self.pic_height = 168
         self.pic_width = 298
         self.play_flag = False
+        self.frame_status_msg = status
+        self.indexes = indexes
+        self.discard = discard
         # Build the frame buffer at once
         if frames[0].dtype in [np.float16, np.float32, np.float64, np.float128]:
             framebuff = np.array(frames * 255, dtype=np.int8)
@@ -38,6 +45,12 @@ class PlayerThread:
         # if labels are provided, then draw them
         if self.labels is not None and self.model_drawer is not None:
             self.model_drawer.set_joints(self.labels[self.current_frame])
+
+        self.changes = [0 for i in range(len(framebuff))]
+
+        self.discard.set("Discarded" if self.changes[self.current_frame] == 1 else "")
+
+        self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
 
     def make_photoimage(self, buffer):
         """
@@ -66,6 +79,12 @@ class PlayerThread:
         if self.labels is not None and self.model_drawer is not None:
             self.model_drawer.set_joints(self.labels[self.current_frame])
 
+        new_msg = self.update_frame_status(self.indexes[self.current_frame])
+        if self.frame_status_msg.get() != new_msg:
+            self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
+
+        self.discard.set("Discarded" if self.changes[self.current_frame] == 1 else "")
+
     def nextframe(self, root):
         if self.speed_mult == 0:
             root.after(int(1000 // self.current_fps), self.nextframe, root)
@@ -93,3 +112,25 @@ class PlayerThread:
     def set_speed_mult(self, mult):
         self.speed_mult = float(mult)
 
+    def update_frame_status(self, value):
+        if value == 0:
+            return "Interpolated"
+        elif value == 1:
+            return "Labeled"
+
+    def print_changes(self, vidname):
+        vid = vidname + str(randint(0, 999)) + ".txt"
+        filepath = os.path.join("../../resources/framedata", vid)
+        file = open(filepath, "w+")
+        for i in range(len(self.changes)):
+            if self.changes[i] == 1:
+                file.write(str(i)+":"+str(self.changes[i])+"\n")
+
+    def set_changes(self):
+        if self.changes[self.current_frame] == 0:
+            self.changes[self.current_frame] = 1
+            self.discard.set("Discarded")
+
+        elif self.changes[self.current_frame] == 1:
+            self.changes[self.current_frame] = 0
+            self.discard.set("")
