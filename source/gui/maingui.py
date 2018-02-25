@@ -4,6 +4,8 @@ import image_loader.image_loader as il
 import gui.pinpointer_canvas as pc
 import gui.hand_helper_canvas as hh
 import scipy.io as scio
+import skimage.transform as skt
+import numpy as np
 
 helper_ref = None
 helptext = "Click on the image on the left to set the position of the joints of the hand.\nLeft click for visible " \
@@ -20,7 +22,7 @@ def setup_pinner(pinner, img):
             save_labels(event.widget.click_sequence)
 
     def save_labels(labels):
-        il.save_mat(pm.resources_path("gui/hand2.mat"), data=data, labels=labels)
+        il.save_mat(pm.resources_path("gui/it.mat"), data=data, labels=labels)
 
     # Load the image into the pinner canvas, ready for pinpointing
     pinner.set_bitmap(img)
@@ -54,7 +56,11 @@ if __name__ == "__main__":
 
     # A sample image, for now...
     # img = np.random.uniform(low=0.0, high=1.0, size=(400, 500, 3))
-    img = il.load(pm.resources_path("gui/hand2.jpg"), force_format=[None, None, 3])[0]
+    img = il.load(pm.resources_path("gui/Flower-bud-003.jpg"), force_format=[None, None, 3])[0]
+
+    # off = (img.shape[0]-img.shape[1])//2
+    # img = np.pad(img, pad_width=((0, 0), (off, off), (0, 0)), mode='constant')
+    # img = skt.resize(img, output_shape=(700, 700))
 
     # Setup the pinner
     pinner = pc.PinpointerCanvas(canvas_frame)

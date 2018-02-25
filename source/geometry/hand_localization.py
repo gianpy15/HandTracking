@@ -2,6 +2,7 @@ from geometry.formatting import *
 import tensorflow as tf
 from image_loader.hand_io import *
 from geometry.calibration import *
+from geometry.default_model_loading import build_default_hand_model
 
 
 def code_name(finger, joint=0, append=''):
@@ -27,19 +28,6 @@ ANGLE_DOMAINS = {
 LOSSES = (POINT_DISTANCE,
           LINE_DISTANCE,
           JOINTS_ANGLE)
-
-
-def build_default_hand_model():
-    SCALE_FACTOR = 1
-    img, raw_positions = load("gui/shand2.mat")
-
-    raw_positions = [((1-x) * img.shape[1], y * img.shape[0]) for (x, y, f) in raw_positions]
-    cal = calibration(intr=synth_intrinsic(resolution=img.shape[0:2], fov=(50, 50 * img.shape[0] / img.shape[1])))
-    points = np.array([ImagePoint(elem, depth=0.2).to_camera_model(
-        calibration=cal).as_row()
-                       for elem in raw_positions * SCALE_FACTOR])
-    return hand_format(points - np.average(points, axis=0))
-
 
 class HandLocator:
     epsilon = None

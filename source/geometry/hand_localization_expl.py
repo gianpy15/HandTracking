@@ -2,8 +2,8 @@ from geometry.calibration import *
 from geometry.numerical import *
 from geometry.formatting import *
 from geometry.transforms import *
+from geometry.default_model_loading import build_default_hand_model
 from numpy.linalg import norm
-from geometry.hand_localization import build_default_hand_model
 import timeit
 import concurrent.futures as fut
 
@@ -121,6 +121,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
                 end_model[finger][idx] = futures[finger].result()[idx - 1]
 
     # and finally we have it
+    end_check(base_hand_model, end_model)
     return end_model
 
 
@@ -384,13 +385,13 @@ if __name__ == '__main__':
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
-    helper_hand_img, helper_hand_lab = hio.load("gui/hand.mat")
+    subj_img, subj_lab = hio.load("gui/hand.mat")
     test_subject = ppc.PinpointerCanvas(frame)
-    test_subject.set_bitmap(helper_hand_img)
+    test_subject.set_bitmap(subj_img)
     test_subject.pack()
     global_canvas = test_subject
     md = ModelDrawer()
-    md.set_joints(hand_format(helper_hand_lab))
+    md.set_joints(hand_format(subj_lab))
     md.set_target_area(test_subject)
 
     pool = fut.ThreadPoolExecutor(10)
@@ -399,9 +400,10 @@ if __name__ == '__main__':
     # here we define the hand model setup and running procedure
     # NB: not working at all.
     def loop():
-        label_data = helper_hand_lab.copy()
-        resolution = helper_hand_img.shape[0:2]
-        cal = calibration(intr=synth_intrinsic(resolution, (50, 50)))
+        label_data = subj_lab.copy()
+        resolution = subj_img.shape[0:2]
+        fov = 40
+        cal = calibration(intr=synth_intrinsic(resolution, (fov, fov * subj_img.shape[1] / subj_img.shape[0])))
         global global_calibration
         global_calibration = cal
 
@@ -418,8 +420,8 @@ if __name__ == '__main__':
                                                        executor=None))
 
         # make sure that the GUI-related load is expired before measuring performance
-        time.sleep(1)
-        rep = 100
+        # time.sleep(100)
+        rep = 1
         print("Model computation %d times took %f seconds." % (rep, timeit.timeit(total, number=rep)))
 
         current_rotation = tr.get_rotation_matrix(axis=1, angle=0)

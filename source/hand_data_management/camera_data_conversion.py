@@ -55,24 +55,34 @@ def read_depth_video(videoname, framesdir, shape=(480, 640, 1), dtype=np.uint16)
 def grey_to_redblue_codec(vid):
     mult = np.pi / 2
     nonzero = np.count_nonzero(vid)
-    total = vid.shape[0]*vid.shape[1]*vid.shape[2]
+    total = vid.shape[0] * vid.shape[1] * vid.shape[2]
     avg = np.average(vid)
     var = np.var(vid)
     corrected_avg = avg * total / nonzero
     corrected_var = (var + avg ** 2) * total / nonzero - corrected_avg ** 2
-    brange = corrected_avg + 3 * np.sqrt(corrected_var)
+    brange = int(corrected_avg + 3 * np.sqrt(corrected_var))
+
+    print("Building mapping buffer")
+    mult /= brange
+    pixmap = [[255 * np.cos(mult * i), .0, 255 * np.sin(mult * i)] for i in range(brange)]
+    print("Mapping pixels...")
 
     def to_redblue_codec_pix(pix):
-        rate = pix[0] / brange
-        if rate > 1.0:
-            rate = 1.0
-        if rate == 0:
+        if pix[0] == 0:
             return [.0, .0, .0]
-        return [255 * np.cos(rate * mult), .0, 255 * np.sin(rate * mult)]
+        if pix[0] >= brange:
+            p = brange - 1
+        else:
+            p = pix[0]
+        return pixmap[p]
 
-    return np.array(np.apply_along_axis(to_redblue_codec_pix, axis=3, arr=vid), dtype=np.uint8)
+    video = []
+    for idx in range(len(vid)):
+        print("Processing frame %d/%d" % (idx, len(vid)))
+        video.append(np.apply_along_axis(to_redblue_codec_pix, axis=2, arr=vid[idx]))
+    return np.array(video, dtype=np.uint8)
 
 
 if __name__ == '__main__':
-    read_depth_video("depthtest.mp4",
-                     join("/home", "luca", "Scrivania", "rawcam", "out-1519561220"))
+    read_depth_video("depthtest3.mp4",
+                     join("/home", "luca", "Scrivania", "rawcam", "out-1519566096"))
