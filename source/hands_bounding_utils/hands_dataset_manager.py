@@ -121,9 +121,24 @@ def get_random_batch(images, heatmaps, batch_size):
     return ims, heats
 
 
+def default_train_images_path():
+    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "train", "images"))
+
+
+def default_train_annotations_path():
+    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "train", "annotations"))
+
+def default_test_images_path():
+    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "test", "images"))
+
+
+def default_test_annotations_path():
+    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "test", "annotations"))
+
+
 if __name__ == '__main__':
-    im_f = pm.resources_path("hands_bounding_dataset/train/images")
-    an_f = pm.resources_path("hands_bounding_dataset/train/annotations")
+    im_f = default_train_images_path()
+    an_f = default_train_annotations_path()
     images1, heatmaps1 = get_samples_from_dataset_in_order_from_beginning(im_f, an_f, 100)
     # images1, heatmaps1 = get_ordered_batch(images1, heatmaps1, 1, 1)
     images1, heatmaps1 = get_random_batch(images1, heatmaps1, 2)
