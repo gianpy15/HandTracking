@@ -5,7 +5,7 @@ sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], ".."))
 
 import hand_data_management.utils as ut
 
-VIDS = ["vids/snap.mp4"]
+VIDS = ["vids/snap.mp4", "vids/test.mp4"]
 
 wwwgrp = None
 
@@ -15,7 +15,7 @@ for g in grp.getgrall():
 
 
 def edit_permissions(filename):
-    os.chmod(filename, 0o775)
+    os.chmod(filename, 0o777)
     os.chown(filename, wwwgrp, wwwgrp)
 
 
