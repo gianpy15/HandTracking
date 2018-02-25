@@ -22,6 +22,10 @@ def __read_mat_hand_bounding(path, structasrecord=True):
     return np.squeeze(np.array(scio.loadmat(path, struct_as_record=structasrecord)['boxes']))
 
 
+def __read_mat_egohands(path):
+    return scio.loadmat(path)['coords']
+
+
 def __get_points_list_from_boxes_structures_hand_mat(structures):
     """returns an array of shape (4,2,n) where n=len(structures) excluding
     eventual "None" values present in structures"""
@@ -269,7 +273,8 @@ def heatmap_to_3d(heat):
     return heat2
 
 
-def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink_rate=10, overlapping_penalty=0.9):
+def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink_rate=10,
+                         overlapping_penalty=0.9, egohands = False):
     """given an image and a .mat file containing coordinates of the rectangles where hands are present,
     returns a heatmap that, according to high values, defines where hands are present. Note that the heatmap
     is re-sized w.r.t the original image size. The shrink rates are defined by height_shrink_rate and width_shrink_rate.
@@ -279,7 +284,10 @@ def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink
         raise AttributeError("height_shrink_rate should be greated than 1")
     if width_shrink_rate < 1:
         raise AttributeError("width_shrink_rate should be greated than 1")
-    coords = __read_coords_from_mat_file(matfilepath)
+    if not egohands:
+        coords = __read_coords_from_mat_file(matfilepath)
+    else:
+        coords = __read_mat_egohands(matfilepath)
     image_height = len(image)
     image_width = len(image[0])
     heatmap_height = int(math.ceil(image_height // heigth_shrink_rate))
@@ -322,12 +330,13 @@ def showimage(image):
 
 
 if __name__ == '__main__':
-    imagep = pm.resources_path("hands_bounding_dataset/train/images/Poselet_186.jpg")
-    matp = pm.resources_path("hands_bounding_dataset/train/annotations/Poselet_186.mat")
+    imagep = pm.resources_path("hands_bounding_dataset/hands_dataset/train/images/Poselet_186.jpg")
+    matp = pm.resources_path("hands_bounding_dataset/hands_dataset/train/annotations/Poselet_186.mat")
     image1 = read_image(imagep)
+    showimage(image1)
     # showimages(cropimage(imagep, matp))
     heatmap1 = get_heatmap_from_mat(image1, matp)
-    # showimage(heatmap_to_rgb(heatmap1))
+    showimage(heatmap_to_rgb(heatmap1))
     # showimages(get_crops_from_heatmap(image1, heatmap1, enlarge=0.2))
 
 

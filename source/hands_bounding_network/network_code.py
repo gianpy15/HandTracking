@@ -1,4 +1,5 @@
-import source.hands_bounding_utils.dataset as data
+import source.hands_bounding_utils.hands_dataset_manager as data
+import source.hands_bounding_utils.egohand_dataset_manager as ego
 from data_manager import path_manager
 import tensorflow as tf
 import numpy as np
@@ -8,10 +9,10 @@ pm = path_manager.PathManager()
 
 
 # ############# PATHS ############
-train_images_path = pm.resources_path("hands_bounding_dataset/train/images")
-train_annots_path = pm.resources_path("hands_bounding_dataset/train/annotations")
-test_images_path = pm.resources_path("hands_bounding_dataset/test/images")
-test_annots_path = pm.resources_path("hands_bounding_dataset/test/annotations")
+train_images_path = data.default_train_images_path()
+train_annots_path = data.default_train_annotations_path()
+test_images_path = data.default_test_images_path()
+test_annots_path = data.default_test_annotations_path()
 
 
 # ################ BASIC PARAMETERS #####################
@@ -135,4 +136,4 @@ with tf.Session() as sess:
     print("\nTraining complete!")
 
     # SAVE ACTUAL MODEL, OVERWRITES OLD CHECKPOINT, IF PRESENT
-    saver.save(sess, "./model/model60k.ckpt")
+    saver.save(sess, "./model/model.ckpt")
