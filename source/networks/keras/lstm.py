@@ -7,6 +7,8 @@ import keras.callbacks as kc
 import numpy as np
 from random import *
 
+tb_dir = '../../../resources/tensorboard/tbdata'
+
 # Preparing the data
 n_samples = 500
 elements_for_sample = 50
@@ -31,7 +33,7 @@ model.add(kl.Dense(1, activation='sigmoid'))
 
 outputs = [layer.output for layer in model.layers]
 
-tensor_board = kc.TensorBoard(histogram_freq=1)
+tensor_board = kc.TensorBoard(log_dir=tb_dir, histogram_freq=20, write_grads=1)
 
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 model.summary()
