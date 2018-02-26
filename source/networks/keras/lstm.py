@@ -9,11 +9,11 @@ from random import *
 
 # Preparing the data
 n_samples = 500
-elements_for_sample = 100
+elements_for_sample = 50
 probability_of_one = 0.5
-x_train = np.zeros([n_samples, elements_for_sample])
+x_train = np.zeros([n_samples, elements_for_sample, 1])
 y_train = np.zeros([n_samples, 1])
-x_test = np.zeros([n_samples, elements_for_sample])
+x_test = np.zeros([n_samples, elements_for_sample, 1])
 y_test = np.zeros([n_samples, 1])
 
 for i in range(n_samples):
@@ -25,8 +25,8 @@ for i in range(n_samples):
 
 # Create the model
 model = km.Sequential()
-model.add(kl.Embedding(input_dim=2, output_dim=64))
-model.add(kl.LSTM(units=1, dropout=0.2, recurrent_dropout=0.2))
+# model.add(kl.Embedding(input_dim=2, output_dim=1))
+model.add(kl.LSTM(input_shape=(elements_for_sample, 1), units=1, dropout=0.2, recurrent_dropout=0.2))
 model.add(kl.Dense(1, activation='sigmoid'))
 
 outputs = [layer.output for layer in model.layers]
@@ -36,6 +36,6 @@ tensor_board = kc.TensorBoard(histogram_freq=1)
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 model.summary()
 print('training starting...')
-history = model.fit(x_train, y_train, epochs=5, validation_data=(x_test, y_test),
+history = model.fit(x_train, y_train, epochs=50, validation_data=(x_test, y_test),
                     callbacks=[tensor_board], verbose=2)
 print('training complete!')
