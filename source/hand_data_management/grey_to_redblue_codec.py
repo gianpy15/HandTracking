@@ -27,9 +27,9 @@ def codec(vid):
                 if tmp == 0:
                     p = np.array([0, 0, 0])
                 elif tmp >= brange:
-                    p = pixmap[-1]
+                    p = np.array(pixmap[-1])
                 else:
-                    p = pixmap[tmp]
+                    p = np.array(pixmap[tmp])
                 frame[rowidx, pixidx] = p[:]
         video.append(frame)
     return np.array(video, dtype=np.uint8)

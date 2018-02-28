@@ -48,7 +48,7 @@ for finger in FINGERS:
     }
 
 
-def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=None, executor=None):
+def compute_hand_world_joints(base_hand_model, image_joints, side=LEFT, cal=None, executor=None):
     """
     Compute the hand model in the space
     :param base_hand_model: the standard hand prototype to use for interpolation
@@ -322,7 +322,7 @@ def build_finger_num(basejoint, lengths, jointversors, config=None, cal=global_c
             rotmat = np.matmul(get_rotation_matrix(axis=newconf[START_DIR], angle=axisrot), rotmat)
         newconf[AROUND_DIR] = rotmat @ config[AROUND_DIR]
         newconf[NORM_DIR] = rotmat @ config[NORM_DIR]
-        newconf[MAXWIDEANGLE] /= 10
+        newconf[MAXWIDEANGLE] /= 3
         newconf[THUMBAXIS] = None
         return newconf
 
@@ -385,7 +385,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
-    subj_img, subj_lab = hio.load("gui/hand.mat")
+    subj_img, subj_lab = hio.load("gui/it.mat")
     test_subject = ppc.PinpointerCanvas(frame)
     test_subject.set_bitmap(subj_img)
     test_subject.pack()
@@ -420,7 +420,7 @@ if __name__ == '__main__':
                                                        executor=None))
 
         # make sure that the GUI-related load is expired before measuring performance
-        # time.sleep(100)
+        # time.sleep(1)
         rep = 1
         print("Model computation %d times took %f seconds." % (rep, timeit.timeit(total, number=rep)))
 
