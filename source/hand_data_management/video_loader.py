@@ -33,7 +33,7 @@ def load_labeled_video(vidname, fillgaps=True, gapflags=False):
             # unable to fill gaps, None labels are returned as a precaution
             if gapflags:
                 # expecting three-tuple output
-                return frame_data, None, None
+                return frame_data, None, gap_list
             return frame_data, None
         linear_fill(label_data)
     if gapflags:

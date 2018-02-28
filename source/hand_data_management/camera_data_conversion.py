@@ -4,6 +4,7 @@ import os
 import re
 import numpy as np
 from image_loader.hand_io import *
+import hand_data_management.grey_to_redblue_codec as gtrbc
 
 VIDDIR = pm.resources_path("vids")
 
@@ -47,11 +48,11 @@ def read_depth_video(videoname, framesdir, shape=(480, 640, 1), dtype=np.uint16)
                                dtype=dtype,
                                framesregex="\d+\.z16")
 
-    vid_data = grey_to_redblue_codec(vid_data)
+    vid_data = gtrbc.codec(np.array(vid_data, dtype=np.long))
 
     skio.vwrite(join(VIDDIR, videoname), vid_data)
 
-
+# Deprecated version of the codec. C++ compiled version is more than 100x faster.
 def grey_to_redblue_codec(vid):
     mult = np.pi / 2
     nonzero = np.count_nonzero(vid)
@@ -83,6 +84,9 @@ def grey_to_redblue_codec(vid):
     return np.array(video, dtype=np.uint8)
 
 
+from timeit import timeit
 if __name__ == '__main__':
-    read_depth_video("depthtest3.mp4",
+    def action():
+        read_depth_video("depthspeedtest_acc.mp4",
                      join("/home", "luca", "Scrivania", "rawcam", "out-1519566096"))
+    print(timeit(action, number=1))
