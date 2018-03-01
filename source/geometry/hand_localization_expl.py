@@ -48,7 +48,7 @@ for finger in FINGERS:
     }
 
 
-def compute_hand_world_joints(base_hand_model, image_joints, side=LEFT, cal=None, executor=None):
+def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=None, executor=None):
     """
     Compute the hand model in the space
     :param base_hand_model: the standard hand prototype to use for interpolation
@@ -268,8 +268,9 @@ def get_best_first_transform(base_hand_model, world_image_info, side):
                                                for idx in range(SIDE_N_ESTIM)],
                                       jointversors=[world_image_info[finger][idx + 1] for idx in range(SIDE_N_ESTIM)])
         # drawpnts(joints, fill="magenta")
-        avg_fingers = avg_fingers + np.average(joints)
+        avg_fingers = avg_fingers + np.average(joints, axis=0)
     avg_fingers = avg_fingers / len(FINGERS)
+    # drawpnts([avg_fingers], fill='magenta')
 
     if np.dot(avg_fingers - model1[0], model_axis_unnorm) > 0:
         return tr1, rotmat1
