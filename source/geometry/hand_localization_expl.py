@@ -1,7 +1,7 @@
 from geometry.calibration import *
 from geometry.numerical import *
 from geometry.formatting import *
-from geometry.transforms import *
+from geometry.transforms_ptran import get_rotation_matrix, get_mapping_rot
 from geometry.default_model_loading import build_default_hand_model
 from numpy.linalg import norm
 import timeit
@@ -9,7 +9,7 @@ import concurrent.futures as fut
 
 # Maximum rotation angles of any joints around the median rotation axis
 maxangle = {
-    THUMB: np.pi / 180 * 35,
+    THUMB: np.pi / 180 * 50,
     INDEX: np.pi / 180 * 55,
     MIDDLE: np.pi / 180 * 50,
     RING: np.pi / 180 * 46,
@@ -138,7 +138,7 @@ def compute_generic_finger(first_hand_model, palm_base_axis, world_image_info, f
     conf[AROUND_DIR] = normalize(conf[START_DIR] * normdirrates[finger][START_DIR]
                                  + conf[NORM_DIR] * normdirrates[finger][NORM_DIR])
     conf[MAXANGLE] = maxangle[finger]
-    conf[MAXWIDEANGLE] = maxangle[finger] / 3
+    conf[MAXWIDEANGLE] = maxangle[finger] / 2
     conf[THUMBAXIS] = None
     for idx in range(3):
         lengths.append(norm(first_hand_model[finger][idx + 1] - first_hand_model[finger][idx]))
@@ -387,6 +387,7 @@ if __name__ == '__main__':
     frame = tk.Frame(root)
     frame.pack()
     subj_img, subj_lab = hio.load("gui/it.mat")
+    # subj_lab = np.array([(1-x, y, f) for (x, y, f) in subj_lab])
     test_subject = ppc.PinpointerCanvas(frame)
     test_subject.set_bitmap(subj_img)
     test_subject.pack()
@@ -395,7 +396,7 @@ if __name__ == '__main__':
     md.set_joints(hand_format(subj_lab))
     md.set_target_area(test_subject)
 
-    pool = fut.ThreadPoolExecutor(10)
+    # pool = fut.ThreadPoolExecutor(10)
 
 
     # here we define the hand model setup and running procedure
@@ -411,7 +412,7 @@ if __name__ == '__main__':
         formatted_data = hand_format([ImagePoint((x * resolution[1], y * resolution[0]))
                                       for (x, y, f) in label_data])
         # compute the rotation matrix
-        rotation = tr.get_rotation_matrix(axis=1, angle=np.pi / 180)
+        rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=np.pi / 180)
 
         def total():
             global hand_model
@@ -421,11 +422,11 @@ if __name__ == '__main__':
                                                        executor=None))
 
         # make sure that the GUI-related load is expired before measuring performance
-        # time.sleep(1)
-        rep = 1
+        time.sleep(1)
+        rep = 100
         print("Model computation %d times took %f seconds." % (rep, timeit.timeit(total, number=rep)))
 
-        current_rotation = tr.get_rotation_matrix(axis=1, angle=0)
+        current_rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=0)
         time.sleep(1)
         while True:
             # rotate the 3D dataset

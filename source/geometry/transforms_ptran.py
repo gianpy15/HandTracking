@@ -1,28 +1,18 @@
 import numpy as np
 
 
+def column_matmul(m, v):
+    return np.array([dot(m[0], v), dot(m[1], v), dot(m[2], v)])
+
+
+#pythran export dot(float[], float[])
+def dot(v1, v2):
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
+
 #pythran export get_rotation_matrix(float[], float)
 def get_rotation_matrix(axis, angle):
-    if isinstance(axis, (list, tuple, np.ndarray)):
-        return get_rotation_matrix_from_quat(*get_quat_from_axis_angle(axis, angle))
-    else:
-        s = np.sin(angle)
-        c = np.cos(angle)
-        if axis == 0:
-            # around x axis:
-            return np.array([[1, 0, 0],
-                             [0, c, -s],
-                             [0, s, c]])
-        elif axis == 1:
-            # around y axis:
-            return np.array([[c, 0, -s],
-                             [0, 1, 0],
-                             [s, 0, c]])
-        else:
-            # around z axis:
-            return np.array([[c, -s, 0],
-                             [s, c, 0],
-                             [0, 0, 1]])
+    args = get_quat_from_axis_angle(axis, angle)
+    return get_rotation_matrix_from_quat(args[0], args[1], args[2], args[3])
 
 #pythran export get_cross_matrix(float[])
 def get_cross_matrix(v):
@@ -64,15 +54,14 @@ def get_quat_from_axis_angle(axis, angle):
 def get_mapping_rot(v1, v2):
     n1 = np.linalg.norm(v1)
     n2 = np.linalg.norm(v2)
-    axis = np.cross(v1, v2)
+    axis = column_matmul(get_cross_matrix(v1), v2)
     if np.linalg.norm(axis) <= n1 * n2 * 1e-10:
-        if np.dot(v1, v2) > 0:
+        if dot(v1, v2) > 0:
             return np.eye(3)
         if v1[2] != 0:
-            axis = normalize(np.cross(v1, [1, 0, 0]))
+            axis = normalize(column_matmul(get_cross_matrix(v1), np.array([1, 0, 0])))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
         else:
-            axis = normalize(np.cross(v1, [0, 0, 1]))
+            axis = normalize(column_matmul(get_cross_matrix(v1), np.array([0, 0, 1])))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
-    return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
-
+    return get_rotation_matrix(axis, angle=np.arccos(dot(v1, v2) / n1 / n2))

@@ -306,7 +306,7 @@ if __name__ == '__main__':
         formatted_data = hand_format([ImagePoint((x * resolution[0], y * resolution[1]))
                                       for (x, y, f) in label_data])
         # compute the rotation matrix
-        rotation = tr.get_rotation_matrix(axis=1, angle=np.pi / 180)
+        rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=np.pi / 180)
         # build the optimizer
         hand_manager.setup(init_dict=hand_format([point.to_camera_model() for point in raw(formatted_data)]))
 
@@ -314,7 +314,7 @@ if __name__ == '__main__':
             hand_manager.start()
 
         threading.Thread(target=manager_setup_and_run).start()
-        current_rotation = tr.get_rotation_matrix(axis=1, angle=0)
+        current_rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=0)
         hand_manager.input_image_data(formatted_data)
         while True:
             hand_model = raw(hand_manager.out_model)
