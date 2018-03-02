@@ -1,7 +1,6 @@
 import numpy as np
 
 
-#pythran export get_rotation_matrix(float[], float)
 def get_rotation_matrix(axis, angle):
     if isinstance(axis, (list, tuple, np.ndarray)):
         return get_rotation_matrix_from_quat(*get_quat_from_axis_angle(axis, angle))
@@ -24,19 +23,17 @@ def get_rotation_matrix(axis, angle):
                              [s, c, 0],
                              [0, 0, 1]])
 
-#pythran export get_cross_matrix(float[])
+
 def get_cross_matrix(v):
     return np.array([[0., -v[2], v[1]],
                      [v[2], 0., -v[0]],
                      [-v[1], v[0], 0.]])
 
 
-#pythran export normalize(float[])
 def normalize(vec):
     return vec / np.linalg.norm(vec)
 
 
-#pythran export get_rotation_matrix_from_quat(float, float, float, float)
 def get_rotation_matrix_from_quat(a, b, c, d):
     a2 = a * a
     b2 = b * b
@@ -53,14 +50,12 @@ def get_rotation_matrix_from_quat(a, b, c, d):
                      [bd - ac, cd + ab, a2 + d2 - b2 - c2]])
 
 
-#pythran export get_quat_from_axis_angle(float[], float)
 def get_quat_from_axis_angle(axis, angle):
     semi = angle / 2
     normax = np.sin(semi) * normalize(axis)
     return np.cos(semi), normax[0], normax[1], normax[2]
 
 
-#pythran export get_mapping_rot(float[], float[])
 def get_mapping_rot(v1, v2):
     n1 = np.linalg.norm(v1)
     n2 = np.linalg.norm(v2)
@@ -75,4 +70,13 @@ def get_mapping_rot(v1, v2):
             axis = normalize(np.cross(v1, [0, 0, 1]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
     return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
+
+
+def get_rotation_angle_around_axis(axis, p1, p2):
+    v1 = normalize(p1 - axis * np.dot(p1, axis))
+    v2 = normalize(p2 - axis * np.dot(p2, axis))
+    cross = np.cross(v1, v2)
+    if np.dot(axis, cross) > 0:
+        return np.arccos(np.dot(v1, v2))
+    return -np.arccos(np.dot(v1, v2))
 
