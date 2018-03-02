@@ -1,5 +1,6 @@
 from geometry.hand_localization.parameters import *
 from geometry.numerical.finger_cone_sectors import *
+from geometry.transforms import get_rotation_matrix, get_mapping_rot, get_rotation_angle_around_axis
 from geometry.hand_localization.depth_suggestion import depth_info_compare
 
 
@@ -22,7 +23,7 @@ def sphere_line_intersection(center, radius, line):
     # <tv-c, tv-c> = r2
     # t2 -2<v, c>t + <c, c> - r2 = 0
     bh = - np.dot(line, center)
-    delta = bh ** 2 - norm(center) + radius ** 2
+    delta = bh ** 2 - np.dot(center, center) + radius ** 2
     if delta < 0:
         sol = - bh * line
         return sol, sol, norm(np.cross(sol, line)) * 1e+20, True
@@ -74,6 +75,7 @@ def build_finger_num(basejoint, lengths, jointversors, depthsugg, config=None):
                                     normcos=np.cos(config[MAXANGLE][0]),
                                     planecos=np.cos(config[MAXWIDEANGLE][0]),
                                     suggestion=numeric_suggest_list)
+
 
     joint = depth_info_compare(inferred=joint,
                                measured=depthsugg[0],

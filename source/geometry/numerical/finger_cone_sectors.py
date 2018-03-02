@@ -57,7 +57,7 @@ def trd_sol_elem(proposed_sol):
     if arg <= 0:
         return np.zeros(shape=(2, 1))
     ret = np.sqrt(arg)
-    return [[-ret], [ret]]
+    return np.array([[-ret], [ret]])
 
 
 def rel_pnt(proposed_sol: np.ndarray, rad):
