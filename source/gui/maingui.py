@@ -22,7 +22,7 @@ def setup_pinner(pinner, img):
             save_labels(event.widget.click_sequence)
 
     def save_labels(labels):
-        il.save_mat(pm.resources_path("gui/it.mat"), data=data, labels=labels)
+        il.save_mat(pm.resources_path("gui/it3.mat"), data=data, labels=labels)
 
     # Load the image into the pinner canvas, ready for pinpointing
     pinner.set_bitmap(img)

@@ -67,15 +67,15 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
 
     if executor is None:
         # if no executor pool has been provided, take care of all the fingers yourself
-        for finger in (INDEX, MIDDLE, RING, BABY):
+        for fin in (INDEX, MIDDLE, RING, BABY):
             finger_position = compute_generic_finger(first_hand_model=first_hand_model,
                                                      palm_base_axis=palm_base_axis,
                                                      lines_info=lines_info,
-                                                     finger=finger,
+                                                     finger=fin,
                                                      depth_sugg=depth_info)
-            end_model[finger] = [first_hand_model[finger][0], 0, 0, 0]
+            end_model[fin] = [first_hand_model[fin][0], 0, 0, 0]
             for idx in range(1, 4):
-                end_model[finger][idx] = finger_position[idx - 1]
+                end_model[fin][idx] = finger_position[idx - 1]
 
         # the thumb has special rotations that need peculiar attention:
         end_model[THUMB] = compute_thumb(first_hand_model=first_hand_model,
@@ -89,8 +89,8 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
                                            palm_base_axis=palm_base_axis,
                                            lines_info=lines_info,
                                            depth_sugg=depth_info)
-        for finger in (INDEX, MIDDLE, RING, BABY):
-            futures[finger] = executor.submit(task, finger)
+        for fin in (INDEX, MIDDLE, RING, BABY):
+            futures[fin] = executor.submit(task, fin)
 
         # and then solve the thumb problem
         end_model[THUMB] = compute_thumb(first_hand_model=first_hand_model,
@@ -99,10 +99,10 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
                                          depth_sugg=depth_info)
 
         # finally harvest the results
-        for finger in (INDEX, MIDDLE, RING, BABY):
-            end_model[finger] = [first_hand_model[finger][0], 0, 0, 0]
+        for fin in (INDEX, MIDDLE, RING, BABY):
+            end_model[fin] = [first_hand_model[fin][0], 0, 0, 0]
             for idx in range(1, 4):
-                end_model[finger][idx] = futures[finger].result()[idx - 1]
+                end_model[fin][idx] = futures[fin].result()[idx - 1]
 
     # and finally we have it
     # end_check(base_hand_model, end_model)
@@ -117,7 +117,6 @@ def first_transform_point(rotmat, translation, point):
     return (rotmat @ point) + translation
 
 
-# TODO find some reasonable reaction to the depth suggestions
 def get_best_first_transform(base_hand_model, lines_info, depth_sugg, side):
     """
     Extract the geometrical transformation that interpolates WRIST, INDEX base and BABY base
@@ -133,6 +132,19 @@ def get_best_first_transform(base_hand_model, lines_info, depth_sugg, side):
     base_triangle_lines = [lines_info[WRIST][0], lines_info[INDEX][0], lines_info[BABY][0]]
     model1, model2 = get_points_projection_to_lines_pair(base_triangle_pts, base_triangle_lines)
 
+    base_tr = norm(base_hand_model[MIDDLE][0] - base_hand_model[WRIST][0]) / 4
+
+    def model_depthwise_correction(model):
+        model[0] = depth_info_compare(inferred=model[0],
+                                      measured=depth_sugg[WRIST][0],
+                                      threshold=base_tr)
+        model[1] = depth_info_compare(inferred=model[1],
+                                      measured=depth_sugg[INDEX][0],
+                                      threshold=base_tr)
+        model[2] = depth_info_compare(inferred=model[2],
+                                      measured=depth_sugg[BABY][0],
+                                      threshold=base_tr)
+
     def get_transformation_from_model(model):
         # translation default to wrist
         tr = model[0]
@@ -147,20 +159,23 @@ def get_best_first_transform(base_hand_model, lines_info, depth_sugg, side):
         rotmat = np.matmul(get_rotation_matrix(axis, angle), rotmat)
         return tr, rotmat
 
+    model_depthwise_correction(model1)
+
     tr1, rotmat1 = get_transformation_from_model(model1)
 
     model_axis_unnorm = np.cross(model1[1] - model1[0], model1[2] - model1[0]) * side
     avg_fingers = np.array([0., 0., 0.])
-    for finger in DIRECTION_REVEALING_FINGERS:
-        base = first_transform_point(rotmat1, tr1, base_hand_model[finger][0])
+    for fin in DIRECTION_REVEALING_FINGERS:
+        base = first_transform_point(rotmat1, tr1, base_hand_model[fin][0])
         joints, _ = build_finger_fast(basejoint=base,
-                                      lengths=[norm(base_hand_model[finger][idx + 1] - base_hand_model[finger][idx])
+                                      lengths=[norm(base_hand_model[fin][idx + 1] - base_hand_model[fin][idx])
                                                for idx in range(SIDE_N_ESTIM)],
-                                      jointversors=[lines_info[finger][idx + 1] for idx in range(SIDE_N_ESTIM)],
-                                      depthsugg=depth_sugg[finger])
+                                      jointversors=[lines_info[fin][idx + 1] for idx in range(SIDE_N_ESTIM)],
+                                      depthsugg=depth_sugg[fin])
         avg_fingers = avg_fingers + np.average(joints, axis=0)
     avg_fingers = avg_fingers / len(FINGERS)
 
     if np.dot(avg_fingers - model1[0], model_axis_unnorm) > 0:
         return tr1, rotmat1
+    model_depthwise_correction(model2)
     return get_transformation_from_model(model2)

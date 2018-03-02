@@ -50,7 +50,7 @@ if __name__ == '__main__':
     REPETITIONS = 1
     EXTRATHREADS = 0
     PRESLEEP = 0
-    INFILE = "gui/hand.mat"
+    INFILE = "gui/it2.mat"
 
     root = tk.Tk()
     frame = tk.Frame(root)
