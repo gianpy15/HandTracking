@@ -1,5 +1,6 @@
 from geometry.hand_localization.parameters import *
 from geometry.numerical.finger_cone_sectors import *
+from geometry.hand_localization.depth_suggestion import depth_info_compare
 
 
 # ################################## LOW LEVEL UTILS ############################
@@ -31,7 +32,7 @@ def sphere_line_intersection(center, radius, line):
 # ################################### LOW LEVEL FINGER COMPUTATION ################################
 
 
-def build_finger_num(basejoint, lengths, jointversors, config=None):
+def build_finger_num(basejoint, lengths, jointversors, depthsugg, config=None):
     if len(lengths) == 0:
         return []
 
@@ -53,13 +54,17 @@ def build_finger_num(basejoint, lengths, jointversors, config=None):
         newconf[THUMBAXIS] = None
         return newconf
 
-    suggest = build_finger_fast(basejoint=basejoint,
-                                lengths=[lengths[0]],
-                                jointversors=[jointversors[0]])[0]
+    numeric_suggest_list = build_finger_fast(basejoint=basejoint,
+                                             lengths=[lengths[0]],
+                                             jointversors=[jointversors[0]],
+                                             depthsugg=[depthsugg[0]])[0]
 
-    suggest.append(cone_project(axis=config[AROUND_DIR],
-                                vec=suggest[0] - basejoint,
-                                coneangle=config[MAXANGLE][0]) + basejoint)
+    numeric_suggest_list.append(cone_project(axis=config[AROUND_DIR],
+                                             vec=numeric_suggest_list[0] - basejoint,
+                                             coneangle=config[MAXANGLE][0]) + basejoint)
+
+    if depthsugg[0] is not None:
+        numeric_suggest_list.append(depthsugg)
 
     joint = find_best_point_in_cone(center=basejoint,
                                     radius=lengths[0],
@@ -68,30 +73,48 @@ def build_finger_num(basejoint, lengths, jointversors, config=None):
                                     tang_vers=config[NORM_DIR],
                                     normcos=np.cos(config[MAXANGLE][0]),
                                     planecos=np.cos(config[MAXWIDEANGLE][0]),
-                                    suggestion=suggest)
-    return [joint] + build_finger_num(joint, lengths[1:], jointversors[1:], compute_config(joint))
+                                    suggestion=numeric_suggest_list)
+
+    joint = depth_info_compare(inferred=joint,
+                               measured=depthsugg[0],
+                               threshold=norm(joint - basejoint))
+
+    return [joint] + build_finger_num(basejoint=joint,
+                                      lengths=lengths[1:],
+                                      jointversors=jointversors[1:],
+                                      depthsugg=depthsugg[1:],
+                                      config=compute_config(joint))
 
 
-def build_finger_fast(basejoint, lengths, jointversors):
+def build_finger_fast(basejoint, lengths, jointversors, depthsugg):
     if len(lengths) == 0:
         return [], 0
 
     p1, p2, loss, degen = sphere_line_intersection(center=basejoint,
                                                    radius=lengths[0],
                                                    line=jointversors[0])
+    p1 = depth_info_compare(inferred=p1,
+                            measured=depthsugg[0],
+                            threshold=norm(p1 - basejoint))
     if degen:
         finger, moreloss = build_finger_fast(p1,
                                              lengths[1:],
-                                             jointversors[1:])
+                                             jointversors[1:],
+                                             depthsugg[1:])
         return [p1] + finger, loss + moreloss
     finger1, moreloss1 = build_finger_fast(p1,
                                            lengths[1:],
-                                           jointversors[1:])
+                                           jointversors[1:],
+                                           depthsugg[1:])
     if moreloss1 == 0:
         return [p1] + finger1, 0
+    p2 = depth_info_compare(inferred=p2,
+                            measured=depthsugg[0],
+                            threshold=norm(p2 - basejoint))
     finger2, moreloss2 = build_finger_fast(p2,
                                            lengths[1:],
-                                           jointversors[1:])
+                                           jointversors[1:],
+                                           depthsugg[1:])
     if moreloss2 < moreloss1:
         return [p2] + finger2, moreloss2
     return [p1] + finger1, moreloss1
@@ -99,11 +122,11 @@ def build_finger_fast(basejoint, lengths, jointversors):
 
 # ####################################### HIGH LEVEL FINGER COMPUTATION ##################################
 
-def compute_generic_finger_wrap(first_hand_model, palm_base_axis, world_image_info):
-    return lambda f: compute_generic_finger(first_hand_model, palm_base_axis, world_image_info, finger=f)
+def compute_generic_finger_wrap(first_hand_model, palm_base_axis, lines_info, depth_sugg):
+    return lambda f: compute_generic_finger(first_hand_model, palm_base_axis, lines_info, depth_sugg, finger=f)
 
 
-def compute_generic_finger(first_hand_model, palm_base_axis, world_image_info, finger):
+def compute_generic_finger(first_hand_model, palm_base_axis, lines_info, depth_sugg, finger):
     # the build finger utility needs complex configuration, here we build it
     conf = {NORM_DIR: palm_base_axis,
             START_DIR: normalize(first_hand_model[finger][1] - first_hand_model[finger][0])
@@ -118,12 +141,13 @@ def compute_generic_finger(first_hand_model, palm_base_axis, world_image_info, f
         lengths.append(norm(first_hand_model[finger][idx + 1] - first_hand_model[finger][idx]))
     finger_position = build_finger_num(basejoint=first_hand_model[finger][0],
                                        lengths=lengths,
-                                       jointversors=world_image_info[finger][1:],
-                                       config=conf)
+                                       jointversors=lines_info[finger][1:],
+                                       config=conf,
+                                       depthsugg=depth_sugg[finger])
     return finger_position
 
 
-def compute_thumb(first_hand_model, palm_base_axis, world_image_info):
+def compute_thumb(first_hand_model, palm_base_axis, lines_info, depth_sugg):
     conf = {NORM_DIR: palm_base_axis,
             START_DIR: normalize(first_hand_model[THUMB][1] - first_hand_model[WRIST][0])}
     end_model = [0, 0, 0, 0]
@@ -134,15 +158,16 @@ def compute_thumb(first_hand_model, palm_base_axis, world_image_info):
     conf[MAXANGLE] = maxangle[THUMB]
     conf[MAXWIDEANGLE] = maxwideangle[THUMB]
     conf[THUMBAXIS] = normalize(first_hand_model[INDEX][0] - first_hand_model[WRIST][0])
-    lines = [world_image_info[THUMB][1]]
+    lines = [lines_info[THUMB][1]]
     lengths = [norm(first_hand_model[WRIST][0] - first_hand_model[THUMB][1])]
     for idx in range(1, 3):
         lengths.append(norm(first_hand_model[THUMB][idx + 1] - first_hand_model[THUMB][idx]))
-        lines.append(world_image_info[THUMB][idx + 1])
+        lines.append(lines_info[THUMB][idx + 1])
     thmbend = build_finger_num(basejoint=first_hand_model[WRIST][0],
                                lengths=lengths,
                                jointversors=lines,
-                               config=conf)
+                               config=conf,
+                               depthsugg=depth_sugg[THUMB])
     for idx in range(1, 4):
         end_model[idx] = thmbend[idx - 1]
 
