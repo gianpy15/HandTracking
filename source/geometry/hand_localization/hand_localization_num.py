@@ -5,7 +5,7 @@ from geometry.hand_localization.depth_suggestion import extract_model_info, dept
 from geometry.numerical.palm_threepts_inference import get_points_projection_to_lines_pair
 from geometry.transforms import get_rotation_matrix, get_mapping_rot, normalize, get_rotation_angle_around_axis
 from numpy.linalg import norm
-
+import time
 
 def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=None, executor=None):
     """
@@ -17,14 +17,11 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     :param executor: the optional executor pool to use to try to accelerate the process
     :return: The space model of the hand
     """
-
     # First thing is: compute the world model correspondences of the image points
     # This way we have defined the lines that we have to interpolate
     if cal is None:
         cal = current_calibration
     lines_info, depth_info = extract_model_info(image_joints, cal)
-
-    # for now we assume that no point is visible, so they are all directional versors.
 
     # the hand model is normalized with respect to the wrist
     base_hand_model = hand_format([elem - base_hand_model[WRIST][0] for elem in raw(base_hand_model)])
@@ -68,6 +65,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     if executor is None:
         # if no executor pool has been provided, take care of all the fingers yourself
         for fin in (INDEX, MIDDLE, RING, BABY):
+
             finger_position = compute_generic_finger(first_hand_model=first_hand_model,
                                                      palm_base_axis=palm_base_axis,
                                                      lines_info=lines_info,
@@ -82,6 +80,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
                                          palm_base_axis=palm_base_axis,
                                          lines_info=lines_info,
                                          depth_sugg=depth_info)
+
     else:
         # if some angel provided any executor, schedule the four fingers
         futures = {}
@@ -89,6 +88,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
                                            palm_base_axis=palm_base_axis,
                                            lines_info=lines_info,
                                            depth_sugg=depth_info)
+
         for fin in (INDEX, MIDDLE, RING, BABY):
             futures[fin] = executor.submit(task, fin)
 
@@ -105,7 +105,6 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
                 end_model[fin][idx] = futures[fin].result()[idx - 1]
 
     # and finally we have it
-    # end_check(base_hand_model, end_model)
     return end_model
 
 

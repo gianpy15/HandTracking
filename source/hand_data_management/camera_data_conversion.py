@@ -60,16 +60,16 @@ def read_mesh_video(videoname, framesdir, shape=(480, 640), dtypergb=np.uint8, d
                                framenofunction=rgb_std_naming_frameno,
                                shape=shape + (3,),
                                dtype=dtypergb,
-                               framesregex="\d+\.rgb")
+                               framesregex="\d+\.rgb") * 0.5
     depth_data = read_frame_data(framesdir,
                                  framenofunction=z16_std_naming_frameno,
                                  shape=shape + (1,),
                                  dtype=dtypedepth,
-                                 framesregex="\d+\.z16")
+                                 framesregex="\d+\.z16") * 0.5
 
     depth_data = gtrbc.codec(np.array(depth_data, dtype=np.long))
 
-    vid_data = depth_data * 0.5 + rgb_data * 0.5
+    vid_data = depth_data + rgb_data
 
     skio.vwrite(join(VIDDIR, videoname), vid_data)
 
@@ -110,8 +110,8 @@ from timeit import timeit
 
 if __name__ == '__main__':
     def action():
-        read_mesh_video("meshtest.mp4",
-                        join("/home", "luca", "Scrivania", "rawcam", "out-1519566096"))
+        read_depth_video("hands_01depth.mp4",
+                        join("/home", "luca", "Scrivania", "rawcam", "hands_01"))
 
 
     print(timeit(action, number=1))
