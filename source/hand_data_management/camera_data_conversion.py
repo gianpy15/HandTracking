@@ -9,6 +9,14 @@ import hand_data_management.grey_to_redblue_codec as gtrbc
 VIDDIR = pm.resources_path("vids")
 
 
+def z16_std_naming_frameno(filename):
+    return int(splitext(split(filename)[1])[0])
+
+
+def rgb_std_naming_frameno(filename):
+    return int(splitext(split(filename)[1])[0])
+
+
 def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesregex="."):
     if not isdir(framesdir):
         print("Warning: attempting to read frame data from non directory")
@@ -26,29 +34,37 @@ def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesreg
     return np.array([frame for (frame, frameno) in video_data])
 
 
-def rgb_std_naming_frameno(filename):
-    return int(splitext(split(filename)[1])[0])
+def default_read_rgb_args(framesdir, shape=(480, 640, 3), dtype=np.uint8):
+    return {
+        'framesdir': framesdir,
+        'framenofunction': rgb_std_naming_frameno,
+        'shape': shape,
+        'dtype': dtype,
+        'framesregex': "\d+\.rgb"
+    }
+
+
+def default_read_z16_args(framesdir, shape=(480, 640, 1), dtype=np.uint16):
+    return {
+        'framesdir': framesdir,
+        'framenofunction': z16_std_naming_frameno,
+        'shape': shape,
+        'dtype': dtype,
+        'framesregex': "\d+\.z16"
+    }
 
 
 def read_rgb_video(videoname, framesdir, shape=(480, 640, 3), dtype=np.uint8):
-    vid_data = read_frame_data(framesdir,
-                               framenofunction=rgb_std_naming_frameno,
-                               shape=shape,
-                               dtype=dtype,
-                               framesregex="\d+\.rgb")
+    vid_data = read_frame_data(**default_read_rgb_args(framesdir,
+                                                       shape=shape,
+                                                       dtype=dtype))
     skio.vwrite(join(VIDDIR, videoname), vid_data)
 
 
-def z16_std_naming_frameno(filename):
-    return int(splitext(split(filename)[1])[0])
-
-
 def read_depth_video(videoname, framesdir, shape=(480, 640, 1), dtype=np.uint16):
-    vid_data = read_frame_data(framesdir,
-                               framenofunction=z16_std_naming_frameno,
-                               shape=shape,
-                               dtype=dtype,
-                               framesregex="\d+\.z16")
+    vid_data = read_frame_data(**default_read_z16_args(framesdir,
+                                                       shape=shape,
+                                                       dtype=dtype))
 
     vid_data = gtrbc.codec(np.array(vid_data, dtype=np.long))
 

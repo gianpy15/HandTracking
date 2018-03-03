@@ -3,31 +3,51 @@ import scipy.io as scio
 
 pm = path_manager.PathManager()
 
-DATA_F = 'data'
-LABEL_F = 'labels'
+RGB_DATA = 'data'
+LABEL_DATA = 'labels'
+DEPTH_DATA = 'depth'
+
+ALL_DATA = (RGB_DATA, LABEL_DATA, DEPTH_DATA)
 
 
-def load(respath):
+def load(respath, format=(RGB_DATA, LABEL_DATA)):
     """
     Load data from a .mat file implementing all HandTracking naming conventions
     :param respath: the path of the .mat file taken from the resources base directory
-    :return: a tuple of numpy arrays in the order (data, labels), labels is None if not present
+    :param format: specify the intended format of the returned tuple
+    :return: a tuple of numpy arrays in the order specified by param format,
+            fields are None if not present
     """
     matdict = scio.loadmat(pm.resources_path(respath))
-    if LABEL_F in matdict.keys():
-        return matdict[DATA_F], matdict[LABEL_F]
-    return matdict[DATA_F], None
+
+    def retrieve_content(tag):
+        if tag in matdict.keys():
+            return matdict[tag]
+        return None
+
+    ret = []
+    for tag in format:
+        ret.append(retrieve_content(tag))
+    return tuple(ret)
 
 
-def store(respath, data, labels=None):
+def store(respath, data=None, labels=None, depth=None):
     """
     Store data on a .mat file implementing all HandTracking naming conventions
     :param respath: the path of the .mat file taken from the resources base directory
-    :param data: the frame data to be stored as a numpy matrix
-    :param labels: the optional labels to be associated with the data
+    :param data: the optional frame data to be stored as a numpy matrix
+    :param labels: the optional labels to be associated with the frame
+    :param depth: the optional depth map to be associated with the frame
     """
+    outdict = {}
+    if data is not None:
+        outdict[RGB_DATA] = data
+    if labels is not None:
+        outdict[LABEL_DATA] = labels
+    if depth is not None:
+        outdict[DEPTH_DATA] = depth
+    if len(outdict.keys()) == 0:
+        return
+
     respath = pm.resources_path(respath)
-    if labels is None:
-        scio.savemat(respath, {DATA_F: data})
-    else:
-        scio.savemat(respath, {DATA_F: data, LABEL_F: labels})
+    scio.savemat(respath, outdict)

@@ -4,6 +4,7 @@ from tqdm import tqdm
 from hand_data_management.index import *
 from image_loader.hand_io import *
 from hand_data_management.frame_caching import *
+from hand_data_management.camera_data_conversion import read_frame_data, default_read_z16_args, default_read_rgb_args
 
 
 def build_frame_root_from_vid(videopath, post_process=lambda f: None):
@@ -14,17 +15,48 @@ def build_frame_root_from_vid(videopath, post_process=lambda f: None):
         return False
 
     videodata = skio.vread(pm.resources_path(videopath))
+    return build_frame_root_from_arrays(videoname=videoname,
+                                        imgdata=videodata,
+                                        post_process=post_process)
+
+
+def build_frame_root_from_rawcam(videopath, post_process=lambda f: None):
+    videopath = pm.resources_path(videopath)
+    videoname = os.path.splitext(os.path.split(videopath)[1])[0]
+    framesdir = get_vid_dir_from_vidname(videoname)
+    if os.path.exists(framesdir):
+        return False
+
+    rgbdata = read_frame_data(**default_read_rgb_args(framesdir=videopath))
+    depthdata = read_frame_data(**default_read_z16_args(framesdir=videopath))
+    return build_frame_root_from_arrays(videoname=videoname,
+                                        imgdata=rgbdata,
+                                        depthdata=depthdata,
+                                        post_process=post_process)
+
+
+def build_frame_root_from_arrays(videoname, imgdata, depthdata=None, post_process=lambda f: None):
+    framesdir = get_vid_dir_from_vidname(videoname)
+    if os.path.exists(framesdir):
+        return False
+
+    if depthdata is not None and len(imgdata) != len(depthdata):
+        return False
+
     os.makedirs(framesdir)
     post_process(framesdir)
     tmp = os.path.join(framesdir, TEMPDIR)
     os.makedirs(tmp)
     post_process(tmp)
-    for frameidx in tqdm(range(len(videodata))):
+    for frameidx in tqdm(range(len(imgdata))):
         framefile = os.path.join(framesdir, frame_name(videoname, frameidx))
-        store(framefile, videodata[frameidx])
+        if depthdata is None:
+            store(framefile, data=imgdata[frameidx])
+        else:
+            store(framefile, data=imgdata[frameidx], depth=depthdata[frameidx])
         post_process(framefile)
     idxfile = os.path.join(framesdir, index_name(videoname))
-    build_empty_index_file(idxfile, len(videodata))
+    build_empty_index_file(idxfile, len(imgdata))
     post_process(idxfile)
     return True
 
@@ -33,8 +65,8 @@ def save_labels(labels, frame):
     vidn = get_vidname(frame)
     framedir = os.path.join(framebase, vidn)
     frame = get_complete_frame_path(frame_name(vidn, get_frameno(frame)))
-    data, _ = load(frame)
-    store(frame, data=data, labels=labels)
+    img, _, depth = load(frame, format=ALL_DATA)
+    store(frame, data=img, labels=labels, depth=depth)
     set_index_flag(os.path.join(framedir, index_name(vidn)),
                    flag=FLAG_LABELED,
                    idx=get_frameno(frame))
