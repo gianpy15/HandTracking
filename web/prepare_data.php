@@ -65,7 +65,7 @@
        <script src="javascript/points.js" type="text/javascript"></script>
        <script type="text/javascript">
             var nickname = "<?php echo $nick; ?>";
-            var sample_img_url = "framedata/sample_hand.png";
+            var sample_img_url = "images/sample_hand.png";
             var target_img_url = "<?php echo $imgurl; ?>";
             var target_joints = [new Point(0.552764, 0.898438, false), new Point(0.334171, 0.822266, false),
                                  new Point(0.206030, 0.642578, false), new Point(0.125628, 0.537109, false),

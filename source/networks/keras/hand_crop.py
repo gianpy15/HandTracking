@@ -16,11 +16,12 @@ train_annots_path = ego.default_train_annotations_path()
 # test_images_path = ego.default_test_images_path()
 # test_annots_path = ego.default_test_annotations_path()
 tb_dir = '../../../resources/tensorboard/tbdata'
+model_path = '../../../resources/models/hand_cropper/cropper_v1.ckp'
 
 
 # ################ BASIC PARAMETERS #####################
-train_set_dim = 100
-test_set_dim = 100
+train_set_dim = 1
+test_set_dim = 1
 batch_dimension = 1
 learning_rate = 0.005
 epochs = 40
@@ -29,8 +30,12 @@ width_shrink_rate = 10
 
 # ################## GETTING DATA SETS #######################
 train_images, train_heatmaps = ego.get_random_samples_from_dataset(train_images_path,
-                                                                    train_annots_path, train_set_dim,
+                                                                    train_annots_path, train_set_dim + test_set_dim,
                                                                     height_shrink_rate, width_shrink_rate)
+test_images, test_heatmaps = train_images[-test_set_dim:], train_heatmaps[-test_set_dim:]
+train_images = train_images[0: train_set_dim - test_set_dim]
+train_heatmaps = train_heatmaps[0: train_set_dim - test_set_dim]
+
 # test_images, test_heatmaps = ego.get_random_samples_from_dataset(test_images_path,
 #                                                                   test_annots_path, test_set_dim,
 #                                                                   height_shrink_rate, width_shrink_rate)
@@ -88,12 +93,16 @@ model.add(kl.Activation(activation='relu'))
 model.add(kl.MaxPool2D(pool_size=pooling_size))
 model.add(kl.Activation('sigmoid'))
 
-# tensor_board = kc.TensorBoard(log_dir=tb_dir, histogram_freq=20, write_grads=1)
+tensor_board = kc.TensorBoard(log_dir=tb_dir, histogram_freq=20, write_grads=1, write_images=1)
+model_ckp = kc.ModelCheckpoint(filepath=model_path, monitor=['accuracy'],
+                               verbose=1, save_best_only=True, mode='max', period=1)
+es = kc.EarlyStopping(patience=20, verbose=1, monitor=['val_acc'], mode='max')
 
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 model.summary()
 
 print('training starting...')
-history = model.fit(train_images, train_heatmaps, epochs=50,  batch_size=5, callbacks=[], verbose=2)
+history = model.fit(train_images, train_heatmaps, epochs=50,  batch_size=5,
+                    callbacks=[tensor_board, model_ckp, es], verbose=2, validation_data=(test_images, test_heatmaps))
 print('training complete!')
 
