@@ -47,10 +47,10 @@ if __name__ == '__main__':
     from concurrent.futures import ThreadPoolExecutor
     import numpy as np
 
-    REPETITIONS = 1
+    REPETITIONS = 100
     EXTRATHREADS = 0
-    PRESLEEP = 0
-    INFILE = "gui/it2.mat"
+    PRESLEEP = 1
+    INFILE = "gui/hand.mat"
 
     root = tk.Tk()
     frame = tk.Frame(root)

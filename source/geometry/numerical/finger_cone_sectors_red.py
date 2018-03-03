@@ -1,7 +1,6 @@
 from scipy.optimize import minimize
 from geometry.transforms import *
 from numpy.linalg import norm
-from geometry.numerical import finger_cone_sectors_red as red
 
 # CONSTRAINED FINGER INFERENCE
 
@@ -16,10 +15,8 @@ SIGN = 's'
 numeric_dbg_canvas = None
 numeric_dbg_cal = None
 
-MAX_RELEVANT_PLANECOSINE = np.cos(np.pi / 180 * 5)
 
-
-def prepare_problem_params(center, norm_v, tang_v, radius, normcos, planecos, objline):
+def prepare_problem_params(center, norm_v, tang_v, radius, normcos, objline):
     # perform a base change -> norm as x-axis, tang as y-axis
     # to optimize the objective evaluation
     conorm = np.cross(norm_v, tang_v)
@@ -27,7 +24,6 @@ def prepare_problem_params(center, norm_v, tang_v, radius, normcos, planecos, ob
         BASEREF: np.stack((norm_v, tang_v, conorm)),
         RAD: radius,
         NORM_COS: normcos,
-        PLANE_COS: planecos,
         SIGN: None
     }
     params[CENTER] = params[BASEREF] @ center
@@ -35,30 +31,23 @@ def prepare_problem_params(center, norm_v, tang_v, radius, normcos, planecos, ob
     return params
 
 
-def build_constraints(params: dict):
-    return ({'type': 'ineq', 'fun': subject_to_cosplane, 'args': (params[PLANE_COS] ** 2,)},
-            {'type': 'ineq', 'fun': subject_to_existence})
-
-
 def build_bounds(params: dict):
     an_min = params[NORM_COS]
     an_max = 1.0
-    at_max = np.sqrt(1.0 - params[NORM_COS] ** 2)
-    return (an_min, an_max), (-at_max, at_max)
+    return (an_min, an_max),
 
 
 def truncate_by_bounds(proposed_sol, bounds):
-    out = proposed_sol[:]
-    for i in range(2):
-        if out[i] < bounds[i][0]:
-            out[i] = bounds[i][0]
-        elif out[i] > bounds[i][1]:
-            out[i] = bounds[i][1]
-    return out
+    out = proposed_sol[0]
+    if out < bounds[0][0]:
+        out = bounds[0][0]
+    elif out > bounds[0][1]:
+        out = bounds[0][1]
+    return np.array([out])
 
 
-def trd_sol_elem(proposed_sol, sign):
-    arg = 1 - proposed_sol[0]**2 - proposed_sol[1]**2
+def snd_sol_elem(proposed_sol, sign):
+    arg = 1 - proposed_sol[0]**2
     if sign is not None:
         if arg <= 0:
             return np.zeros(shape=(1,))
@@ -69,22 +58,23 @@ def trd_sol_elem(proposed_sol, sign):
     return np.array([[-ret], [ret]])
 
 
-def rel_pnt(proposed_sol: np.ndarray, rad, sign):
+def rel_pnt(proposed_sol, rad, sign):
     if sign is None:
         return np.concatenate((np.tile(proposed_sol, (2, 1)),
-                               trd_sol_elem(proposed_sol, None)), axis=1)*rad
-    return np.concatenate((proposed_sol,
-                           trd_sol_elem(proposed_sol, sign))) * rad
+                               snd_sol_elem(proposed_sol, sign),
+                               np.zeros(shape=(2, 1))), axis=1)*rad
+    return np.concatenate((proposed_sol, snd_sol_elem(proposed_sol, sign), [0]))*rad
 
 
 def take_final_sol(proposed_sol: np.ndarray, params: dict):
     if params[SIGN] is None:
-        fp = rel_pnt(proposed_sol, params[RAD], None) + params[CENTER]
+        fp = rel_pnt(proposed_sol, params[RAD], sign=None) + params[CENTER]
         ret = -np.dot(fp, params[OBJ_LINE]) / norm(fp, axis=1)
         if ret[0] < ret[1]:
             return fp[0]
         return fp[1]
-    return rel_pnt(proposed_sol, params[RAD], params[SIGN]) + params[CENTER]
+    return rel_pnt(proposed_sol, params[RAD], sign=params[SIGN]) + params[CENTER]
+
 
 # lastloss = None
 # lastcol = 128
@@ -102,42 +92,13 @@ def minimizing_obj(proposed_sol: np.ndarray, params: dict):
     fp = rel_pnt(proposed_sol, params[RAD], sign=params[SIGN]) + params[CENTER]
     return -np.dot(fp, params[OBJ_LINE]) / norm(fp)
 
-    # DEBUG CODE
-    # global lastloss
-    # global lastcol
-    # if lastloss is not None:
-    #     col = lastcol + (lastloss - loss)/0.01 * 5
-    #     if col < 0:
-    #         col = 0
-    #     lastcol = col
-    # else:
-    #     lastcol = 128
-    #     col = 128
-    #     lastloss = loss
-    # drawpnts([column_matmul(np.transpose(params[BASEREF]), fp1)],
-    #          canvas=numeric_dbg_canvas,
-    #          cal=numeric_dbg_cal,
-    #          fill="#%02X%02X%02X"%(int(col), int(col), int(col)))
-
-    # print("Loss: %f" % min(ret1, ret2))
-    # import time
-    # time.sleep(0.2)
-
-
-def subject_to_cosplane(proposed_sol: np.ndarray, spcos):
-    return norm(proposed_sol) ** 2 - spcos
-
-
-def subject_to_existence(proposed_sol: np.ndarray):
-    return 1 - norm(proposed_sol) ** 2
-
 
 def extract_solution(proposed_sol: np.ndarray, params: dict):
     pnt = take_final_sol(proposed_sol, params)
     return np.transpose(params[BASEREF]) @ pnt
 
 
-def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, planecos, objline, suggestion=None):
+def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objline, suggestion=None):
 
     # global numeric_dbg_canvas
     # numeric_dbg_canvas = dbgcanvas
@@ -145,11 +106,6 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
     # numeric_dbg_cal = dbgcal
     # global lastloss
     # lastloss = None
-
-    # if the plane cosine range is very small (most of the joints)
-    # then assume it to zero and reduce the problem
-    if planecos > MAX_RELEVANT_PLANECOSINE:
-        return red.find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objline, suggestion)
 
     def checknorm(subj):
         nrm = norm(subj)
@@ -165,17 +121,16 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
     tang_vers = checknorm(tang_vers)
     objline = checknorm(objline)
 
-    params = prepare_problem_params(center, norm_vers, tang_vers, radius, normcos, planecos, objline)
+    params = prepare_problem_params(center, norm_vers, tang_vers, radius, normcos, objline)
     bounds = build_bounds(params)
-    constr = build_constraints(params)
 
-    starting_sol = np.array([1.0, 0.0])
+    starting_sol = np.ones(shape=(1,))
     idx = 0
     if suggestion is not None:
         bestobj = minimizing_obj(starting_sol, params)
         for sugg in suggestion:
             suggested_vers = normalize(sugg-center)
-            base_wise_sugg = (params[BASEREF] @ suggested_vers)[0:2]
+            base_wise_sugg = [(params[BASEREF] @ suggested_vers)[0]]
             base_wise_sugg = truncate_by_bounds(base_wise_sugg, bounds)
             currobj = minimizing_obj(base_wise_sugg, params)
             idx += 1
@@ -186,7 +141,7 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
 
     def action():
         global res
-        res = minimize(minimizing_obj, starting_sol, bounds=bounds, args=params, constraints=constr)
+        res = minimize(minimizing_obj, starting_sol, bounds=bounds, args=params)
 
     # import timeit
     # print("Optimization problem solved in %f ms." % (1000 * timeit.timeit(action, number=1),))

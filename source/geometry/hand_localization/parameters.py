@@ -21,11 +21,11 @@ maxangle = {
 
 # Maximum rotation angles of any joint far from the main plain (built by START_DIR, NORM_DIR)
 maxwideangle = {
-    THUMB: (np.pi / 180 * 10, np.pi / 180 * 2, np.pi / 180 * 0),
-    INDEX: (np.pi / 180 * 20, np.pi / 180 * 2, np.pi / 180 * 0),
-    MIDDLE: (np.pi / 180 * 10, np.pi / 180 * 2, np.pi / 180 * 0),
-    RING: (np.pi / 180 * 15, np.pi / 180 * 2, np.pi / 180 * 0),
-    BABY: (np.pi / 180 * 20, np.pi / 180 * 5, np.pi / 180 * 0)
+    THUMB: (np.pi / 180 * 10, np.pi / 180 * 2, np.pi / 180 * 0.1),
+    INDEX: (np.pi / 180 * 20, np.pi / 180 * 2, np.pi / 180 * 0.1),
+    MIDDLE: (np.pi / 180 * 10, np.pi / 180 * 2, np.pi / 180 * 0.1),
+    RING: (np.pi / 180 * 15, np.pi / 180 * 2, np.pi / 180 * 0.1),
+    BABY: (np.pi / 180 * 20, np.pi / 180 * 5, np.pi / 180 * 0.1)
 }
 
 # The angles defining where is the AROUND_DIR of the finger.
