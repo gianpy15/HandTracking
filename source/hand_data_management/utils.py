@@ -1,4 +1,5 @@
 import skvideo.io as skio
+from tqdm import tqdm
 
 from hand_data_management.index import *
 from image_loader.hand_io import *
@@ -22,7 +23,7 @@ def build_frame_root_from_vid(videopath, post_process=lambda f: None):
     tmp = os.path.join(framesdir, TEMPDIR)
     os.makedirs(tmp)
     post_process(tmp)
-    for frameidx in range(len(videodata)):
+    for frameidx in tqdm(range(len(videodata))):
         framefile = os.path.join(framesdir, frame_name(videoname, frameidx))
         store(framefile, videodata[frameidx])
         post_process(framefile)

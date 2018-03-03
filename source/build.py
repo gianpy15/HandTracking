@@ -5,7 +5,7 @@ sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], ".."))
 
 import hand_data_management.utils as ut
 
-VIDS = ["vids/snap.mp4", "vids/test.mp4"]
+VIDS = ["vids/hands_01rgb.mp4"]
 
 wwwgrp = None
 
