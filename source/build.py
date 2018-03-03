@@ -4,8 +4,19 @@ import grp
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
 
 import hand_data_management.utils as ut
+from image_loader.hand_io import pm
 
-VIDS = ["vids/snap.mp4", "vids/test.mp4"]
+
+def is_vid_condition(vname):
+    if os.path.isdir(vname):
+        return False
+    if os.path.splitext(vname)[1] != '.mp4':
+        return False
+    return True
+
+
+vid_dir = pm.resources_path("vids")
+VIDS = [os.path.join(vid_dir, v) for v in os.listdir(vid_dir) if is_vid_condition(v)]
 
 wwwgrp = None
 
