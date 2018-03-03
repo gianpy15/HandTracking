@@ -16,13 +16,14 @@ def is_vid_condition(vname):
 
 
 vid_dir = pm.resources_path("vids")
-VIDS = [os.path.join(vid_dir, v) for v in os.listdir(vid_dir) if is_vid_condition(v)]
+VIDS = [os.path.join("vids", v) for v in os.listdir(vid_dir) if is_vid_condition(v)]
 
 wwwgrp = None
 
 for g in grp.getgrall():
     if g[0] == 'www-data':
         wwwgrp = g[2]
+        break
 
 
 def edit_permissions(filename):

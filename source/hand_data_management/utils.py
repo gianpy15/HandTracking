@@ -5,10 +5,6 @@ from hand_data_management.index import *
 from image_loader.hand_io import *
 from hand_data_management.frame_caching import *
 
-BASECODE = 32
-SEPARATOR = chr(126)
-CONTRACTION = 4
-
 
 def build_frame_root_from_vid(videopath, post_process=lambda f: None):
     videopath = pm.resources_path(videopath)
