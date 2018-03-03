@@ -44,8 +44,8 @@ This software is written in standards-conforming C++11 and relies only on the C8
 
 *	Hand-Stream: To laucnh hand-stream, just type hand-stream in the terminal: if you want to see a preview of the streamed video, add parameter "-s" after hand-stream.
 	Streaming and eventual preview will start as soon as a client connects to the server and a TCP socket is created; this application is supposed to be used on localhost only and runs on the PORT 8343.
-	The streaming is a sequence of 1024 bytes TCP packets (note that the operating system may split a packet into 2 different ones): the RGB frame is sent first (3*640*480=921600 bytes), 
-	then the Z16 frame is sent (2*640*480=614400 bytes), then the following RGB frame and so on. Autoexposure and IR emitter are enabled by default; in the preview mode they can be disabled/enabled
+	The streaming is a sequence of 1024 bytes TCP packets (note that the operating system may split a packet into 2 different ones): the RGB frame is sent first (3x640x480=921600 bytes), 
+	then the Z16 frame is sent (2x640x480=614400 bytes), then the following RGB frame and so on. Autoexposure and IR emitter are enabled by default; in the preview mode they can be disabled/enabled
 	by pressing A and E respectively. In the preview-less mode, it is not possible to change autoexposure and emitter behavior.
 
 ## Output
