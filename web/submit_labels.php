@@ -7,7 +7,7 @@
     $script = "source/php_called_scripts/register_labels.py";
     $args = $labels." ".$frame." ".$nick." 2>&1";
     $cmd = $python_interpreter." ".$script_base.$script." ".$args;
-    $out = exec($cmd, $errorcode);
+    $out = exec($cmd, $rets, $errorcode);
 
     if ($errorcode == 0 && $out == ""){
         echo "OK";

@@ -1,6 +1,6 @@
 <html>
    <head>
-      <title>Your contribute</title>
+      <title>Your contribution</title>
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
       <link rel="stylesheet" type="text/css" href="css/style.css">
    </head>
@@ -10,7 +10,7 @@
         $script = "source/php_called_scripts/get_frame.py";
         $args = "2>&1";
         $cmd = $python_interpreter." ".$script_base.$script." ".$args;
-        $out = exec($cmd, $errorcode);
+        $out = exec($cmd, $rets, $errorcode);
         if ($errorcode == 0){
             $error = "";
             $imgurl = $out;
