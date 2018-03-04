@@ -4,6 +4,7 @@ import image_loader.image_loader as il
 import gui.pinpointer_canvas as pc
 import gui.hand_helper_canvas as hh
 import scipy.io as scio
+import image_loader.hand_io as hio
 import skimage.transform as skt
 import numpy as np
 
@@ -12,7 +13,7 @@ helptext = "Click on the image on the left to set the position of the joints of 
            "joints, right click for occluded joints."
 
 
-def setup_pinner(pinner, img):
+def setup_pinner(pinner, img, depth):
     data = img
 
     def joints_counter(event):
@@ -22,7 +23,7 @@ def setup_pinner(pinner, img):
             save_labels(event.widget.click_sequence)
 
     def save_labels(labels):
-        il.save_mat(pm.resources_path("gui/it3.mat"), data=data, labels=labels)
+        hio.store(pm.resources_path("calibration_test.mat"), data=data, labels=labels, depth=depth)
 
     # Load the image into the pinner canvas, ready for pinpointing
     pinner.set_bitmap(img)
@@ -55,8 +56,8 @@ if __name__ == "__main__":
     side_frame.pack(side=tk.RIGHT, fill=tk.BOTH)
 
     # A sample image, for now...
-    # img = np.random.uniform(low=0.0, high=1.0, size=(400, 500, 3))
-    img = il.load(pm.resources_path("gui/Flower-bud-003.jpg"), force_format=[None, None, 3])[0]
+    # img = il.load(pm.resources_path("gui/Flower-bud-003.jpg"), force_format=[None, None, 3])[0]
+    img, depth = hio.load(pm.resources_path("framedata/hands_A/hands_A0000.mat"), format=(hio.RGB_DATA, hio.DEPTH_DATA))
 
     # off = (img.shape[0]-img.shape[1])//2
     # img = np.pad(img, pad_width=((0, 0), (off, off), (0, 0)), mode='constant')
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 
     # Setup the pinner
     pinner = pc.PinpointerCanvas(canvas_frame)
-    setup_pinner(pinner, img)
+    setup_pinner(pinner, img, depth)
 
     # load the helper data into a dictionary
     # helper_hand['data'] is the image

@@ -42,20 +42,21 @@ if __name__ == '__main__':
     import geometry.transforms as tr
     from geometry.calibration import *
     from gui.model_drawer import ModelDrawer
-    from geometry.default_model_loading import build_default_hand_model
+    from geometry.hand_prototype.default_model_loading import build_default_hand_model
     from timeit import timeit
     from concurrent.futures import ThreadPoolExecutor
+    import geometry.label_depth_mesh as ldm
     import numpy as np
 
     REPETITIONS = 100
     EXTRATHREADS = 0
     PRESLEEP = 1
-    INFILE = "gui/hand.mat"
+    INFILE = "calibration_test.mat"
 
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
-    subj_img, subj_lab = hio.load(INFILE)
+    subj_img, subj_lab, subj_depth = hio.load(INFILE, format=hio.ALL_DATA)
     # subj_lab = np.array([(1-x, y, f) for (x, y, f) in subj_lab])
     test_subject = ppc.PinpointerCanvas(frame)
     test_subject.set_bitmap(subj_img)
@@ -80,25 +81,30 @@ if __name__ == '__main__':
         global global_calibration
         global_calibration = cal
 
-        formatted_data = hand_format([ImagePoint((x * resolution[1], y * resolution[0]))
-                                      for (x, y, f) in label_data])
+        # formatted_data = hand_format([ImagePoint((x * resolution[1], y * resolution[0]))
+        #                               for (x, y, f) in label_data])
+        formatted_data = hand_format(ldm.extract_imgpoints(subj_lab, subj_depth))
         # compute the rotation matrix
         rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=np.pi / 180)
-
+        from geometry.hand_prototype.build_prototype import extract_prototype
         def total():
             global hand_model
-            hand_model = raw(compute_hand_world_joints(build_default_hand_model(),
+            hand_model = raw(compute_hand_world_joints(extract_prototype(raw(formatted_data),
+                                                                         cal=cal),
                                                        formatted_data,
                                                        cal=cal,
                                                        executor=pool))
 
-            # make sure that the GUI-related load is expired before measuring performance
+        def pointscloud():
+            global hand_model
+            hand_model = [p.to_camera_model(calibration=cal).as_row() for p in raw(formatted_data)]
+
+        # make sure that the GUI-related load is expired before measuring performance
 
         time.sleep(PRESLEEP)
         print("Model computation %d times took %f seconds." % (REPETITIONS, timeit(total, number=REPETITIONS)))
 
         current_rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=0)
-        time.sleep(1)
         while True:
             # rotate the 3D dataset
             center = np.average(hand_model, axis=0)

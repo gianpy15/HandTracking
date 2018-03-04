@@ -149,7 +149,9 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
     # if the plane cosine range is very small (most of the joints)
     # then assume it to zero and reduce the problem
     if planecos > MAX_RELEVANT_PLANECOSINE:
-        return red.find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objline, suggestion)
+        reduced_problem = red.find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objline, suggestion)
+        if reduced_problem is not None:
+            return reduced_problem
 
     def checknorm(subj):
         nrm = norm(subj)
@@ -186,7 +188,11 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
 
     def action():
         global res
-        res = minimize(minimizing_obj, starting_sol, bounds=bounds, args=params, constraints=constr)
+        res = minimize(minimizing_obj, starting_sol,
+                       bounds=bounds,
+                       args=params,
+                       options={'eps': 1e-20},
+                       constraints=constr)
 
     # import timeit
     # print("Optimization problem solved in %f ms." % (1000 * timeit.timeit(action, number=1),))

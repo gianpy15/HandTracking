@@ -7,6 +7,7 @@ from geometry.transforms import get_rotation_matrix, get_mapping_rot, normalize,
 from numpy.linalg import norm
 import time
 
+
 def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=None, executor=None):
     """
     Compute the hand model in the space
@@ -23,6 +24,9 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
         cal = current_calibration
     lines_info, depth_info = extract_model_info(image_joints, cal)
 
+    # disable depth for some debugs
+    # depth_info = hand_format([None] * 21)
+
     # the hand model is normalized with respect to the wrist
     base_hand_model = hand_format([elem - base_hand_model[WRIST][0] for elem in raw(base_hand_model)])
 
@@ -37,7 +41,6 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     # apply this first transformation to the whole model
     first_hand_model = hand_format([first_transform_point(rotmat, tr, p)
                                     for p in raw(base_hand_model)])
-
     # find out plausible positions for MIDDLE and RING joints
     # interpolating the known INDEX and BABY
     t_index = first_hand_model[INDEX][0][0] / lines_info[INDEX][0][0]
@@ -65,7 +68,6 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     if executor is None:
         # if no executor pool has been provided, take care of all the fingers yourself
         for fin in (INDEX, MIDDLE, RING, BABY):
-
             finger_position = compute_generic_finger(first_hand_model=first_hand_model,
                                                      palm_base_axis=palm_base_axis,
                                                      lines_info=lines_info,
@@ -74,7 +76,6 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
             end_model[fin] = [first_hand_model[fin][0], 0, 0, 0]
             for idx in range(1, 4):
                 end_model[fin][idx] = finger_position[idx - 1]
-
         # the thumb has special rotations that need peculiar attention:
         end_model[THUMB] = compute_thumb(first_hand_model=first_hand_model,
                                          palm_base_axis=palm_base_axis,
@@ -131,7 +132,7 @@ def get_best_first_transform(base_hand_model, lines_info, depth_sugg, side):
     base_triangle_lines = [lines_info[WRIST][0], lines_info[INDEX][0], lines_info[BABY][0]]
     model1, model2 = get_points_projection_to_lines_pair(base_triangle_pts, base_triangle_lines)
 
-    base_tr = norm(base_hand_model[MIDDLE][0] - base_hand_model[WRIST][0]) / 4
+    base_tr = norm(base_hand_model[MIDDLE][0] - base_hand_model[WRIST][0])
 
     def model_depthwise_correction(model):
         model[0] = depth_info_compare(inferred=model[0],

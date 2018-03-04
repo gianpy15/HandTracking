@@ -6,6 +6,7 @@ import numpy as np
 
 # BASE PALM POINTS DIRECT INFERENCE
 
+
 def line_projection_system(sols, params):
     return (sols[0] ** 2 - 2 * params["c01"] * sols[0] * sols[1] + sols[1] ** 2 - params["d01"] ** 2,
             sols[0] ** 2 - 2 * params["c02"] * sols[0] * sols[2] + sols[2] ** 2 - params["d02"] ** 2,
@@ -44,7 +45,10 @@ def get_points_projections_to_lines(basepts, lines, maxerr=1e-3, maxrestart=1000
     besterr = np.inf
     for i in range(maxrestart):
         start = np.random.normal(loc=avg, scale=variance, size=(3,))
-        sol, info, stat, msg = fsolve(line_projection_system, start, params, full_output=True)
+        sol, info, stat, msg = fsolve(func=line_projection_system,
+                                      x0=start,
+                                      args=params,
+                                      full_output=True)
         err = np.linalg.norm(info["fvec"])
         if err < maxerr:
             if sol[0] < 0:

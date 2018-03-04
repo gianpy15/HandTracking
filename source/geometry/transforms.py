@@ -69,14 +69,18 @@ def get_mapping_rot(v1, v2):
         else:
             axis = normalize(np.cross(v1, [0, 0, 1]))
             return get_rotation_matrix_from_quat(0, axis[0], axis[1], axis[2])
-    return get_rotation_matrix(axis, angle=np.arccos(np.dot(v1, v2) / n1 / n2))
+    # Prevent numerical problems. They do happen. Really.
+    cos = max(-1.0, min(1.0, np.dot(v1, v2) / n1 / n2))
+    return get_rotation_matrix(axis, angle=np.arccos(cos))
 
 
 def get_rotation_angle_around_axis(axis, p1, p2):
     v1 = normalize(p1 - axis * np.dot(p1, axis))
     v2 = normalize(p2 - axis * np.dot(p2, axis))
     cross = np.cross(v1, v2)
+    # Prevent numerical problems. They do happen. Really.
+    cos = max(-1.0, min(1.0, np.dot(v1, v2)))
     if np.dot(axis, cross) > 0:
-        return np.arccos(np.dot(v1, v2))
-    return -np.arccos(np.dot(v1, v2))
+        return np.arccos(cos)
+    return -np.arccos(cos)
 

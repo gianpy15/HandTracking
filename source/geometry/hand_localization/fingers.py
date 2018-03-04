@@ -65,7 +65,7 @@ def build_finger_num(basejoint, lengths, jointversors, depthsugg, config=None):
                                              coneangle=config[MAXANGLE][0]) + basejoint)
 
     if depthsugg[0] is not None:
-        numeric_suggest_list.append(depthsugg)
+        numeric_suggest_list.append(depthsugg[0])
 
     joint = find_best_point_in_cone(center=basejoint,
                                     radius=lengths[0],
@@ -75,7 +75,6 @@ def build_finger_num(basejoint, lengths, jointversors, depthsugg, config=None):
                                     normcos=np.cos(config[MAXANGLE][0]),
                                     planecos=np.cos(config[MAXWIDEANGLE][0]),
                                     suggestion=numeric_suggest_list)
-
 
     joint = depth_info_compare(inferred=joint,
                                measured=depthsugg[0],
@@ -145,7 +144,7 @@ def compute_generic_finger(first_hand_model, palm_base_axis, lines_info, depth_s
                                        lengths=lengths,
                                        jointversors=lines_info[finger][1:],
                                        config=conf,
-                                       depthsugg=depth_sugg[finger])
+                                       depthsugg=depth_sugg[finger][1:])
     return finger_position
 
 
@@ -169,7 +168,7 @@ def compute_thumb(first_hand_model, palm_base_axis, lines_info, depth_sugg):
                                lengths=lengths,
                                jointversors=lines,
                                config=conf,
-                               depthsugg=depth_sugg[THUMB])
+                               depthsugg=depth_sugg[THUMB][1:])
     for idx in range(1, 4):
         end_model[idx] = thmbend[idx - 1]
 

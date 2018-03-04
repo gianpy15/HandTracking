@@ -90,7 +90,7 @@ def minimizing_obj(proposed_sol: np.ndarray, params: dict):
             params[SIGN] = 1
         return min(ret)
     fp = rel_pnt(proposed_sol, params[RAD], sign=params[SIGN]) + params[CENTER]
-    return -np.dot(fp, params[OBJ_LINE]) / norm(fp)
+    return -np.dot(fp, params[OBJ_LINE]) * 1e+10 / norm(fp)
 
 
 def extract_solution(proposed_sol: np.ndarray, params: dict):
@@ -141,7 +141,10 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objli
 
     def action():
         global res
-        res = minimize(minimizing_obj, starting_sol, bounds=bounds, args=params)
+        res = minimize(minimizing_obj, starting_sol,
+                       options={'eps': 1e-20},
+                       bounds=bounds,
+                       args=params)
 
     # import timeit
     # print("Optimization problem solved in %f ms." % (1000 * timeit.timeit(action, number=1),))
@@ -149,6 +152,7 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objli
     if not res.success:
         print("Optimization failure. Message: %s" % res.message)
         print(res.x)
+        return None
 
     # print("COSPLANE CONSTR: %f" % subject_to_cosplane(proposed_sol=res.x, spcos=params[PLANE_COS]**2))
     # print("EXISTENCE CONSTR: %f" % subject_to_existence(proposed_sol=res.x))
