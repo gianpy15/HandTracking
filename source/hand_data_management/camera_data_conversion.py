@@ -90,6 +90,27 @@ def read_mesh_video(videoname, framesdir, shape=(480, 640), dtypergb=np.uint8, d
     skio.vwrite(join(VIDDIR, videoname), vid_data)
 
 
+def enhance_depth_vid(vid,  reduction=3, topval=255, flatten=False):
+    # take video stats
+    nonzero = np.count_nonzero(vid)
+    total = vid.shape[0] * vid.shape[1] * vid.shape[2]
+    avg = np.average(vid)
+    var = np.var(vid)
+    # correct video stats on non-zero values only
+    corrected_avg = avg * total / nonzero
+    corrected_var = (var + avg ** 2) * total / nonzero - corrected_avg ** 2
+    # compute the bit range
+    delta = reduction * np.sqrt(corrected_var)
+    brange = (max(0, int(corrected_avg - delta)), int(corrected_avg + delta))
+    reduced = vid - brange[0]
+    if brange[0] > 0:
+        reduced = reduced * (reduced < np.zeros(shape=(1,), dtype=vid.dtype) - brange[0])
+    ret = reduced * (topval / brange[1])
+    if flatten:
+        ret = np.average(ret, axis=3)
+    return ret
+
+
 # Deprecated version of the codec. C++ compiled version is more than 100x faster.
 def grey_to_redblue_codec(vid):
     mult = np.pi / 2

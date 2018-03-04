@@ -1,5 +1,6 @@
 from hand_data_management.naming import *
 from image_loader.hand_io import *
+import numpy as np
 import os
 
 # define symbols for the gapflags
@@ -28,6 +29,9 @@ def load_labeled_video(vidname, fillgaps=True, gapflags=False):
         frame_data.append(fdata)
         label_data.append(ldata)
         gap_list.append(UNLABELED if ldata is None else LABELED)
+    frame_data = np.array(frame_data)
+    label_data = np.array(label_data)
+    gap_list = np.array(gap_list)
     if fillgaps:
         if label_data[0] is None or label_data[-1] is None:
             # unable to fill gaps, None labels are returned as a precaution
