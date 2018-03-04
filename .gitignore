@@ -15,5 +15,8 @@ source/**/__pycache__
 source/**/*.pyc
 source/**/.DS_Store
 .DS_Store
+
 resources/hands_bounding_dataset/**/**
+resources/framedata/**/**
+resources/rawcam/**/**
 

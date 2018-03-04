@@ -152,4 +152,4 @@ if __name__ == '__main__':
     for heat1 in heatmaps1:
         u.showimage(u.heatmap_to_rgb(heat1))
 
-    u.showimages(u.get_crops_from_heatmap(images1[0], heatmaps1[0]))
+    # u.showimages(u.get_crops_from_heatmap(images1[0], heatmaps1[0]))
