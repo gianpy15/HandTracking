@@ -134,8 +134,8 @@ def __depth_from_model(modelpoint, calibration):
 class ImagePoint:
     def __init__(self, coords, depth=None):
         self.coords = coords[0:2]
-        self.depth = depth
-        self.visible = True if depth is not None else False
+        self.depth = depth if depth != 0 else None
+        self.visible = True if self.depth is not None else False
 
     def to_camera_model(self, calibration=None):
         if calibration is None:

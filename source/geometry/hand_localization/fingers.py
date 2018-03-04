@@ -66,7 +66,6 @@ def build_finger_num(basejoint, lengths, jointversors, depthsugg, config=None):
 
     if depthsugg[0] is not None:
         numeric_suggest_list.append(depthsugg[0])
-
     joint = find_best_point_in_cone(center=basejoint,
                                     radius=lengths[0],
                                     objline=jointversors[0],

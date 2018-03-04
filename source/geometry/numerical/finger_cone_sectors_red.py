@@ -150,7 +150,7 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, objli
     # print("Optimization problem solved in %f ms." % (1000 * timeit.timeit(action, number=1),))
     action()
     if not res.success:
-        print("Optimization failure. Message: %s" % res.message)
+        print("Optimization failure in arc sector search. Message: %s" % res.message)
         print(res.x)
         return None
 

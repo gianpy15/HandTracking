@@ -23,7 +23,6 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     if cal is None:
         cal = current_calibration
     lines_info, depth_info = extract_model_info(image_joints, cal)
-
     # disable depth for some debugs
     # depth_info = hand_format([None] * 21)
 
@@ -68,6 +67,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
     if executor is None:
         # if no executor pool has been provided, take care of all the fingers yourself
         for fin in (INDEX, MIDDLE, RING, BABY):
+            # print("Computing %s position..." % fin)
             finger_position = compute_generic_finger(first_hand_model=first_hand_model,
                                                      palm_base_axis=palm_base_axis,
                                                      lines_info=lines_info,
@@ -77,6 +77,7 @@ def compute_hand_world_joints(base_hand_model, image_joints, side=RIGHT, cal=Non
             for idx in range(1, 4):
                 end_model[fin][idx] = finger_position[idx - 1]
         # the thumb has special rotations that need peculiar attention:
+        # print("Computing %s position..." % THUMB)
         end_model[THUMB] = compute_thumb(first_hand_model=first_hand_model,
                                          palm_base_axis=palm_base_axis,
                                          lines_info=lines_info,

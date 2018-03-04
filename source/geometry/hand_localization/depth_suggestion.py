@@ -17,10 +17,10 @@ def extract_model_info(image_joints, cal):
         cal = current_calibration
     vect_img_joints = raw(image_joints)
     depth_suggestion = hand_format([joint.to_camera_model(calibration=cal).as_row()
-                                    if joint.visible else None
+                                    if joint.visible and joint.depth > 0 else None
                                     for joint in vect_img_joints])
     line_suggestion = hand_format([normalize(joint.to_camera_model(calibration=cal).as_row())
-                                   if joint.visible else
+                                   if joint.visible and joint.depth > 0 else
                                    joint.to_camera_model(calibration=cal).as_row()
                                    for joint in vect_img_joints])
     return line_suggestion, depth_suggestion

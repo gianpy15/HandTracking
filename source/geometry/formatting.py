@@ -1,12 +1,12 @@
 import numpy as np
 # Here we define a formatting convention for raw data into semantics.
 
-WRIST = 'w'
-THUMB = 't'
-INDEX = 'i'
-MIDDLE = 'm'
-RING = 'r'
-BABY = 'b'
+WRIST = 'WRIST'
+THUMB = 'THUMB'
+INDEX = 'INDEX'
+MIDDLE = 'MIDDLE'
+RING = 'RING'
+BABY = 'BABY'
 
 FINGERS = (THUMB, INDEX, MIDDLE, RING, BABY)
 ALL_AREAS = (WRIST, THUMB, INDEX, MIDDLE, RING, BABY)

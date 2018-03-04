@@ -45,18 +45,28 @@ if __name__ == '__main__':
     from geometry.hand_prototype.default_model_loading import build_default_hand_model
     from timeit import timeit
     from concurrent.futures import ThreadPoolExecutor
+    from geometry.hand_prototype.build_prototype import extract_prototype
     import geometry.label_depth_mesh as ldm
     import numpy as np
 
     REPETITIONS = 100
     EXTRATHREADS = 0
     PRESLEEP = 1
-    INFILE = "calibration_test.mat"
+    PROTOTYPE_FILE = "calibration_test.mat"
+    INFILE = "calibration_apply_test.mat"
 
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
     subj_img, subj_lab, subj_depth = hio.load(INFILE, format=hio.ALL_DATA)
+
+    resolution = subj_img.shape[0:2]
+    fov = 40
+    cal = calibration(intr=synth_intrinsic(resolution, (fov, fov * subj_img.shape[1] / subj_img.shape[0])))
+
+    proto_data = hio.load(PROTOTYPE_FILE, format=(hio.LABEL_DATA, hio.DEPTH_DATA))
+    proto_model = extract_prototype(imagepts=ldm.extract_imgpoints(*proto_data),
+                                    cal=cal)
     # subj_lab = np.array([(1-x, y, f) for (x, y, f) in subj_lab])
     test_subject = ppc.PinpointerCanvas(frame)
     test_subject.set_bitmap(subj_img)
@@ -74,10 +84,6 @@ if __name__ == '__main__':
     # here we define the hand model setup and running procedure
     # NB: not working at all.
     def loop():
-        label_data = subj_lab.copy()
-        resolution = subj_img.shape[0:2]
-        fov = 40
-        cal = calibration(intr=synth_intrinsic(resolution, (fov, fov * subj_img.shape[1] / subj_img.shape[0])))
         global global_calibration
         global_calibration = cal
 
@@ -86,11 +92,9 @@ if __name__ == '__main__':
         formatted_data = hand_format(ldm.extract_imgpoints(subj_lab, subj_depth))
         # compute the rotation matrix
         rotation = tr.get_rotation_matrix(axis=np.array([0, 1, 0]), angle=np.pi / 180)
-        from geometry.hand_prototype.build_prototype import extract_prototype
         def total():
             global hand_model
-            hand_model = raw(compute_hand_world_joints(extract_prototype(raw(formatted_data),
-                                                                         cal=cal),
+            hand_model = raw(compute_hand_world_joints(proto_model,
                                                        formatted_data,
                                                        cal=cal,
                                                        executor=pool))

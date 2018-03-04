@@ -60,7 +60,7 @@ def truncate_by_bounds(proposed_sol, bounds):
 def trd_sol_elem(proposed_sol, sign):
     arg = 1 - proposed_sol[0]**2 - proposed_sol[1]**2
     if sign is not None:
-        if arg <= 0:
+        if arg <= -0.:
             return np.zeros(shape=(1,))
         return np.array([sign * np.sqrt(arg)])
     if arg <= 0:
@@ -101,7 +101,6 @@ def minimizing_obj(proposed_sol: np.ndarray, params: dict):
         return min(ret)
     fp = rel_pnt(proposed_sol, params[RAD], sign=params[SIGN]) + params[CENTER]
     return -np.dot(fp, params[OBJ_LINE]) / norm(fp)
-
     # DEBUG CODE
     # global lastloss
     # global lastcol
@@ -171,7 +170,7 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
     bounds = build_bounds(params)
     constr = build_constraints(params)
 
-    starting_sol = np.array([1.0, 0.0])
+    starting_sol = np.array([0.999, 0.0001])
     idx = 0
     if suggestion is not None:
         bestobj = minimizing_obj(starting_sol, params)
@@ -191,14 +190,14 @@ def find_best_point_in_cone(center, norm_vers, tang_vers, radius, normcos, plane
         res = minimize(minimizing_obj, starting_sol,
                        bounds=bounds,
                        args=params,
-                       options={'eps': 1e-20},
+                       options={'eps': 1e-10},
                        constraints=constr)
 
     # import timeit
     # print("Optimization problem solved in %f ms." % (1000 * timeit.timeit(action, number=1),))
     action()
     if not res.success:
-        print("Optimization failure. Message: %s" % res.message)
+        print("Optimization failure in cone sector search. Message: %s" % res.message)
         print(res.x)
 
     # print("COSPLANE CONSTR: %f" % subject_to_cosplane(proposed_sol=res.x, spcos=params[PLANE_COS]**2))

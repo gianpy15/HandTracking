@@ -23,7 +23,7 @@ def setup_pinner(pinner, img, depth):
             save_labels(event.widget.click_sequence)
 
     def save_labels(labels):
-        hio.store(pm.resources_path("calibration_test.mat"), data=data, labels=labels, depth=depth)
+        hio.store(pm.resources_path("calibration_apply_test.mat"), data=data, labels=labels, depth=depth)
 
     # Load the image into the pinner canvas, ready for pinpointing
     pinner.set_bitmap(img)
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # A sample image, for now...
     # img = il.load(pm.resources_path("gui/Flower-bud-003.jpg"), force_format=[None, None, 3])[0]
-    img, depth = hio.load(pm.resources_path("framedata/hands_A/hands_A0000.mat"), format=(hio.RGB_DATA, hio.DEPTH_DATA))
+    img, depth = hio.load(pm.resources_path("framedata/hands_A/hands_A0125.mat"), format=(hio.RGB_DATA, hio.DEPTH_DATA))
 
     # off = (img.shape[0]-img.shape[1])//2
     # img = np.pad(img, pad_width=((0, 0), (off, off), (0, 0)), mode='constant')
