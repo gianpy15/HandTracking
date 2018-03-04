@@ -60,7 +60,7 @@ class HelperCanvas(tk.Canvas):
                         NB: further elements per tuple are permitted but ignored
         """
         self.reset()
-        if image.dtype in [np.float16, np.float32, np.float64, np.float128]:
+        if image.dtype in [np.float16, np.float32, np.float64]:
             in_bmp = np.array(image*255, dtype=np.int8)
         elif image.dtype.itemsize != 1:
             in_bmp = np.array(image, dtype=np.int8)

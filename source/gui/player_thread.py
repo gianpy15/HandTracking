@@ -26,7 +26,7 @@ class PlayerThread:
         self.indexes = indexes
         self.discard = discard
         # Build the frame buffer at once
-        if frames[0].dtype in [np.float16, np.float32, np.float64, np.float128]:
+        if frames[0].dtype in [np.float16, np.float32, np.float64]:
             framebuff = np.array(frames * 255, dtype=np.int8)
         elif frames[0].dtype.itemsize != 1:
             framebuff = np.array(frames, dtype=np.int8)

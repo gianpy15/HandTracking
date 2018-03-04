@@ -75,7 +75,7 @@ class PinpointerCanvas(tk.Canvas):
         :param bmp: the numpy array describing the image as a bitmap
         """
         self.reset()
-        if bmp.dtype in [np.float16, np.float32, np.float64, np.float128]:
+        if bmp.dtype in [np.float16, np.float32, np.float64]:
             in_bmp = np.array(bmp*255, dtype=np.int8)
         elif bmp.dtype.itemsize != 1:
             in_bmp = np.array(bmp, dtype=np.int8)
