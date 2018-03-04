@@ -10,7 +10,7 @@
         $script = "source/php_called_scripts/get_frame.py";
         $args = "2>&1";
         $cmd = $python_interpreter." ".$script_base.$script." ".$args;
-        $out = system($cmd, $errorcode);
+        $out = exec($cmd, $errorcode);
         if ($errorcode == 0){
             $error = "";
             $imgurl = $out;
