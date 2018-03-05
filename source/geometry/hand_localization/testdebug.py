@@ -60,9 +60,8 @@ if __name__ == '__main__':
     frame.pack()
     subj_img, subj_lab, subj_depth = hio.load(INFILE, format=hio.ALL_DATA)
 
-    resolution = subj_img.shape[0:2]
-    fov = 40
-    cal = calibration(intr=synth_intrinsic(resolution, (fov, fov * subj_img.shape[1] / subj_img.shape[0])))
+    resolution = ZR300_RES
+    cal = ZR300_CAL
 
     proto_data = hio.load(PROTOTYPE_FILE, format=(hio.LABEL_DATA, hio.DEPTH_DATA))
     proto_model = extract_prototype(imagepts=ldm.extract_imgpoints(*proto_data),

@@ -26,11 +26,7 @@ def extract_model_info(image_joints, cal):
     return line_suggestion, depth_suggestion
 
 
-# Choose between measured value and inferred value based on a threshold.
-# Current implementation is either inferred of model
-# May consider a smoother impl. like:
-# out = inferred*(norm/th) + measured*(1-norm/th) with norm capped over [0..th]
-def depth_info_compare(measured, inferred, threshold):
+def depth_info_compare(measured, inferred, threshold, smooth=True):
     """
     Compare the depth-measured space point with the model-inferred one.
     We assume that the measure is less affected by noise, but may be completely wrong.
@@ -38,12 +34,17 @@ def depth_info_compare(measured, inferred, threshold):
     :param measured: the measured point in the point-cloud
     :param inferred: the model-inferred point to be compared with the measure
     :param threshold: the maximum allowed distance between the two to consider the measure reliable
+    :param smooth: decide whether to use a smooth interpolation or a crisp choice
     :return: the chosen model point
     """
     # if no measurement is available...
     if measured is None:
         return inferred
     # else if the threshold has been passed:
+    if smooth:
+        rate = min(threshold, norm(inferred - measured)) / threshold
+        return inferred * rate + measured * (1 - rate)
     if norm(inferred-measured) > threshold:
         return inferred
     return measured
+

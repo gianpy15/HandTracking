@@ -82,9 +82,9 @@ class ModelDrawer:
                      np.any(self.depthwise_ordering - new_depthwise_ordering)):
                 self.depthwise_ordering = new_depthwise_ordering
                 self.need_depth_update = True
-            self.joints = hand_format([(p.coords[0] / resolution[1], p.coords[1] / resolution[0]) for p in joints])
+            self.joints = hand_format([(p.coords[0] / resolution[0], p.coords[1] / resolution[1]) for p in joints])
         else:
-            self.joints = hand_format([(p[0] / resolution[1], p[1] / resolution[0]) for p in joints])
+            self.joints = hand_format([(p[0] / resolution[0], p[1] / resolution[1]) for p in joints])
         if self.canvas is not None:
             self.draw_model()
 

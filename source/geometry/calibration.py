@@ -70,6 +70,7 @@ def intrinsic_matrix(calibration):
 def model2image(modelpoint, calibration, makedepth=False):
     image_point = np.matmul(np.matmul(modelpoint.as_row_tr(), calibration[EXTRINSIC]),
                             intrinsic_matrix(calibration[INTRINSIC]))
+
     if image_point[2] != 0:
         image_point = image_point[0:2] / image_point[2]
     else:
@@ -124,6 +125,12 @@ def calibration(intr=default_intrinsic, ext=default_extrinsic, depthscale=defaul
         EXTRINSIC: ext,
         DEPTHSCALE: depthscale
     }
+
+
+ZR300_RES = (640, 480)
+ZR300_FOV = (68, 41.5)
+ZR300_CAL = calibration(synth_intrinsic(resolution=ZR300_RES,
+                                        fov=ZR300_FOV))
 
 
 def __depth_from_model(modelpoint, calibration):
