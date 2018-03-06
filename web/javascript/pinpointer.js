@@ -77,7 +77,9 @@ class Pinpointer{
             this.attention_curr_pnt = getRelativeCoords(e);
             if (this.shouldConsiderZoomSelection()) {
                 let absstart = this.fromBBoxRelToGlobalRelCoords(this.attention_start_pnt);
-                let absend = this.fromBBoxRelToGlobalRelCoords(this.attention_curr_pnt);
+                let bounds = this.getBBoxRelDims();
+                let relend = [this.attention_start_pnt[0] + bounds[0], this.attention_start_pnt[1] + bounds[1]];
+                let absend = this.fromBBoxRelToGlobalRelCoords(relend);
                 this.current_bb_x = [Math.min(absstart[0], absend[0]), Math.max(absstart[0], absend[0])];
                 this.current_bb_y = [Math.min(absstart[1], absend[1]), Math.max(absstart[1], absend[1])];
             }
@@ -121,10 +123,11 @@ class Pinpointer{
             this.front_ctx.strokeStyle = SELECTIONRECTCOL;
             this.front_ctx.setLineDash([5]);
             this.front_ctx.lineWidth = 2;
+            let bbdims = this.getBBoxRelDims();
             this.front_ctx.strokeRect(this.attention_start_pnt[0] * this.front_canvas.width,
                 this.attention_start_pnt[1] * this.front_canvas.height,
-                (this.attention_curr_pnt[0]-this.attention_start_pnt[0])*this.front_canvas.width,
-                (this.attention_curr_pnt[1]-this.attention_start_pnt[1])*this.front_canvas.height);
+                bbdims[0]*this.front_canvas.width,
+                bbdims[1]*this.front_canvas.height);
             this.front_ctx.stroke();
         }
     }
@@ -153,11 +156,24 @@ class Pinpointer{
     shouldConsiderZoomSelection(){
         if(!this.attention_state)
             return false;
-        if(Math.abs(this.attention_start_pnt[0] - this.attention_curr_pnt[0]) > SELRECTTHRESH)
-            return true;
-        if(Math.abs(this.attention_start_pnt[1] - this.attention_curr_pnt[1]) > SELRECTTHRESH)
-            return true;
-        return false;
+        if(Math.abs(this.attention_start_pnt[0] - this.attention_curr_pnt[0]) < SELRECTTHRESH)
+            return false;
+        if(Math.abs(this.attention_start_pnt[1] - this.attention_curr_pnt[1]) < SELRECTTHRESH)
+            return false;
+        return true;
+    }
+
+    getBBoxRelDims(){
+        let deltax = Math.abs(this.attention_start_pnt[0] - this.attention_curr_pnt[0]);
+        let deltay = Math.abs(this.attention_start_pnt[1] - this.attention_curr_pnt[1]);
+        let delta = Math.min(deltax, deltay);
+        let width = delta;
+        let height = delta;
+        if(this.attention_start_pnt[0] > this.attention_curr_pnt[0])
+            width *= -1;
+        if(this.attention_start_pnt[1] > this.attention_curr_pnt[1])
+            height *= -1;
+        return [width, height];
     }
 
     resetJoints(){
