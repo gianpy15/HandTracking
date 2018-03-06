@@ -44,7 +44,7 @@
                 When you finish, click either the "Submit" button to end or the "Submit and get a new sample" button. If you make a mistake, you can use the "Undo" button.</p>
             </div>
             <div class="col-md-5">
-              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
+              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/data.gif">
             </div>
         </div>
 
@@ -57,7 +57,7 @@
                 Please try to be as more accurate as possible since good data are essential to obtain good results.</p>
           </div>
           <div class="col-md-5 order-md-1">
-            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
+            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/resize.gif">
           </div>
         </div>
 
