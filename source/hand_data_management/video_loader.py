@@ -56,10 +56,8 @@ def linear_fill(label_data):
             rangelen = idxend - idxstart
             startcoeff = 1.0
             incr = 1./rangelen
-            print("%d %d" % (idxstart, idxend))
             for idxcur in range(idxstart + 1, idxend):
                 startcoeff -= incr
-                print(idxcur)
                 label_data[idxcur] = label_data[idxstart] * startcoeff \
                                    + label_data[idxend] * (1 - startcoeff)
             idxstart = idxend

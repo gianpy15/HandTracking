@@ -47,6 +47,9 @@ if __name__ == '__main__':
         # vidname = "snap"
         frames, labels, indexes = load_labeled_video(vidname, gapflags=True)
 
+        image_width = np.shape(frames)[2]
+        image_height = np.shape(frames)[1]
+
         topframe = Frame(root, height=image_height, width=cmd_width+image_width)
         topframe.pack(side=TOP)
 
@@ -109,6 +112,6 @@ if __name__ == '__main__':
 
         discard_button.bind('<Button-1>', lambda e: player.set_changes())
 
-        save_button.bind('<Button-1>', lambda e: player.print_changes("snap"))
+        save_button.bind('<Button-1>', lambda e: player.print_changes(vidname))
 
         root.mainloop()
