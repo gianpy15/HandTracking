@@ -4,7 +4,7 @@ import os
 import re
 import numpy as np
 from image_loader.hand_io import *
-import hand_data_management.grey_to_redblue_codec as gtrbc
+# import hand_data_management.grey_to_redblue_codec as gtrbc
 
 VIDDIR = pm.resources_path("vids")
 
@@ -66,7 +66,7 @@ def read_depth_video(videoname, framesdir, shape=(480, 640, 1), dtype=np.uint16)
                                                        shape=shape,
                                                        dtype=dtype))
 
-    vid_data = gtrbc.codec(np.array(vid_data, dtype=np.long))
+    vid_data = grey_to_redblue_codec(np.array(vid_data, dtype=np.long))
 
     skio.vwrite(join(VIDDIR, videoname), vid_data)
 
@@ -83,7 +83,7 @@ def read_mesh_video(videoname, framesdir, shape=(480, 640), dtypergb=np.uint8, d
                                  dtype=dtypedepth,
                                  framesregex="\d+\.z16") * 0.5
 
-    depth_data = gtrbc.codec(np.array(depth_data, dtype=np.long))
+    depth_data = grey_to_redblue_codec(np.array(depth_data, dtype=np.long))
 
     vid_data = depth_data + rgb_data
 
