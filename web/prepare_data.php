@@ -45,7 +45,7 @@
                 showed in the pictures. These are required in order to train our deep neural network.</p>
             </div>
             <div class="col-md-5">
-              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
+              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/data.gif">
             </div>
         </div>
 
@@ -58,7 +58,7 @@
                 So we need to compute the bounding box of each sample picture.</p>
           </div>
           <div class="col-md-5 order-md-1">
-            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
+            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/resize.gif">
           </div>
         </div>
 

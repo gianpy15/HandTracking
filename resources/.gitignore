@@ -1,1 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
+rawcam
+framedata
+vids
+
+!framedata/contributors.txt
