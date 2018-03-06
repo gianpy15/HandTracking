@@ -38,11 +38,10 @@
 
            <div class="row featurette">
             <div class="col-md-7">
-            <h2 class="featurette-heading">Acquire data. <span class="text-muted">A lot of data.</span></h2>
-            <p class="lead">The first step of each machine learning project is to find a data set.
-                This is the aim of this website: we shot several videos with a special camera in order to have many frames
-                (i.e. the pictures proposed in this website) to be labeled. In our case the labels are all the junctions of the hand(s)
-                showed in the pictures. These are required in order to train our deep neural network.</p>
+            <h2 class="featurette-heading">Tutorial. <span class="text-muted">What to do. And how to do it.</span></h2>
+            <p class="lead">Here you're asked to arrange 21 points on the LEFT picture. Please set a GREEN point (left-click) for each visible junction and a BLUE one (right-click) for each non-visible junction, as shown in the example on the side
+                In arranging your points please follow the order defined by the picture on the right.
+                When you finish, click either the "Submit" button to end or the "Submit and get a new sample" button. If you make a mistake, you can use the "Undo" button.</p>
             </div>
             <div class="col-md-5">
               <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
@@ -53,9 +52,9 @@
 
         <div class="row featurette">
           <div class="col-md-7 order-md-2">
-            <h2 class="featurette-heading">Find hand(s) in a picture. <span class="text-muted">Bounding boxes.</span></h2>
-            <p class="lead">To train the neural network we need to focus the attention on the area of each picture where hands are present.
-                So we need to compute the bounding box of each sample picture.</p>
+            <h2 class="featurette-heading">Tutorial. <span class="text-muted">Pay attention.</span></h2>
+            <p class="lead">Some pictures can be tricky to be labeled with points. Look at the example on the left to get help. In order to set the BLUE points try to guess where the non-visible junctions are.
+                Please try to be as more accurate as possible since good data are essential to obtain good results.</p>
           </div>
           <div class="col-md-5 order-md-1">
             <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
@@ -74,8 +73,6 @@
                  <button id="submit_b" class="btn btn-primary btn-sm" role="button">Submit and exit</button>
              </div>
 
-             <!--<?php echo "Nickname: ".$nick; ?>-->
-
              <div class="mt-5" style="">
              </div>
              <div class="row">
@@ -93,7 +90,7 @@
 				            <canvas id="right_c" width="200px" height="250px"></canvas>
 				            <canvas id="right_c_points" width="200px" height="250px"></canvas>
                         </div>
-				        <p class="description" id="desc_2"><span class='red'></span> </p>
+				        <p class="description" id="desc_2"> <?php echo "Nickname: ".$nick; ?><span class='red'></span> </p>
 			        </div>
                   </div>
              </div>

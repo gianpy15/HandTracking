@@ -50,66 +50,70 @@
            submit_btn.onclick = () => location.href = site + nick_field.value;
        </script>
 
-       <a name="learn_more"></a>
-       <hr class="featurette-divider">
+       <div class="container">
+           <div class="col-md-12">
+               <a name="learn_more"></a>
+               <hr class="featurette-divider">
 
-        <div class="row featurette">
-          <div class="col-md-7">
-            <h2 class="featurette-heading">Acquire data. <span class="text-muted">A lot of data.</span></h2>
-            <p class="lead">The first step of each machine learning project is to find a data set.
-                This is the aim of this website: we shot several videos with a special camera in order to have many frames
-                (i.e. the pictures proposed in this website) to be labeled. In our case the labels are all the junctions of the hand(s)
-                showed in the pictures. These are required in order to train our deep neural network.</p>
-          </div>
-          <div class="col-md-5">
-              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/labels.gif">
-          </div>
-        </div>
+                <div class="row featurette">
+                  <div class="col-md-7">
+                    <h2 class="featurette-heading">Acquire data. <span class="text-muted">A lot of data.</span></h2>
+                    <p class="lead">The first step of each machine learning project is to find a data set.
+                        This is the aim of this website: we shot several videos with a special camera in order to have many frames
+                        (i.e. the pictures proposed in this website) to be labeled. In our case the labels are all the junctions of the hand(s)
+                        showed in the pictures. These are required in order to train our deep neural network.</p>
+                  </div>
+                  <div class="col-md-5">
+                      <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/labels.gif">
+                  </div>
+                </div>
 
-        <hr class="featurette-divider">
+                <hr class="featurette-divider">
 
-        <div class="row featurette">
-          <div class="col-md-7 order-md-2">
-            <h2 class="featurette-heading">Find hand(s) in a picture. <span class="text-muted">Bounding boxes.</span></h2>
-            <p class="lead">To train the neural network we need to focus the attention on the area of each picture where hands are present.
-                So we need to compute the bounding box of each sample picture.</p>
-          </div>
-          <div class="col-md-5 order-md-1">
-            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/2018-03-02%2021.03.29.png">
-          </div>
-        </div>
+                <div class="row featurette">
+                  <div class="col-md-7 order-md-2">
+                    <h2 class="featurette-heading">Find hand(s) in a picture. <span class="text-muted">Bounding boxes.</span></h2>
+                    <p class="lead">To train the neural network we need to focus the attention on the area of each picture where hands are present.
+                        So we need to compute the bounding box of each sample picture.</p>
+                  </div>
+                  <div class="col-md-5 order-md-1">
+                    <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/2018-03-02%2021.03.29.png">
+                  </div>
+                </div>
 
-        <hr class="featurette-divider">
+                <hr class="featurette-divider">
 
-        <div class="row featurette">
-          <div class="col-md-7">
-            <h2 class="featurette-heading">The (pure) deep learning step. <span class="text-muted">Training and prediction.</span></h2>
-            <p class="lead">Finally we can train our neural network with the huge amount of data collected thanks to this website.</p>
-          </div>
-          <div class="col-md-5">
-            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/cnn2.png">
-          </div>
-        </div>
+                <div class="row featurette">
+                  <div class="col-md-7">
+                    <h2 class="featurette-heading">The (pure) deep learning step. <span class="text-muted">Training and prediction.</span></h2>
+                    <p class="lead">Finally we can train our neural network with the huge amount of data collected thanks to this website.</p>
+                  </div>
+                  <div class="col-md-5">
+                    <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/cnn2.png">
+                  </div>
+                </div>
 
-        <hr class="featurette-divider">
+                <hr class="featurette-divider">
 
-        <div class="row featurette">
-          <div class="col-md-7 order-md-2">
-            <h2 class="featurette-heading">The recostruction. <span class="text-muted"></span></h2>
-            <p class="lead">In the final step we plan to show a 3D real-time reconstruction of hands movement.</p>
-          </div>
-          <div class="col-md-5 order-md-1">
-            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/adam_sample.gif">
-          </div>
-        </div>
+                <div class="row featurette">
+                  <div class="col-md-7 order-md-2">
+                    <h2 class="featurette-heading">The recostruction. <span class="text-muted"></span></h2>
+                    <p class="lead">In the final step we plan to show a 3D real-time reconstruction of hands movement.</p>
+                  </div>
+                  <div class="col-md-5 order-md-1">
+                    <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/adam_sample.gif">
+                  </div>
+                </div>
 
-        <hr class="featurette-divider">
+                <hr class="featurette-divider">
+           </div>
 
-        <footer class="container text-center">
-            <a name="about_us"></a>
-                <h3>About us</h3>
-                <p>We are Computer Science students at Politecnico di Milano (&hearts;) working on this project for a Deep Learning course.</p>
-                <p>Luca Cavalli, Gianpaolo Di Pietro, Michele Bertoni, Matteo Biasielli, Mattia Di Fatta</p>
-        </footer>
+                <footer class="container text-center">
+                    <a name="about_us"></a>
+                        <h3>About us</h3>
+                        <p>We are Computer Science students at Politecnico di Milano (&hearts;) working on this project for a Deep Learning course.</p>
+                        <p>Luca Cavalli, Gianpaolo Di Pietro, Michele Bertoni, Matteo Biasielli, Mattia Di Fatta</p>
+                </footer>
+       </div>
    </body>
 </html>
