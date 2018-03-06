@@ -10,8 +10,9 @@ var new_sample_b = document.getElementById("new_sample_b");
 
 l_canvas.oncontextmenu = function() { return false; };
 undo_b.addEventListener('click', () => pinpointer.undo(), false);
-submit_b.addEventListener('click', () => on_commit_event(true), true);
-new_sample_b.addEventListener('click', () => on_commit_event(false), false);
+submit_b.addEventListener('click', () => submit_and_exit(), true);
+new_sample_b.addEventListener('click', () => submit_and_next_frame(), false);
+window.addEventListener("beforeunload", () => leavePage());
 
 window.onload = function () {
     loadSampleImage();

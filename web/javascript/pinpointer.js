@@ -2,7 +2,7 @@ let VISIBLEJOINTCOL = GREEN;
 let OCCLUDEDJOINTCOL = BLUE;
 let SELECTIONRECTCOL = RED;
 
-let SELRECTTHRESH = 0.08;
+let SELRECTTHRESH = 0.05;
 
 class Pinpointer{
     constructor(front_canvas, bkg_canvas, bkgimgurl){
@@ -15,13 +15,9 @@ class Pinpointer{
 
         this.bkg_canvas = bkg_canvas;
         this.bkg_ctx = this.bkg_canvas.getContext("2d");
-        this.bkgurl = bkgimgurl;
-        this.bkgimg = new Image();
-        this.bkgimg.onload = () => this.drawbkg();
-        this.bkgimg.src = this.bkgurl;
 
         this.joints = [];
-        this.jointRadius = 7;
+        this.jointRadius = 5;
         this.current_bb_x = [0, 1];
         this.current_bb_y = [0, 1];
 
@@ -29,6 +25,8 @@ class Pinpointer{
         this.selector_rectangle_is_out = false;
         this.attention_start_pnt = null;
         this.attention_curr_pnt = null;
+
+        this.setBkgUrl(bkgimgurl);
     }
 
     resetBB(e){
@@ -97,6 +95,9 @@ class Pinpointer{
 
     drawjoint(joint){
         this.front_ctx.beginPath();
+        this.front_ctx.setLineDash([]);
+        this.front_ctx.strokeStyle = '#000000';
+        this.front_ctx.lineWidth = 1;
         if(joint.occluded){
             this.front_ctx.fillStyle = OCCLUDEDJOINTCOL;
         }
@@ -107,6 +108,7 @@ class Pinpointer{
         this.front_ctx.arc(relcoords[0] * this.front_canvas.width, relcoords[1] * this.front_canvas.height,
             this.jointRadius, 0, 2 * Math.PI);
         this.front_ctx.fill();
+        this.front_ctx.stroke();
     }
 
     drawfront(){
@@ -138,6 +140,15 @@ class Pinpointer{
             0, 0, this.bkg_canvas.width, this.bkg_canvas.height);
     }
 
+    setBkgUrl(bkgimgurl){
+        this.current_bb_x = [0, 1];
+        this.current_bb_y = [0, 1];
+        this.bkgurl = bkgimgurl;
+        this.bkgimg = new Image();
+        this.bkgimg.onload = () => this.drawbkg();
+        this.bkgimg.src = this.bkgurl;
+    }
+
     shouldConsiderZoomSelection(){
         if(!this.attention_state)
             return false;
@@ -146,6 +157,11 @@ class Pinpointer{
         if(Math.abs(this.attention_start_pnt[1] - this.attention_curr_pnt[1]) > SELRECTTHRESH)
             return true;
         return false;
+    }
+
+    resetJoints(){
+        this.joints = [];
+        this.drawfront();
     }
 
     setNewJoint(coords, occludedFlag){
