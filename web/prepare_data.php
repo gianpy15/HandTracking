@@ -35,23 +35,36 @@
 
        <div class="jumbotron">
          <div class="container">
-           <h1>Let's begin</h1>
-           <p>Here you're asked to arrange a green point (left click on the mouse) on every visible junction and a red one (right click on the mouse) on every non-visible junction on the LEFT picture.</p>
-           <p>Please follow the order imposed by the yellow points appearing on the junctions on the right picture in arranging your points. Be as more accurate as you can.</p>
-           <p>If you make a mistake use the 'Undo' button below; when you end either click on 'submit and get new sample' or 'submit and exit'.</p>
+
+           <div class="row featurette">
+            <div class="col-md-7">
+            <h2 class="featurette-heading">Acquire data. <span class="text-muted">A lot of data.</span></h2>
+            <p class="lead">The first step of each machine learning project is to find a data set.
+                This is the aim of this website: we shot several videos with a special camera in order to have many frames
+                (i.e. the pictures proposed in this website) to be labeled. In our case the labels are all the junctions of the hand(s)
+                showed in the pictures. These are required in order to train our deep neural network.</p>
+            </div>
+            <div class="col-md-5">
+              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
+            </div>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="row featurette">
+          <div class="col-md-7 order-md-2">
+            <h2 class="featurette-heading">Find hand(s) in a picture. <span class="text-muted">Bounding boxes.</span></h2>
+            <p class="lead">To train the neural network we need to focus the attention on the area of each picture where hands are present.
+                So we need to compute the bounding box of each sample picture.</p>
+          </div>
+          <div class="col-md-5 order-md-1">
+            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="">
+          </div>
+        </div>
+
          </div>
        </div>
        <div class="container">
-             <div class="row">
-                 <div class="col md-auto">
-                     <canvas id="left_c" width="500px" height="500px"></canvas>
-                     <canvas id="left_c_points" width="500px" height="500px"></canvas>
-                  </div>
-                  <div class="col md-auto">
-                      <canvas id="right_c" width="500px" height="500px"></canvas>
-                      <canvas id="right_c_points" width="500px" height="500px"></canvas>
-                  </div>
-             </div>
              <div>
                  <!--<button id="undo_b">Undo</button>-->
                  <button id="undo_b" class="btn btn-primary btn-sm" role="button">Undo</button>
@@ -59,6 +72,30 @@
                  <button id="new_sample_b" class="btn btn-primary btn-sm" role="button">Submit and get other sample</button>
                  <!--<button id="submit_b">Submit and exit</button>-->
                  <button id="submit_b" class="btn btn-primary btn-sm" role="button">Submit and exit</button>
+             </div>
+
+             <!--<?php echo "Nickname: ".$nick; ?>-->
+
+             <div class="mt-5" style="">
+             </div>
+             <div class="row">
+                 <div class="col-md-8">
+                 <div class="object_one">
+                     <div class="wrapper">
+                         <canvas id="left_c" width="640px" height="480px"></canvas>
+                         <canvas id="left_c_points" width="640px" height="480px"></canvas>
+                     </div>
+                 </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="object_two">
+                        <div class="wrapper">
+				            <canvas id="right_c" width="200px" height="250px"></canvas>
+				            <canvas id="right_c_points" width="200px" height="250px"></canvas>
+                        </div>
+				        <p class="description" id="desc_2"><span class='red'></span> </p>
+			        </div>
+                  </div>
              </div>
        </div>
 
@@ -80,11 +117,11 @@
                                  new Point(0.902010, 0.365234, false), new Point(0.932161, 0.283203, false),
                                  new Point(0.964824, 0.205078, false)];
        </script>
-       <?php echo "Nickname: ".$nick; ?>
        <script src="javascript/main_setup.js" type="text/javascript"></script>
       <script src="javascript/on_click_events.js" type="text/javascript"></script>
       <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <br><br>
    </body>
 </html>
