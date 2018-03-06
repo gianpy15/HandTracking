@@ -65,6 +65,9 @@
        <script src="javascript/helper_hand.js" type="text/javascript"></script>
        <script src="javascript/pinpointer.js" type="text/javascript"></script>
        <script type="text/javascript">
+            var imgloaderror = "<?php echo $error;?>";
+            if(imgloaderror != '')
+                console.log("Loading error: "+imgloaderror);
             var nickname = "<?php echo $nick; ?>";
             var sample_img_url = "images/sample_hand.png";
             var target_img_url = "<?php echo $imgurl; ?>";
