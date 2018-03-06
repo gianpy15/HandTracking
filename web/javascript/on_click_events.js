@@ -12,8 +12,10 @@ function submit_and_exit() {
         }
         sendPost("submit_labels.php", params, action);
     }
-    else
-        alert("Please fill all the points");
+    else{
+        textManager.resetText();
+        textManager.addWarning("Please fill all the points before submission");
+    }
 }
 
 function submit_and_next_frame(){
@@ -28,12 +30,27 @@ function submit_and_next_frame(){
             pinpointer.resetJoints();
             console.log(resp);
             pinpointer.setBkgUrl(resp);
+            textManager.resetText();
+            function setupIndexInfo(resp){
+                index_content = parseIndexContent(resp);
+                let count = 0.0;
+                for(let i=0; i<index_content.length; i++)
+                    if(index_content[i] === 1)
+                        count += 1.0;
+                completion_rate = count / index_content.length;
+                textManager.resetText();
+            }
+            sendPost("read_index.php", "framename="+target_img_url, setupIndexInfo);
         }
+        textManager.resetText();
+        textManager.addNotice("Loading the new image...");
         sendPost("next_frame.php", '', loadnew);
         sendPost("submit_labels.php", params, (r) => console.log(r));
     }
-    else
-        alert("Please fill all the points");
+    else{
+        textManager.resetText();
+        textManager.addWarning("Please fill all the points before submission");
+    }
 }
 
 

@@ -17,6 +17,12 @@
         }else{
             $error = $out;
         }
+
+        $script = "source/php_called_scripts/get_index_content.py";
+        $args = $imgurl." 2>&1";
+        $cmd = $python_interpreter." ".$script_base.$script." ".$args;
+        $index = exec($cmd, $rets, $errorcode);
+
         $nick = $_GET["nick"]
    ?>
 
@@ -90,7 +96,7 @@
 				            <canvas id="right_c" width="200px" height="250px"></canvas>
 				            <canvas id="right_c_points" width="200px" height="250px"></canvas>
                         </div>
-				        <p class="description" id="desc_2"> <?php echo "Nickname: ".$nick; ?><span class='red'></span> </p>
+				        <p class="description" id="desc_2"><span class='red'></span> </p>
 			        </div>
                   </div>
              </div>
@@ -98,6 +104,7 @@
 
        <script src="javascript/helper_hand.js" type="text/javascript"></script>
        <script src="javascript/pinpointer.js" type="text/javascript"></script>
+       <script src="javascript/text_formatter.js" type="text/javascript"></script>
        <script type="text/javascript">
             var imgloaderror = "<?php echo $error;?>";
             if(imgloaderror != '')
@@ -118,6 +125,14 @@
                                  new Point(0.964824, 0.205078, false)];
        </script>
        <script src="javascript/main_setup.js" type="text/javascript"></script>
+       <script type="text/javascript">
+            var index_content = parseIndexContent("<?php echo $index; ?>");
+            let count = 0.0;
+            for(let i=0; i<index_content.length; i++)
+                if(index_content[i] === 1)
+                    count += 1.0;
+            var completion_rate = count / index_content.length;
+       </script>
       <script src="javascript/on_click_events.js" type="text/javascript"></script>
       <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
