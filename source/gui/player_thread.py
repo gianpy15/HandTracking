@@ -6,6 +6,7 @@ from gui.model_drawer import *
 from PIL import ImageTk, Image
 from random import randint
 import time
+from hand_data_management.naming import framebase
 
 
 class PlayerThread:
@@ -19,8 +20,8 @@ class PlayerThread:
         self.current_fps = fps
         self.speed_mult = 1.0
         self.model_drawer = modeldrawer
-        self.pic_height = 168
-        self.pic_width = 298
+        self.pic_height = np.shape(frames)[1]
+        self.pic_width = np.shape(frames)[2]
         self.play_flag = False
         self.frame_status_msg = status
         self.indexes = indexes
@@ -79,9 +80,11 @@ class PlayerThread:
         if self.labels is not None and self.model_drawer is not None:
             self.model_drawer.set_joints(self.labels[self.current_frame])
 
-        new_msg = self.update_frame_status(self.indexes[self.current_frame])
+        interpolation_msg = self.update_frame_status(self.indexes[self.current_frame])
+        frameno_msg = "frame %d" % self.current_frame
+        new_msg = "%s | %s" % (interpolation_msg, frameno_msg)
         if self.frame_status_msg.get() != new_msg:
-            self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
+            self.frame_status_msg.set(new_msg)
 
         self.discard.set("Discarded" if self.changes[self.current_frame] == 1 else "")
 
@@ -119,12 +122,12 @@ class PlayerThread:
             return "Labeled"
 
     def print_changes(self, vidname):
-        vid = vidname + str(randint(0, 999)) + ".txt"
-        filepath = os.path.join("../../resources/framedata", vid)
+        fname = vidname + str(randint(0, 999)) + ".txt"
+        filepath = os.path.join(framebase, fname)
         file = open(filepath, "w+")
         for i in range(len(self.changes)):
             if self.changes[i] == 1:
-                file.write(str(i)+":"+str(self.changes[i])+"\n")
+                file.write("%d\n" % i)
 
     def set_changes(self):
         if self.changes[self.current_frame] == 0:
