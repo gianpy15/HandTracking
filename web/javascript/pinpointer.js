@@ -147,6 +147,7 @@ class Pinpointer{
         this.bkgimg = new Image();
         this.bkgimg.onload = () => this.drawbkg();
         this.bkgimg.src = this.bkgurl;
+        console.log("Setting target image url "+this.bkgurl);
     }
 
     shouldConsiderZoomSelection(){
