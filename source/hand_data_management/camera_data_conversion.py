@@ -32,7 +32,7 @@ def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesreg
     if len(video_data) == 0:
         raise FileNotFoundError
     video_data.sort(key=lambda e: e[1])
-    return np.array([frame for (frame, frameno) in video_data])
+    return np.array([frame for (frame, frameno) in video_data], dtype=dtype)
 
 
 def default_read_rgb_args(framesdir, shape=(480, 640, 3), dtype=np.uint8):
@@ -109,7 +109,7 @@ def enhance_depth_vid(vid,  reduction=3, topval=255, flatten=False):
     ret = reduced * (topval / brange[1])
     if flatten:
         ret = np.average(ret, axis=3)
-    return ret
+    return np.array(ret, dtype=vid.dtype)
 
 
 # Deprecated version of the codec. C++ compiled version is more than 100x faster.
