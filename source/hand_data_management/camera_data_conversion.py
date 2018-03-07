@@ -19,9 +19,9 @@ def rgb_std_naming_frameno(filename):
 
 def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesregex="."):
     if not isdir(framesdir):
-        print("Warning: attempting to read frame data from non directory")
-        print("Provided pathname is %s" % framesdir)
-        return None
+        # print("Error: attempting to read frame data from non directory")
+        # print("Provided pathname is %s" % framesdir)
+        raise FileNotFoundError
     video_data = []
     for file in os.listdir(framesdir):
         if not re.match(framesregex, file) or isdir(file):
@@ -29,7 +29,8 @@ def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesreg
         file = join(framesdir, file)
         frame = np.reshape(np.fromfile(file, dtype=dtype), shape)
         video_data.append((frame, framenofunction(file)))
-
+    if len(video_data) == 0:
+        raise FileNotFoundError
     video_data.sort(key=lambda e: e[1])
     return np.array([frame for (frame, frameno) in video_data])
 

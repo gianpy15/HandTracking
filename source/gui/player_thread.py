@@ -50,8 +50,8 @@ class PlayerThread:
         self.changes = [0 for i in range(len(framebuff))]
 
         self.discard.set("Discarded" if self.changes[self.current_frame] == 1 else "")
-
-        self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
+        if self.indexes is not None:
+            self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
 
     def make_photoimage(self, buffer):
         """
@@ -80,7 +80,10 @@ class PlayerThread:
         if self.labels is not None and self.model_drawer is not None:
             self.model_drawer.set_joints(self.labels[self.current_frame])
 
-        interpolation_msg = self.update_frame_status(self.indexes[self.current_frame])
+        if self.indexes is not None:
+            interpolation_msg = self.update_frame_status(self.indexes[self.current_frame])
+        else:
+            interpolation_msg = 'No labels available'
         frameno_msg = "frame %d" % self.current_frame
         new_msg = "%s | %s" % (interpolation_msg, frameno_msg)
         if self.frame_status_msg.get() != new_msg:

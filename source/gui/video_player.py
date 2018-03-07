@@ -1,25 +1,13 @@
-# TODO
-# Implement a video player to merge frame data with label data of a certain video
-# Suggested classes to use:
-# - in gui.model_drawer.py: ModelDrawer
-#   instanciate:        md = ModelDrawer()
-#   set full canvas:    md.set_target_area(canvas)
-#   when needed draw:   md.set_joints(joints)
-#   --> see the doc of the class and the two methods
-# - in image_loader.hand_io.py: load()
-#   --> see the doc of the function
-#
-# about reading video data and interpolating missing labels
-# a standalone module may be done
-# because it is needed also for training
-# - in hand_data_management.video_loader: function load_labeled_video()
-#   --> see the doc of the function
 from tkinter import *
 from gui.player_thread import PlayerThread
 from gui.model_drawer import *
 from hand_data_management.video_loader import load_labeled_video
+from hand_data_management.camera_data_conversion import read_frame_data, default_read_rgb_args
 import threading
+import skvideo.io as skio
+from image_loader.hand_io import pm
 from tkinter.simpledialog import askstring
+from os.path import join
 
 if __name__ == '__main__':
     # global variables
@@ -45,7 +33,23 @@ if __name__ == '__main__':
 
         # Load frames and labels
         # vidname = "snap"
-        frames, labels, indexes = load_labeled_video(vidname, gapflags=True)
+        try:
+            frames, labels, indexes = load_labeled_video(vidname, gapflags=True)
+        except FileNotFoundError:
+            try:
+                videopath = join(pm.resources_path("rawcam"), vidname)
+                frames = read_frame_data(**default_read_rgb_args(framesdir=videopath))
+                labels = None
+                indexes = None
+            except FileNotFoundError:
+                try:
+                    videopath = join(pm.resources_path("vids"), vidname+".mp4")
+                    frames = skio.vread(videopath)
+                    labels = None
+                    indexes = None
+                except Exception as e:
+                    print("Unable to load the video %s, file not found." % vidname)
+                    exit(-1)
 
         image_width = np.shape(frames)[2]
         image_height = np.shape(frames)[1]
