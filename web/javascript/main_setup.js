@@ -9,7 +9,7 @@ var undo_b = document.getElementById("undo_b");
 var submit_b = document.getElementById("submit_b");
 var new_sample_b = document.getElementById("new_sample_b");
 var textDisplayer = document.getElementById("desc_2");
-//document.getElementById("img_loader").style.visibility = "hidden";
+setLoading(false);
 
 l_canvas.oncontextmenu = function() { return false; };
 undo_b.addEventListener('click', () => pinpointer.undo(), false);
@@ -59,4 +59,12 @@ function parseIndexContent(indexString){
         }
     }
     return ret;
+}
+
+function setLoading(state){
+    if(state)
+        document.getElementById("img_loader").style.visibility = "visible";
+    else
+        document.getElementById("img_loader").style.visibility = "hidden";
+
 }

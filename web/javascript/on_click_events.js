@@ -31,7 +31,6 @@ function submit_and_next_frame(){
             console.log(resp);
             pinpointer.setBkgUrl(resp);
             textManager.resetText();
-            //document.getElementById("img_loader").style.visibility = "hidden";
             function setupIndexInfo(resp){
                 index_content = parseIndexContent(resp);
                 let count = 0.0;
@@ -45,7 +44,7 @@ function submit_and_next_frame(){
         }
         textManager.resetText();
         textManager.addNotice("Loading the new image...");
-        //document.getElementById("img_loader").style.visibility = "visible";
+        setLoading(true);
         sendPost("next_frame.php", '', loadnew);
         sendPost("submit_labels.php", params, (r) => console.log(r));
     }

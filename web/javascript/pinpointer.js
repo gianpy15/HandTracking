@@ -148,7 +148,8 @@ class Pinpointer{
         this.current_bb_y = [0, 1];
         this.bkgurl = bkgimgurl;
         this.bkgimg = new Image();
-        this.bkgimg.onload = () => this.drawbkg();
+        setLoading(true);
+        this.bkgimg.onload = () => {setLoading(false); this.drawbkg();};
         this.bkgimg.src = this.bkgurl;
         console.log("Setting target image url "+this.bkgurl);
     }
