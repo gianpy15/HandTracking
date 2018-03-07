@@ -53,7 +53,8 @@
         <div class="row featurette">
           <div class="col-md-7 order-md-2">
             <h2 class="featurette-heading">Tutorial. <span class="text-muted">Pay attention.</span></h2>
-            <p class="lead">Some pictures can be tricky to be labeled with points. Look at the example on the left to get help. In order to set the BLUE points try to guess where the non-visible junctions are.
+            <p class="lead">Some pictures can be tricky to be labeled with points. Look at the examples to get help. In order to set the BLUE points try to guess where the non-visible junctions are.
+                Moreover, if hands in some pictures appear too small you can hold clicked and drag until a dashed-box appears allowing you to zoom in. To zoom out just press "Esc".
                 Please try to be as more accurate as possible since good data are essential to obtain good results.</p>
           </div>
           <div class="col-md-5 order-md-1">
@@ -94,6 +95,10 @@
 			        </div>
                   </div>
              </div>
+       </div>
+
+       <div class="wrapper">
+	        <canvas id="barbar" width="1250px" height="30px" background="black"></canvas>
        </div>
 
        <script src="javascript/helper_hand.js" type="text/javascript"></script>
