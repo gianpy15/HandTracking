@@ -4,7 +4,7 @@ import os
 import re
 import numpy as np
 from image_loader.hand_io import *
-import hand_data_management.grey_to_redblue_codec as gtrbc
+# import hand_data_management.grey_to_redblue_codec as gtrbc
 
 VIDDIR = pm.resources_path("vids")
 
@@ -19,9 +19,9 @@ def rgb_std_naming_frameno(filename):
 
 def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesregex="."):
     if not isdir(framesdir):
-        print("Warning: attempting to read frame data from non directory")
-        print("Provided pathname is %s" % framesdir)
-        return None
+        # print("Error: attempting to read frame data from non directory")
+        # print("Provided pathname is %s" % framesdir)
+        raise FileNotFoundError
     video_data = []
     for file in os.listdir(framesdir):
         if not re.match(framesregex, file) or isdir(file):
@@ -29,9 +29,10 @@ def read_frame_data(framesdir, framenofunction, shape, dtype=np.uint8, framesreg
         file = join(framesdir, file)
         frame = np.reshape(np.fromfile(file, dtype=dtype), shape)
         video_data.append((frame, framenofunction(file)))
-
+    if len(video_data) == 0:
+        raise FileNotFoundError
     video_data.sort(key=lambda e: e[1])
-    return np.array([frame for (frame, frameno) in video_data])
+    return np.array([frame for (frame, frameno) in video_data], dtype=dtype)
 
 
 def default_read_rgb_args(framesdir, shape=(480, 640, 3), dtype=np.uint8):
@@ -66,7 +67,7 @@ def read_depth_video(videoname, framesdir, shape=(480, 640, 1), dtype=np.uint16)
                                                        shape=shape,
                                                        dtype=dtype))
 
-    vid_data = gtrbc.codec(np.array(vid_data, dtype=np.long))
+    vid_data = grey_to_redblue_codec(np.array(vid_data, dtype=np.long))
 
     skio.vwrite(join(VIDDIR, videoname), vid_data)
 
@@ -83,7 +84,7 @@ def read_mesh_video(videoname, framesdir, shape=(480, 640), dtypergb=np.uint8, d
                                  dtype=dtypedepth,
                                  framesregex="\d+\.z16") * 0.5
 
-    depth_data = gtrbc.codec(np.array(depth_data, dtype=np.long))
+    depth_data = grey_to_redblue_codec(np.array(depth_data, dtype=np.long))
 
     vid_data = depth_data + rgb_data
 
@@ -108,7 +109,7 @@ def enhance_depth_vid(vid,  reduction=3, topval=255, flatten=False):
     ret = reduced * (topval / brange[1])
     if flatten:
         ret = np.average(ret, axis=3)
-    return ret
+    return np.array(ret, dtype=vid.dtype)
 
 
 # Deprecated version of the codec. C++ compiled version is more than 100x faster.

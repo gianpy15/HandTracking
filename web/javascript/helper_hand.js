@@ -20,7 +20,7 @@ class HelperHandManager{
         this.ctx = canvas.getContext("2d");
         this.joints = joints;
         this.curr_joint_idx = 0;
-        this.jointRadius = 10;
+        this.jointRadius = 7;
         this.redraw();
     }
 
@@ -41,7 +41,13 @@ class HelperHandManager{
         let x = this.canvas.width * this.joints[idx].px;
         let y = this.canvas.height * this.joints[idx].py;
         this.ctx.arc(x, y, this.jointRadius, 0, 2 * Math.PI);
-        this.ctx.fill()
+        this.ctx.fill();
+        this.ctx.stroke();
+    }
+
+    reset(){
+        this.curr_joint_idx = 0;
+        this.redraw();
     }
 
     next(){

@@ -46,8 +46,8 @@ class PinpointerCanvas(tk.Canvas):
         # radius of displayed pins as circles (in pixels)
         self.pin_radius = 5
         # the color of displayed pins
-        self.pin_color = {self.left: "red",
-                          self.right: "green"}
+        self.pin_color = {self.left: "green",
+                          self.right: "red"}
         # the tokens written in records to distinguish left and right click records
         self.pin_token = {self.left: "LEFT",
                           self.right: "RIGHT"}

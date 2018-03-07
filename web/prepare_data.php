@@ -17,6 +17,12 @@
         }else{
             $error = $out;
         }
+
+        $script = "source/php_called_scripts/get_index_content.py";
+        $args = $imgurl." 2>&1";
+        $cmd = $python_interpreter." ".$script_base.$script." ".$args;
+        $index = exec($cmd, $rets, $errorcode);
+
         $nick = $_GET["nick"]
    ?>
 
@@ -35,23 +41,36 @@
 
        <div class="jumbotron">
          <div class="container">
-           <h1>Let's begin</h1>
-           <p>Here you're asked to arrange a green point (left click on the mouse) on every visible junction and a red one (right click on the mouse) on every non-visible junction on the LEFT picture.</p>
-           <p>Please follow the order imposed by the yellow points appearing on the junctions on the right picture in arranging your points. Be as more accurate as you can.</p>
-           <p>If you make a mistake use the 'Undo' button below; when you end either click on 'submit and get new sample' or 'submit and exit'.</p>
+
+           <div class="row featurette">
+            <div class="col-md-7">
+            <h2 class="featurette-heading">Tutorial. <span class="text-muted">What to do. And how to do it.</span></h2>
+            <p class="lead">Here you're asked to arrange 21 points on the LEFT picture. Please set a GREEN point (left-click) for each visible junction and a BLUE one (right-click) for each non-visible junction, as shown in the example on the side
+                In arranging your points please follow the order defined by the picture on the right.
+                When you finish, click either the "Submit" button to end or the "Submit and get a new sample" button. If you make a mistake, you can use the "Undo" button.</p>
+            </div>
+            <div class="col-md-5">
+              <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/data.gif">
+            </div>
+        </div>
+
+        <hr class="featurette-divider">
+
+        <div class="row featurette">
+          <div class="col-md-7 order-md-2">
+            <h2 class="featurette-heading">Tutorial. <span class="text-muted">Pay attention.</span></h2>
+            <p class="lead">Some pictures can be tricky to be labeled with points. Look at the examples to get help. In order to set the BLUE points try to guess where the non-visible junctions are.
+                Moreover, if hands in some pictures appear too small you can hold clicked and drag until a dashed-box appears allowing you to zoom in. To zoom out just press "Esc".
+                Please try to be as more accurate as possible since good data are essential to obtain good results.</p>
+          </div>
+          <div class="col-md-5 order-md-1">
+            <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/resize.gif">
+          </div>
+        </div>
+
          </div>
        </div>
        <div class="container">
-             <div class="row">
-                 <div class="col md-auto">
-                     <canvas id="left_c" width="500px" height="500px"></canvas>
-                     <canvas id="left_c_points" width="500px" height="500px"></canvas>
-                  </div>
-                  <div class="col md-auto">
-                      <canvas id="right_c" width="500px" height="500px"></canvas>
-                      <canvas id="right_c_points" width="500px" height="500px"></canvas>
-                  </div>
-             </div>
              <div>
                  <!--<button id="undo_b">Undo</button>-->
                  <button id="undo_b" class="btn btn-primary btn-sm" role="button">Undo</button>
@@ -60,11 +79,42 @@
                  <!--<button id="submit_b">Submit and exit</button>-->
                  <button id="submit_b" class="btn btn-primary btn-sm" role="button">Submit and exit</button>
              </div>
+
+             <div class="mt-5" style="">
+             </div>
+             <div class="row">
+                 <div class="col-md-8">
+                 <div class="object_one">
+                     <div class="wrapper">
+                         <canvas id="left_c" width="640px" height="480px"></canvas>
+                         <!--<div class="loader" id="img_loader"></div>-->
+                         <canvas id="left_c_points" width="640px" height="480px"></canvas>
+                     </div>
+                 </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="object_two">
+                        <div class="wrapper">
+				            <canvas id="right_c" width="200px" height="250px"></canvas>
+				            <canvas id="right_c_points" width="200px" height="250px"></canvas>
+                        </div>
+				        <p class="description" id="desc_2"><span class='red'></span> </p>
+			        </div>
+                  </div>
+             </div>
+       </div>
+
+       <div class="wrapper">
+	        <canvas id="barbar" width="1250px" height="30px" background="black"></canvas>
        </div>
 
        <script src="javascript/helper_hand.js" type="text/javascript"></script>
        <script src="javascript/pinpointer.js" type="text/javascript"></script>
+       <script src="javascript/text_formatter.js" type="text/javascript"></script>
        <script type="text/javascript">
+            var imgloaderror = "<?php echo $error;?>";
+            if(imgloaderror != '')
+                console.log("Loading error: "+imgloaderror);
             var nickname = "<?php echo $nick; ?>";
             var sample_img_url = "images/sample_hand.png";
             var target_img_url = "<?php echo $imgurl; ?>";
@@ -80,11 +130,19 @@
                                  new Point(0.902010, 0.365234, false), new Point(0.932161, 0.283203, false),
                                  new Point(0.964824, 0.205078, false)];
        </script>
-       <?php echo "Nickname: ".$nick; ?>
        <script src="javascript/main_setup.js" type="text/javascript"></script>
+       <script type="text/javascript">
+            var index_content = parseIndexContent("<?php echo $index; ?>");
+            let count = 0.0;
+            for(let i=0; i<index_content.length; i++)
+                if(index_content[i] === 1)
+                    count += 1.0;
+            var completion_rate = count / index_content.length;
+       </script>
       <script src="javascript/on_click_events.js" type="text/javascript"></script>
       <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <br><br>
    </body>
 </html>

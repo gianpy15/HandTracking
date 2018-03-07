@@ -1,25 +1,13 @@
-# TODO
-# Implement a video player to merge frame data with label data of a certain video
-# Suggested classes to use:
-# - in gui.model_drawer.py: ModelDrawer
-#   instanciate:        md = ModelDrawer()
-#   set full canvas:    md.set_target_area(canvas)
-#   when needed draw:   md.set_joints(joints)
-#   --> see the doc of the class and the two methods
-# - in image_loader.hand_io.py: load()
-#   --> see the doc of the function
-#
-# about reading video data and interpolating missing labels
-# a standalone module may be done
-# because it is needed also for training
-# - in hand_data_management.video_loader: function load_labeled_video()
-#   --> see the doc of the function
 from tkinter import *
 from gui.player_thread import PlayerThread
 from gui.model_drawer import *
 from hand_data_management.video_loader import load_labeled_video
+from hand_data_management.camera_data_conversion import *
 import threading
+import skvideo.io as skio
+from image_loader.hand_io import pm
 from tkinter.simpledialog import askstring
+import os.path as path
 
 if __name__ == '__main__':
     # global variables
@@ -41,11 +29,58 @@ if __name__ == '__main__':
     # Choose video name
     vidname = askstring(title="Type video's name", parent=root, prompt="Video name:")
 
-    if vidname != None and vidname != "":
+    if vidname is not None and vidname != "":
 
         # Load frames and labels
         # vidname = "snap"
-        frames, labels, indexes = load_labeled_video(vidname, gapflags=True)
+        split = path.splitext(vidname)
+        isdepth = False
+        try:
+            if split[1] == ".z16":
+                frames, labels, indexes = load_labeled_video(split[0], getdepth=True, gapflags=True)
+                isdepth = True
+            elif split[1] == ".rgb":
+                frames, labels, indexes = load_labeled_video(split[0], gapflags=True)
+            else:
+                frames, labels, indexes = load_labeled_video(vidname, gapflags=True)
+        except FileNotFoundError:
+            isdepth = False
+            try:
+                if split[1] == ".rgb":
+                    videopath = path.join(pm.resources_path("rawcam"), split[0])
+                elif split[1] == ".z16":
+                    videopath = path.join(pm.resources_path("rawcam"), split[0])
+                    isdepth = True
+                else:
+                    videopath = path.join(pm.resources_path("rawcam"), vidname)
+
+                if isdepth:
+                    frames = read_frame_data(**default_read_z16_args(framesdir=videopath))
+                else:
+                    frames = read_frame_data(**default_read_rgb_args(framesdir=videopath))
+                labels = None
+                indexes = None
+            except FileNotFoundError:
+                isdepth = False
+                try:
+                    videopath = path.join(pm.resources_path("vids"), vidname)
+                    frames = skio.vread(videopath)
+                    labels = None
+                    indexes = None
+                except Exception as e:
+                    frames = None
+                    print("Unable to load the video %s, file not found." % vidname)
+                    exit(-1)
+
+        if frames[0] is None:
+            print("Video contains Nones, thus it is invalid. Have you tried to load depth from a video without depth?")
+            exit(-1)
+
+        if isdepth:
+            frames = np.repeat(enhance_depth_vid(frames), 3, axis=3)
+
+        image_width = np.shape(frames)[2]
+        image_height = np.shape(frames)[1]
 
         topframe = Frame(root, height=image_height, width=cmd_width+image_width)
         topframe.pack(side=TOP)
@@ -109,6 +144,6 @@ if __name__ == '__main__':
 
         discard_button.bind('<Button-1>', lambda e: player.set_changes())
 
-        save_button.bind('<Button-1>', lambda e: player.print_changes("snap"))
+        save_button.bind('<Button-1>', lambda e: player.print_changes(vidname))
 
         root.mainloop()

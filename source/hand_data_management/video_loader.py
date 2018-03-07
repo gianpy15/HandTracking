@@ -8,7 +8,7 @@ LABELED = 1
 UNLABELED = 0
 
 
-def load_labeled_video(vidname, fillgaps=True, gapflags=False):
+def load_labeled_video(vidname, getdepth=False, fillgaps=True, gapflags=False):
     """
     Load all frames of a video in a 4-dimentional numpy array, with all available labels.
     Missing labels are written linearly interpolating the available data.
@@ -25,7 +25,10 @@ def load_labeled_video(vidname, fillgaps=True, gapflags=False):
     label_data = []
     gap_list = []
     for frame in frames:
-        fdata, ldata = load(frame)
+        if getdepth:
+            fdata, ldata = load(frame, format=(DEPTH_DATA, LABEL_DATA))
+        else:
+            fdata, ldata = load(frame)
         frame_data.append(fdata)
         label_data.append(ldata)
         gap_list.append(UNLABELED if ldata is None else LABELED)
@@ -56,10 +59,8 @@ def linear_fill(label_data):
             rangelen = idxend - idxstart
             startcoeff = 1.0
             incr = 1./rangelen
-            print("%d %d" % (idxstart, idxend))
             for idxcur in range(idxstart + 1, idxend):
                 startcoeff -= incr
-                print(idxcur)
                 label_data[idxcur] = label_data[idxstart] * startcoeff \
                                    + label_data[idxend] * (1 - startcoeff)
             idxstart = idxend

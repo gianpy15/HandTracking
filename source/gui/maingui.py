@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # A sample image, for now...
     # img = il.load(pm.resources_path("gui/Flower-bud-003.jpg"), force_format=[None, None, 3])[0]
-    img, depth = hio.load(pm.resources_path("framedata/hands_A/hands_A0125.mat"), format=(hio.RGB_DATA, hio.DEPTH_DATA))
+    img, depth = hio.load(pm.resources_path("gui/hand.mat"), format=(hio.RGB_DATA, hio.DEPTH_DATA))
 
     # off = (img.shape[0]-img.shape[1])//2
     # img = np.pad(img, pad_width=((0, 0), (off, off), (0, 0)), mode='constant')

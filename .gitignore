@@ -20,3 +20,4 @@ resources/hands_bounding_dataset/**/**
 resources/framedata/**/**
 resources/rawcam/**/**
 
+!framedata/contributors.txt
