@@ -1,6 +1,3 @@
-
-
-
 #left_c {
    width: 640px;
    height: 480px;
@@ -59,4 +56,24 @@
     font-size: 14px;
     padding-top: 10px;
     font-size: 12px;
+}
+
+.loader {
+    // margin-top: 180px;
+    top: 50%;
+    margin-left: 260px;
+    // border-right: 16px solid green;
+    // border-bottom: 16px solid red;
+    // border-left: 16px solid yellow;
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

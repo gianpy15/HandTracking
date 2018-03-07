@@ -9,6 +9,7 @@ var undo_b = document.getElementById("undo_b");
 var submit_b = document.getElementById("submit_b");
 var new_sample_b = document.getElementById("new_sample_b");
 var textDisplayer = document.getElementById("desc_2");
+//document.getElementById("img_loader").style.visibility = "hidden";
 
 l_canvas.oncontextmenu = function() { return false; };
 undo_b.addEventListener('click', () => pinpointer.undo(), false);
@@ -21,6 +22,7 @@ window.onload = function () {
     pinpointer = new Pinpointer(l_canvas, l_canvas_bkg, target_img_url);
     helperhand = new HelperHandManager(r_canvas, target_joints);
     textManager = new TextFormatter(textDisplayer);
+    console.log("trying to hide the loader...");
 };
 
 function loadSampleImage() {

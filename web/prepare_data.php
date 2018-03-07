@@ -87,6 +87,7 @@
                  <div class="object_one">
                      <div class="wrapper">
                          <canvas id="left_c" width="640px" height="480px"></canvas>
+                         <!--<div class="loader" id="img_loader"></div>-->
                          <canvas id="left_c_points" width="640px" height="480px"></canvas>
                      </div>
                  </div>

@@ -44,6 +44,7 @@ function submit_and_next_frame(){
         }
         textManager.resetText();
         textManager.addNotice("Loading the new image...");
+        document.getElementById("img_loader").style.visibility = "visible";
         sendPost("next_frame.php", '', loadnew);
         sendPost("submit_labels.php", params, (r) => console.log(r));
     }

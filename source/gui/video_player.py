@@ -29,7 +29,7 @@ if __name__ == '__main__':
     # Choose video name
     vidname = askstring(title="Type video's name", parent=root, prompt="Video name:")
 
-    if vidname != None and vidname != "":
+    if vidname is not None and vidname != "":
 
         # Load frames and labels
         # vidname = "snap"
