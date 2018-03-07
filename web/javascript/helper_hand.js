@@ -20,7 +20,7 @@ class HelperHandManager{
         this.ctx = canvas.getContext("2d");
         this.joints = joints;
         this.curr_joint_idx = 0;
-        this.jointRadius = 10;
+        this.jointRadius = 7;
         this.redraw();
     }
 
