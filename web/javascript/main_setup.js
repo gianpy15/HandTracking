@@ -22,7 +22,6 @@ window.onload = function () {
     pinpointer = new Pinpointer(l_canvas, l_canvas_bkg, target_img_url);
     helperhand = new HelperHandManager(r_canvas, target_joints);
     textManager = new TextFormatter(textDisplayer);
-    console.log("trying to hide the loader...");
 };
 
 function loadSampleImage() {
