@@ -1,4 +1,4 @@
-from image_loader.hand_io import pm
+from data_manager import path_manager as pm
 import os
 
 

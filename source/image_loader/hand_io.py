@@ -1,7 +1,6 @@
-from data_manager import path_manager
+from data_manager import path_manager as pm
 import scipy.io as scio
 
-pm = path_manager.PathManager()
 
 RGB_DATA = 'data'
 LABEL_DATA = 'labels'

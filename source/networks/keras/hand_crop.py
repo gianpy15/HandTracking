@@ -1,13 +1,11 @@
 import source.hands_bounding_utils.hands_dataset_manager as data
 import source.hands_bounding_utils.egohand_dataset_manager as ego
-from data_manager import path_manager
+from data_manager import path_manager as pm
 from source.utils import utils
 import keras.models as km
 import keras.layers as kl
 import numpy as np
 import keras.callbacks as kc
-
-pm = path_manager.PathManager()
 
 
 # ############# PATHS ############

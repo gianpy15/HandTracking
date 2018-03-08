@@ -2,10 +2,7 @@ import shutil as sh
 import os
 from tensorflow.contrib.tensorboard.plugins import projector
 import tensorflow as tf
-from data_manager import path_manager
-
-
-pm = path_manager.PathManager()
+from data_manager import path_manager as pm
 
 
 class TensorBoardManager:

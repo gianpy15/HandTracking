@@ -2,21 +2,32 @@
 import os
 
 
+def __robust_respath_search():
+    curpath = os.path.realpath(__file__)
+    basepath = curpath
+    while os.path.split(basepath)[1] != 'source':
+        newpath = os.path.split(basepath)[0]
+        if newpath == basepath:
+            print("ERROR: unable to find source from path " + curpath)
+            break
+        basepath = os.path.split(basepath)[0]
+    return os.path.join(os.path.split(basepath)[0], "resources")
+
+
+RESPATH = __robust_respath_search()
+
+
+def resources_path(*paths):
+    return os.path.join(RESPATH, *paths)
+
+
 class PathManager:
     """
     This class automatically finds the project root folder at instantiation. It is used
     to resolve the resources folder regardless of the current running path.
     """
     def __init__(self):
-        curpath = os.path.realpath(__file__)
-        basepath = curpath
-        while os.path.split(basepath)[1] != 'source':
-            newpath = os.path.split(basepath)[0]
-            if newpath == basepath:
-                print("ERROR: unable to find source from path "+curpath)
-                break
-            basepath = os.path.split(basepath)[0]
-        self.__res_path = os.path.join(os.path.split(basepath)[0], "resources")
+        self.__res_path = RESPATH
 
     def resources_path(self, path):
         return os.path.join(self.__res_path, path)

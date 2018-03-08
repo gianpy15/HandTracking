@@ -1,5 +1,5 @@
 import tkinter as tk
-import data_manager.path_manager as path_manager
+import data_manager.path_manager as pm
 import image_loader.image_loader as il
 import gui.pinpointer_canvas as pc
 import gui.hand_helper_canvas as hh
@@ -42,8 +42,6 @@ def setup_helper(helper, data):
 
 
 if __name__ == "__main__":
-    # Path Manager to load hand images
-    pm = path_manager.PathManager()
     # The root of the GUI
     root = tk.Tk()
 
