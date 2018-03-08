@@ -5,6 +5,14 @@
       <link rel="stylesheet" type="text/css" href="css/style.css">
    </head>
 
+      <?php
+        include 'local_paths.php';
+        $script = "source/php_called_scripts/contributors.py";
+        $args = "2>&1";
+        $cmd = $python_interpreter." ".$script_base.$script." ".$args;
+        $out = exec($cmd, $rets, $errorcode);
+      ?>
+
    <body>
        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
          <a class="navbar-brand" href="#">HandTracking</a>
@@ -52,20 +60,20 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <p class="lead" id="first_contributors">
-                                            1. test<br/>
-                                            2. test<br/>
-                                            3. test<br/>
-                                            4. test<br/>
-                                            5. test<br/>
+                                            <?php echo $rets[0]; ?><br/>
+                                            <?php echo $rets[1]; ?><br/>
+                                            <?php echo $rets[2]; ?><br/>
+                                            <?php echo $rets[3]; ?><br/>
+                                            <?php echo $rets[4]; ?><br/>
                                         </p>
                                     </div>
                                     <div class="col-md-6">
                                         <p class="lead" id="second_contributors">
-                                            6. test<br/>
-                                            7. test<br/>
-                                            8. test<br/>
-                                            9. test<br/>
-                                            10. test<br/>
+                                            <?php echo $rets[5]; ?><br/>
+                                            <?php echo $rets[6]; ?><br/>
+                                            <?php echo $rets[7]; ?><br/>
+                                            <?php echo $rets[8]; ?><br/>
+                                            <?php echo $rets[9]; ?><br/>
                                         </p>
                                     </div>
                                 </div>

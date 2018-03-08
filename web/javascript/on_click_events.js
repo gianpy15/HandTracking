@@ -8,7 +8,7 @@ function submit_and_exit() {
              if (resp != "OK") {
                  console.log(resp);
              }
-             location.href = "thanks.html"+nick_append;
+             location.href = "thanks.phpphp"+nick_append;
         }
         sendPost("submit_labels.php", params, action);
     }

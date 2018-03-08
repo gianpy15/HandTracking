@@ -69,6 +69,7 @@ class Pinpointer{
     }
 
     determine_action(e){
+        console.log(e.button);
         if(e.button === 2) {
             this.right_clicked(e);
             return;
