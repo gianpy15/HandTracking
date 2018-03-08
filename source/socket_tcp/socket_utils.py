@@ -141,21 +141,15 @@ if __name__ == "__main__":
     canvas2.pack(side=tk.LEFT)
 
     fd = FrameDisplayer(canvas, "RGB")
-    fd2 = FrameDisplayer(canvas2, "RGB")
+    fd2 = FrameDisplayer(canvas2)
 
     count = 0
 
     def action(rgbf, z16f):
         global count
         rgbf = np.reshape(np.frombuffer(rgbf, dtype=np.uint8), newshape=(height, width, 3))
-        if count % 100 < 50:
-            z16f = np.reshape(np.frombuffer(z16f, dtype=np.uint16), newshape=(1, height, width, 1))
-        else:
-            z16f = read_frame_data(**default_read_z16_args(framesdir=pm.resources_path("rawcam/test")))
-
-        z16f = np.repeat(enhance_depth_vid(z16f), 3, axis=3)[0]
-
-
+        z16f = np.reshape(np.frombuffer(z16f, dtype=np.uint16), newshape=(height, width))
+        z16f = np.array(z16f // 20, dtype=np.uint8)
         fd.update_frame(rgbf)
         fd2.update_frame(z16f)
         count += 1
