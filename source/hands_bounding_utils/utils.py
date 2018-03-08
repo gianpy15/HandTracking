@@ -274,20 +274,24 @@ def heatmap_to_3d(heat):
 
 
 def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink_rate=10,
-                         overlapping_penalty=0.9, egohands = False):
+                         overlapping_penalty=0.9, egohands=False):
     """given an image and a .mat file containing coordinates of the rectangles where hands are present,
     returns a heatmap that, according to high values, defines where hands are present. Note that the heatmap
     is re-sized w.r.t the original image size. The shrink rates are defined by height_shrink_rate and width_shrink_rate.
     The just mentioned parameters can be tuned according to the precision that is required for the application the
     heatmap will be used in."""
     if heigth_shrink_rate < 1:
-        raise AttributeError("height_shrink_rate should be greated than 1")
+        raise AttributeError("height_shrink_rate should be greater than 1")
     if width_shrink_rate < 1:
-        raise AttributeError("width_shrink_rate should be greated than 1")
+        raise AttributeError("width_shrink_rate should be greater than 1")
     if not egohands:
         coords = __read_coords_from_mat_file(matfilepath)
     else:
         coords = __read_mat_egohands(matfilepath)
+    return get_heatmap_from_coords(image, heigth_shrink_rate, width_shrink_rate, coords, overlapping_penalty)
+
+
+def get_heatmap_from_coords(image, heigth_shrink_rate, width_shrink_rate, coords, overlapping_penalty):
     image_height = len(image)
     image_width = len(image[0])
     heatmap_height = int(math.ceil(image_height // heigth_shrink_rate))
@@ -297,21 +301,25 @@ def get_heatmap_from_mat(image, matfilepath, heigth_shrink_rate=10, width_shrink
         up, down, left, right = __get_bounds(coord)
         for i in range(heatmap_height):
             for j in range(heatmap_width):
-                c_up, c_down, c_left, c_right = __get_containment_bounds(i*heigth_shrink_rate,
-                                                                         (i+1)*heigth_shrink_rate,
-                                                                         j*width_shrink_rate,
-                                                                         (j+1)*width_shrink_rate,
+                c_up, c_down, c_left, c_right = __get_containment_bounds(i * heigth_shrink_rate,
+                                                                         (i + 1) * heigth_shrink_rate,
+                                                                         j * width_shrink_rate,
+                                                                         (j + 1) * width_shrink_rate,
                                                                          up, down, left, right)
                 if not (c_up == c_down == c_left == c_right == 0):
                     if heatmap[i][j] == 0:
-                        heatmap[i][j] = ((c_down-c_up)*(c_right-c_left))/(heigth_shrink_rate*width_shrink_rate)
+                        heatmap[i][j] = ((c_down - c_up) * (c_right - c_left)) / (
+                                    heigth_shrink_rate * width_shrink_rate)
                     else:
-                        heatmap[i][j] = (1-overlapping_penalty)*(((c_down-c_up)*(c_right-c_left)) /
-                                                                 (heigth_shrink_rate*width_shrink_rate)+heatmap[i][j])
+                        heatmap[i][j] = (1 - overlapping_penalty) * (((c_down - c_up) * (c_right - c_left)) /
+                                                                     (heigth_shrink_rate * width_shrink_rate) +
+                                                                     heatmap[i][j])
     maxvalue = np.max(heatmap)
     if maxvalue != 0:
         heatmap = heatmap / np.max(heatmap)
     return heatmap
+
+
 
 
 # ############# UTILS ##########################
