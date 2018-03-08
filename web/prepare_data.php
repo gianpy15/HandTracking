@@ -103,6 +103,7 @@
                   </div>
              </div>
        </div>
+       <br/><br/><br/><br/><br/><br/><br/><br/>
 
        <script src="javascript/helper_hand.js" type="text/javascript"></script>
        <script src="javascript/pinpointer.js" type="text/javascript"></script>
