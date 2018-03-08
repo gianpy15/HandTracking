@@ -122,15 +122,25 @@ def disconnect_camera(tcp_socket):
 
 
 if __name__ == "__main__":
-    tcp_socket = connect_to_camera()
+    from gui.frame_displayer import FrameDisplayer
+    import tkinter as tk
+    import numpy as np
+    import threading as tr
 
-    while 1:
-        rgb_frame = get_rgb_frame(tcp_socket)
-        # use rgb_frame
-        print(rgb_frame)
+    root = tk.Tk()
+    height, width = 480, 640
 
-        z16_frame = get_z16_frame(tcp_socket)
-        # use z16_frame
-        print(z16_frame)
+    canvas = tk.Canvas(root)
+    canvas.pack()
 
-    disconnect_camera(tcp_socket)
+    fd = FrameDisplayer(canvas, "RGB")
+
+    streamer = Z300Streamer()
+
+    streamer.add_rgb_listener(lambda f: fd.update_frame(np.array(f,
+                                                                 dtype=np.uint8)))
+
+    tr.Thread(target=Z300Streamer.stream).start()
+
+    root.mainloop()
+
