@@ -10,7 +10,10 @@ if __name__ == '__main__':
     for line in contributors_file:
         s.append(line.split())
 
+    filter_list = ['dio', 'd1o', 'd10', 'anonymous']
+
     s = [elem for elem in s if len(elem) != 0]
+    s = [elem for elem in s if elem[0].lower() not in filter_list]
 
     for elem in s:
         elem[1] = int(elem[1])
