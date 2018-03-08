@@ -15,7 +15,8 @@ class FrameDisplayer:
         Produce a new photoimage from the given buffer.
         :param buffer: the array buffer describing the image
         """
-        self.current_img = Image.fromarray(buffer, mode=self.mode)
+        # self.current_img = Image.frombuffer(mode=self.mode, size=(640, 480), data=buffer)
+        self.current_img = Image.fromarray(buffer, self.mode)
         self.current_photoimg = ImageTk.PhotoImage(image=self.current_img)
         return self.current_photoimg
 

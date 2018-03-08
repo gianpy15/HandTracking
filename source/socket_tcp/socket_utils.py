@@ -86,8 +86,11 @@ def __get_frame(tcp_socket, size):
     """
     frame = tcp_socket.recv(PACKET_SIZE)
 
-    while len(frame) < size:
+    redsize = size - PACKET_SIZE
+    while len(frame) < redsize:
         frame += tcp_socket.recv(PACKET_SIZE)
+
+    frame += tcp_socket.recv(size - len(frame))
 
     return frame
 
@@ -126,21 +129,42 @@ if __name__ == "__main__":
     import tkinter as tk
     import numpy as np
     import threading as tr
+    from image_loader.hand_io import pm
+    from hand_data_management.camera_data_conversion import *
 
     root = tk.Tk()
     height, width = 480, 640
 
-    canvas = tk.Canvas(root)
-    canvas.pack()
+    canvas = tk.Canvas(root, height=height, width=width)
+    canvas.pack(side=tk.RIGHT)
+    canvas2 = tk.Canvas(root, height=height, width=width)
+    canvas2.pack(side=tk.LEFT)
 
     fd = FrameDisplayer(canvas, "RGB")
+    fd2 = FrameDisplayer(canvas2, "RGB")
+
+    count = 0
+
+    def action(rgbf, z16f):
+        global count
+        rgbf = np.reshape(np.frombuffer(rgbf, dtype=np.uint8), newshape=(height, width, 3))
+        if count % 100 < 50:
+            z16f = np.reshape(np.frombuffer(z16f, dtype=np.uint16), newshape=(1, height, width, 1))
+        else:
+            z16f = read_frame_data(**default_read_z16_args(framesdir=pm.resources_path("rawcam/test")))
+
+        z16f = np.repeat(enhance_depth_vid(z16f), 3, axis=3)[0]
+
+
+        fd.update_frame(rgbf)
+        fd2.update_frame(z16f)
+        count += 1
 
     streamer = Z300Streamer()
 
-    streamer.add_rgb_listener(lambda f: fd.update_frame(np.array(f,
-                                                                 dtype=np.uint8)))
+    streamer.add_full_listener(action)
 
-    tr.Thread(target=Z300Streamer.stream).start()
+    tr.Thread(target=streamer.stream).start()
 
     root.mainloop()
 
