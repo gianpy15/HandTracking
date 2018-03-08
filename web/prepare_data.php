@@ -45,7 +45,7 @@
            <div class="row featurette">
             <div class="col-md-7">
             <h2 class="featurette-heading">Tutorial. <span class="text-muted">What to do. And how to do it.</span></h2>
-            <p class="lead">Here you're asked to arrange 21 points on the LEFT picture. Please set a GREEN point (left-click) for each visible junction and a BLUE one (right-click) for each non-visible junction, as shown in the example on the side
+            <p class="lead">Here you're asked to arrange 21 points on the <b>LEFT</b> picture. Please set a <i>green</i> point <kbd>left-click</kbd> for each visible junction and a <i>blue</i> one <kbd>right-click</kbd> for each non-visible junction, as shown in the example on the side
                 In arranging your points please follow the order defined by the picture on the right.
                 When you finish, click either the "Submit" button to end or the "Submit and get a new sample" button. If you make a mistake, you can use the "Undo" button.</p>
             </div>
@@ -60,8 +60,8 @@
           <div class="col-md-7 order-md-2">
             <h2 class="featurette-heading">Tutorial. <span class="text-muted">Pay attention.</span></h2>
             <p class="lead">Some pictures can be tricky to be labeled with points. Look at the examples to get help. In order to set the BLUE points try to guess where the non-visible junctions are.
-                Moreover, if hands in some pictures appear too small you can hold clicked and drag until a dashed-box appears allowing you to zoom in. To zoom out just press "Esc".
-                Please try to be as more accurate as possible since good data are essential to obtain good results.</p>
+                Moreover, if hands in some pictures appear too small you can zoom them by selecting the box you wish to zoom in by a <kbd>left-click-drag</kbd>. To zoom out just press <kbd>esc</kbd>.<br/>
+                <b><i>Please try to be as more accurate as possible since good data are essential to obtain good results.</i></b></p>
           </div>
           <div class="col-md-5 order-md-1">
             <img class="featurette-image img-fluid mx-auto" data-src="holder.js/500x500/auto" alt="Generic placeholder image" src="images/resize.gif">
@@ -103,10 +103,7 @@
                   </div>
              </div>
        </div>
-
-       <div class="wrapper">
-	        <canvas id="barbar" width="1250px" height="30px" background="black"></canvas>
-       </div>
+       <br/><br/><br/><br/><br/><br/><br/><br/>
 
        <script src="javascript/helper_hand.js" type="text/javascript"></script>
        <script src="javascript/pinpointer.js" type="text/javascript"></script>

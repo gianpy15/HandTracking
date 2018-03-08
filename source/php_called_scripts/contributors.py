@@ -22,6 +22,5 @@ if __name__ == '__main__':
     for i in range(len(s)):
         print('{}.'.format(i + 1), s[i][0], s[i][1])
 
-    n = 10 - len(s)
-    for i in range(n, 10):
+    for i in range(len(s), 10):
         print('{}.'.format(i + 1))
