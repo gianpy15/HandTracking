@@ -26,6 +26,9 @@ class HelperHandManager{
 
     redraw(){
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawsegments();
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.lineWidth = 1;
         this.ctx.fillStyle = OLDJOINTCOL;
         for(let i = 0; i < this.curr_joint_idx; i++){
             this.drawjoint(i);
@@ -43,6 +46,23 @@ class HelperHandManager{
         this.ctx.arc(x, y, this.jointRadius, 0, 2 * Math.PI);
         this.ctx.fill();
         this.ctx.stroke();
+    }
+
+    drawsegments(){
+        this.ctx.lineWidth = 2;
+        for(let jointindex=0; jointindex<this.joints.length; jointindex++) {
+            let todolist = SEGMENTS_LIST[jointindex];
+            for (let i = 0; i < todolist.length; i++) {
+                this.ctx.beginPath();
+                console.log(i);
+                this.ctx.strokeStyle = todolist[i][1];
+                let p1 = this.joints[todolist[i][0]];
+                let p2 = this.joints[jointindex];
+                this.ctx.moveTo(p1.px * this.canvas.width, p1.py * this.canvas.height);
+                this.ctx.lineTo(p2.px * this.canvas.width, p2.py * this.canvas.height);
+                this.ctx.stroke();
+            }
+        }
     }
 
     reset(){

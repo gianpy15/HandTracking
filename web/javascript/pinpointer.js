@@ -114,10 +114,27 @@ class Pinpointer{
         this.front_ctx.stroke();
     }
 
+    drawsegments(jointindex){
+        this.front_ctx.lineWidth = 2;
+        let todolist = SEGMENTS_LIST[jointindex];
+        for(let i = 0; i<todolist.length; i++){
+            this.front_ctx.beginPath();
+            this.front_ctx.strokeStyle = todolist[i][1];
+            let p1 = this.joints[todolist[i][0]];
+            let p2 = this.joints[jointindex];
+            let rp1 = this.fromGlobRelToBBoxRelCoords([p1.px, p1.py]);
+            let rp2 = this.fromGlobRelToBBoxRelCoords([p2.px, p2.py]);
+            this.front_ctx.moveTo(rp1[0] * this.front_canvas.width, rp1[1] * this.front_canvas.height);
+            this.front_ctx.lineTo(rp2[0] * this.front_canvas.width, rp2[1] * this.front_canvas.height);
+            this.front_ctx.stroke();
+        }
+    }
+
     drawfront(){
         this.front_ctx.clearRect(0, 0, this.front_canvas.width, this.front_canvas.height);
         for(let i = 0; i < this.joints.length; i++){
             this.drawjoint(this.joints[i]);
+            this.drawsegments(i);
         }
         if(this.shouldConsiderZoomSelection()){
             this.front_ctx.beginPath();
