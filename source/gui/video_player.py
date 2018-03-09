@@ -79,6 +79,16 @@ if __name__ == '__main__':
         if isdepth:
             frames = np.repeat(enhance_depth_vid(frames), 3, axis=3)
 
+        # SAMPLE CODE TO MESH BLUESCREEN VIDEO WITH BACKGROUND VIDEO
+        # bkg, _ = load_labeled_video("hands_A", False, False, False)
+        # bkg = bkg[0:len(frames)]
+
+        # from hand_data_management.bluescreen import make_bluescreen_filter
+        # import tqdm
+        # for idx in tqdm.tqdm(range(len(frames))):
+        #     filter = make_bluescreen_filter(frames[idx])
+        #     frames[idx, filter] = bkg[idx, filter]
+
         image_width = np.shape(frames)[2]
         image_height = np.shape(frames)[1]
 

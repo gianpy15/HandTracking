@@ -3,7 +3,7 @@ import tkinter as tk
 
 
 class FrameDisplayer:
-    def __init__(self, canvas, mode):
+    def __init__(self, canvas, mode=None):
         self.canvas = canvas
         self.mode = mode
         self.current_img = None
@@ -35,4 +35,3 @@ class FrameDisplayer:
             self.make_canvas_image()
         else:
             self.canvas.itemconfig(self.canvas_img, image=self.current_photoimg)
-
