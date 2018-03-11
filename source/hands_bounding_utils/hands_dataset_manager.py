@@ -128,6 +128,7 @@ def default_train_images_path():
 def default_train_annotations_path():
     return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "train", "annotations"))
 
+
 def default_test_images_path():
     return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "test", "images"))
 

@@ -72,6 +72,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                                                                   coords, overlapping_penalty)
                 fr_to_save['depth'] = depth
                 path = os.path.join(basedir, vid + str(i))
+                print(coords)
                 scio.savemat(path, fr_to_save)
 
 
