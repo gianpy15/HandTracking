@@ -2,5 +2,6 @@
 rawcam
 framedata
 vids
+hands_bounding_dataset
 
 !framedata/contributors.txt

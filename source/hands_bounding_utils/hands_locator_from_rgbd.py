@@ -47,7 +47,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
         depths, _ = load_labelled_videos(vid, getdepth=True, fillgaps=fillgaps)
         fr_num = frames.shape[0]
-        for i in range(0, fr_num):
+        for i in tqdm.tqdm(range(0, fr_num)):
             if labels[i] is not None:
                 fr_to_save = {}
                 frame = frames[i]
@@ -72,7 +72,6 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                                                                   coords, overlapping_penalty)
                 fr_to_save['depth'] = depth
                 path = os.path.join(basedir, vid + str(i))
-                print(coords)
                 scio.savemat(path, fr_to_save)
 
 
@@ -243,7 +242,7 @@ if __name__ == '__main__':
     # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
     # timetest()
-    create_dataset()
+    create_dataset(["handsMichele"], fillgaps=True)
     f, h, d = read_dataset()
     u.showimage(f[1])
     u.showimage(h[1])
