@@ -7,6 +7,7 @@ import os
 import math
 from scipy import io as scio
 from scipy.ndimage import convolve
+from scipy.misc import imresize
 import hands_bounding_utils.utils as u
 from data_manager.path_manager import PathManager
 from timeit import timeit as tm
@@ -24,8 +25,14 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
     return frames, labels
 
 
-def create_dataset(videos_list=None, savepath=None, heigth_shrink_rate=10, width_shrink_rate=10,
-                   overlapping_penalty=0.9, fillgaps=False):
+def depth_resize(depth, rr):
+    depth = depth.reshape([depth.shape[0], depth.shape[1], 1])
+    depth = np.dstack((depth, depth, depth))
+    return imresize(depth, rr)[:, :, 0:1]
+
+
+def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
+                   overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500):
     if savepath is None:
         basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
     else:
@@ -45,6 +52,9 @@ def create_dataset(videos_list=None, savepath=None, heigth_shrink_rate=10, width
                 fr_to_save = {}
                 frame = frames[i]
                 depth = depths[i]
+                frame, depth = transorm_rgd_depth(frame, depth, toofar=toofar, tooclose=tooclose)
+                frame = imresize(frame, resize_rate)
+                depth = depth_resize(depth, resize_rate)
                 label = labels[i][:, 0:2]
                 label *= [frame.shape[1], frame.shape[0]]
                 label = np.array(label, dtype=np.int32).tolist()
@@ -54,7 +64,8 @@ def create_dataset(videos_list=None, savepath=None, heigth_shrink_rate=10, width
                 depth = __add_padding(depth, depth.shape[1] - (depth.shape[1]//width_shrink_rate)*width_shrink_rate,
                                       depth.shape[0] - (depth.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
 
-                frame, depth = transorm_rgd_depth(frame, depth)
+                depth = depth.squeeze()
+                depth = np.uint8(depth)
                 fr_to_save['frame'] = frame
                 coords = [__get_coord_from_labels(label)]
                 fr_to_save['heatmap'] = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
