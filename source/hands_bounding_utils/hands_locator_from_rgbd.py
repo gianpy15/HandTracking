@@ -37,6 +37,8 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
         basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
     else:
         basedir = savepath
+    if not os.path.exists(basedir):
+        os.mkdir(basedir)
     framesdir = pm.resources_path("framedata")
     if videos_list is None:
         vids = os.listdir(framesdir)
@@ -72,7 +74,6 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                                                                   coords, overlapping_penalty)
                 fr_to_save['depth'] = depth
                 path = os.path.join(basedir, vid + str(i))
-                print(coords)
                 scio.savemat(path, fr_to_save)
 
 
