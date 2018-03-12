@@ -16,6 +16,14 @@ pm = PathManager()
 
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):
+    """given a video name, returns some information on its frames and their labels, basing on the parameters
+    :param verbosity: set to True to see some prints
+    :param gapflags: STILL NOT IMPLEMENTED
+    :param fillgaps: is this is true, interpolated frames will be returned as well
+    :param getdepth: if this is true, the method will return depths and labels, if this is false, the method
+    will return frames and labels
+    :param vname: name of the video. Note that the video must be present in the framedata folder, under resources
+    """
     frames, labels = vl.load_labeled_video(vname, getdepth, fillgaps, gapflags)
     frames = np.array(frames)
     labels = np.array(labels)
@@ -26,6 +34,10 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
 
 
 def depth_resize(depth, rr):
+    """used ONLY to resize the depth of frames
+    :param depth: (n,m) matrix containing binary (0 or 1) values
+    :type rr: resize rate
+    """
     depth = depth.reshape([depth.shape[0], depth.shape[1], 1])
     depth = np.dstack((depth, depth, depth))
     return imresize(depth, rr)[:, :, 0:1]
@@ -33,6 +45,19 @@ def depth_resize(depth, rr):
 
 def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
                    overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500):
+    """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
+    the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
+    :param tooclose: threshold value used to eliminate too close objects/values in the depth
+    :param toofar: threshold value used to eliminate too far objects/values in the depth
+    :param fillgaps: set to True to also get interpolated frames
+    :param overlapping_penalty: penalty "inflicted" to the overlapping hands area in the images
+    :param width_shrink_rate: shrink rate of heatmaps width wrt the resized image
+    :param heigth_shrink_rate: shrink rate of heatmaps height wrt the resized image
+    :param resize_rate: resize rate of the images (1 (default) is the original image)
+    :param savepath: path of the folder where the produces .mat files will be saved. If left to the default value None,
+    the /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param videos_list: list of videos you need the .mat files of. If left to the default value None, all videos will
+    be exploited"""
     if savepath is None:
         basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
     else:
@@ -78,6 +103,13 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
 
 
 def read_dataset(path=None, verbosity=0):
+    """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
+    the create_dataset method
+    :param verbosity: setting this parameter to True will make the method print the number of .mat files read
+    every time it reads one
+    :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
+    /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    """
     if path is None:
         basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
     else:
