@@ -6,6 +6,7 @@ from networks.custom_layers.abs import Abs
 from skimage.transform import resize
 import os
 from data_manager.path_manager import PathManager
+import hands_bounding_utils.utils as u
 from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
 
 pm = PathManager()
@@ -45,8 +46,7 @@ total_sum = np.sum(first_out[0])
 
 first_image = rgb2gray(images[0])
 
-print(np.shape(first_image), np.shape(first_out))
-img = np.concatenate((first_image, first_out), axis=-2)
-plt.imshow(np.reshape(img, newshape=(120, 320)))
-
-plt.show()
+u.showimage(images[0])
+u.showimage(u.heatmap_to_rgb(net_out))
+u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=1,
+                                      accept_crop_minimum_dimension_pixels=100))
