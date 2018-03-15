@@ -2,8 +2,8 @@ import numpy as np
 import timeit as time
 from scipy import io as scio
 from os import path as os_p
-from skimage import io
-import matplotlib.pyplot as plt
+from skimage import io as sio
+import matplotlib.pyplot as mplt
 import math
 from data_manager import path_manager
 pm = path_manager.PathManager()
@@ -14,7 +14,7 @@ pm = path_manager.PathManager()
 
 def read_image(path):
     """opens the image at the given path and returns its numpy version"""
-    return np.array(io.imread(path))
+    return np.array(sio.imread(path))
 
 
 def __read_mat_hand_bounding(path, structasrecord=True):
@@ -90,7 +90,7 @@ def cropimage(imagepath, matfilepath, save=False, enlarge=0.3):
     if save:
         split = os_p.splitext(imagepath)
         for i in range(0, len(crops)):
-            io.imsave(split[0]+"_crop"+str(i)+split[1], crops[i])
+            sio.imsave(split[0]+"_crop"+str(i)+split[1], crops[i])
     return np.array(crops)
 
 
@@ -332,9 +332,9 @@ def showimages(images):
 
 def showimage(image):
     """displays a single image"""
-    plt.figure()
-    plt.imshow(image)
-    plt.show()
+    mplt.figure()
+    mplt.imshow(image)
+    mplt.show()
 
 
 if __name__ == '__main__':
