@@ -5,7 +5,9 @@ import keras.models as km
 import keras.layers as kl
 import keras.callbacks as kc
 import keras.optimizers as ko
-from networks.custom_layers.softmax4D import Softmax4D, MultiLayerSoftmax4D
+import matplotlib.pyplot as plt
+import keras.losses as klo
+from networks.custom_layers.abs import Abs
 import os
 from data_manager.path_manager import PathManager
 from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
@@ -15,10 +17,14 @@ pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = pm.resources_path(os.path.join("tbdata/heat_maps"))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v1.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v1.h5'))
 
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')
 train = True
+train_samples = 100
+test_samples = 20
 
 # create_dataset(["handsMichele"], savepath=dataset_path, fillgaps=True,
 #                resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
@@ -32,8 +38,8 @@ train_imgs, test_imgs = images[:np.shape(images)[0]//2], images[np.shape(images)
 train_maps, test_maps = heat_maps[:np.shape(images)[0]//2], heat_maps[np.shape(images)[0]//2:]
 train_depths, test_depths = depths[:np.shape(depths)[0]//2], depths[np.shape(depths)[0]//2:]
 
-train_imgs, train_maps, train_depths = train_imgs[0:20], train_maps[0:20], train_depths[0:20]
-test_imgs, test_maps, test_depths = test_imgs[0:10], test_maps[0:10], test_depths[0:10]
+train_imgs, train_maps, train_depths = train_imgs[0:train_samples], train_maps[0:train_samples], train_depths[0:train_samples]
+test_imgs, test_maps, test_depths = test_imgs[0:test_samples], test_maps[0:test_samples], test_depths[0:test_samples]
 
 print("Train depths = {}".format(np.shape(train_depths)))
 print("Train images = {}, train maps = {}".format(np.shape(train_imgs), np.shape(train_maps)))
@@ -47,30 +53,34 @@ print("Input shape: {}".format(np.shape(X)))
 model_input = train_imgs
 model_test = test_imgs
 
-tb_manager.add_images(train_imgs, name="train_imgs")
-tb_manager.add_images(train_maps, name="train_maps")
+tb_manager.add_images(test_imgs, name="train_imgs", max_out=5)
+tb_manager.add_images(test_maps, name="train_maps", max_out=5)
 
 # Build up the model
 model = km.Sequential()
-model.add(kl.Conv2D(input_shape=np.shape(model_input)[1:], filters=16, kernel_size=[3, 3], padding='same'))
+model.add(kl.Conv2D(input_shape=np.shape(model_input)[1:], filters=32, kernel_size=[3, 3], padding='same'))
 model.add(kl.Activation('relu'))
-model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same', activation='relu'))
-model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu'))
 model.add(kl.MaxPooling2D())
 model.add(kl.Conv2D(filters=16, kernel_size=[3, 3], padding='same', activation='relu'))
 model.add(kl.MaxPooling2D())
 model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same'))
-model.add(Softmax4D(axis=1, name='softmax4D'))
+# model.add(Softmax4D(axis=1, name='softmax4D'))
+model.add(Abs())
 model.summary()
 
 # Callbacks for keras
 tensor_board = kc.TensorBoard(log_dir=tensorboard_path, histogram_freq=1)
-# model_ckp = kc.ModelCheckpoint(filepath=model_path, monitor=['accuracy'],
-#                                verbose=1, save_best_only=True, mode='max', period=1)
-es = kc.EarlyStopping(patience=20, verbose=1, monitor=['val_acc'], mode='max')
-callbacks = [tensor_board]
+model_ckp = kc.ModelCheckpoint(filepath=model_ck_path, monitor='val_loss',
+                               verbose=1, save_best_only=True, mode='min', period=1)
+es = kc.EarlyStopping(patience=10, verbose=1, monitor='val_loss', mode='min')
+callbacks = [tensor_board, model_ckp, es]
 
-optimizer = ko.adam(lr=1e-2)
+optimizer = ko.adam(lr=1e-3)
 loss = heatmap_loss
 model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
 
@@ -78,13 +88,15 @@ model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
 
 if train:
     print('training starting...')
-    model.fit(model_input, train_maps, epochs=10,  batch_size=10, callbacks=callbacks, verbose=2, validation_data=(model_test, test_maps))
+    model.fit(model_input, train_maps, epochs=100,  batch_size=20, callbacks=callbacks, verbose=1, validation_data=(model_test, test_maps))
     print('training complete!')
 
+    model.save(model_save_path)
+    print("Model saved")
     # Testing the model getting some outputs
-    first_out = model.predict(model_input[0:5])
+    first_out = model.predict(model_test[0:5])
+    first_out = first_out.clip(min=0)
     tb_manager.add_images(first_out, name='output', max_out=5)
-    print(first_out[0])
     total_sum = np.sum(first_out[0])
     print("Total output sum = {}".format(total_sum))
 
@@ -99,3 +111,9 @@ if train:
         tb_manager.write_step(summary, 40)
 
     print('session finished')
+
+    print(np.shape(first_out[0]))
+
+    plt.imshow(np.reshape(first_out[0], newshape=(30, 40)))
+
+    plt.show()
