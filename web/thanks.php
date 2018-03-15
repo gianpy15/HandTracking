@@ -65,15 +65,21 @@
                                             <?php echo $rets[2]; ?><br/>
                                             <?php echo $rets[3]; ?><br/>
                                             <?php echo $rets[4]; ?><br/>
+                                            <?php echo $rets[5]; ?><br/>
+                                            <?php echo $rets[6]; ?><br/>
+                                            <?php echo $rets[7]; ?><br/>
                                         </p>
                                     </div>
                                     <div class="col-md-6">
                                         <p class="lead" id="second_contributors">
-                                            <?php echo $rets[5]; ?><br/>
-                                            <?php echo $rets[6]; ?><br/>
-                                            <?php echo $rets[7]; ?><br/>
                                             <?php echo $rets[8]; ?><br/>
                                             <?php echo $rets[9]; ?><br/>
+                                            <?php echo $rets[10]; ?><br/>
+                                            <?php echo $rets[11]; ?><br/>
+                                            <?php echo $rets[12]; ?><br/>
+                                            <?php echo $rets[13]; ?><br/>
+                                            <?php echo $rets[14]; ?><br/>
+                                            <?php echo $rets[15]; ?><br/>
                                         </p>
                                     </div>
                                 </div>
