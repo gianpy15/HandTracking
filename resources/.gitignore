@@ -1,7 +1,10 @@
 # Created by .ignore support plugin (hsz.mobi)
+!framedata
+
+framedata/*
+!framedata/contributors.txt
+!framedata/compress.sh
+
 rawcam
-framedata
 vids
 hands_bounding_dataset
-
-!framedata/contributors.txt
