@@ -162,12 +162,13 @@ def register_labels(labelstring, frame, contributor=None):
     return True
 
 
-def clear_labels(vidname, frameno):
+def rewrite_labels(vidname, frameno, newlabels=None):
     framefile = get_complete_frame_path(frame_name(vidname, frameno))
     if not os.path.exists(framefile):
         return False
     index = get_index_from_vidname(vidname)
-    set_index_flag(index, flag=FLAG_UNLABELED, idx=frameno)
+    if newlabels is None:
+        set_index_flag(index, flag=FLAG_UNLABELED, idx=frameno)
     rgb, depth = hio.load(framefile, format=(RGB_DATA, LABEL_DATA))
-    hio.store(framefile, data=rgb, depth=depth)
+    hio.store(framefile, data=rgb, depth=depth, labels=newlabels)
     return True

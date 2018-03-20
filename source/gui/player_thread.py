@@ -20,6 +20,12 @@ class PlayerThread:
         self.current_fps = fps
         self.speed_mult = 1.0
         self.model_drawer = modeldrawer
+        self.model_drawer.set_reactions(onclick=lambda e: self.onclick(e),
+                                        onmove=lambda e: self.onmove(e),
+                                        onrelease=lambda e: self.onrelease(e))
+        self.label_target_no = 0
+        self.label_target_original = None
+        self.label_target_initial_click = None
         self.pic_height = np.shape(frames)[1]
         self.pic_width = np.shape(frames)[2]
         self.play_flag = False
@@ -47,9 +53,10 @@ class PlayerThread:
         if self.labels is not None and self.model_drawer is not None:
             self.model_drawer.set_joints(self.labels[self.current_frame])
 
-        self.changes = [0 for i in range(len(framebuff))]
+        self.deleted = [0 for _ in range(len(framebuff))]
+        self.edited = [0 for _ in range(len(framebuff))]
 
-        self.discard.set("Discarded" if self.changes[self.current_frame] == 1 else "")
+        self.discard.set("Discarded" if self.deleted[self.current_frame] == 1 else "")
         if self.indexes is not None:
             self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
 
@@ -89,7 +96,7 @@ class PlayerThread:
         if self.frame_status_msg.get() != new_msg:
             self.frame_status_msg.set(new_msg)
 
-        self.discard.set("Discarded" if self.changes[self.current_frame] == 1 else "")
+        self.discard.set("Discarded" if self.deleted[self.current_frame] == 1 else "")
 
     def nextframe(self, root):
         if self.speed_mult == 0:
@@ -128,15 +135,48 @@ class PlayerThread:
         fname = vidname + "-" + str(randint(0, 999)) + ".txt"
         filepath = os.path.join(framebase, fname)
         file = open(filepath, "w+")
-        for i in range(len(self.changes)):
-            if self.changes[i] == 1:
-                file.write("%d\n" % i)
+        for i in range(len(self.deleted)):
+            if self.deleted[i] == 1:
+                file.write("D%d\n" % i)
+            elif self.edited[i] == 1:
+                file.write("E%d;%s\n" % (i, PlayerThread.encode_labels(self.labels[i])))
 
     def set_changes(self):
-        if self.changes[self.current_frame] == 0:
-            self.changes[self.current_frame] = 1
+        if self.deleted[self.current_frame] == 0:
+            self.deleted[self.current_frame] = 1
             self.discard.set("Discarded")
 
-        elif self.changes[self.current_frame] == 1:
-            self.changes[self.current_frame] = 0
+        elif self.deleted[self.current_frame] == 1:
+            self.deleted[self.current_frame] = 0
             self.discard.set("")
+
+    def onclick(self, event):
+        if self.play_flag:
+            return
+        relcoords = np.array((event.x / self.canvas.winfo_width(), event.y / self.canvas.winfo_height()))
+        selected = np.argmin(np.linalg.norm(self.labels[self.current_frame][:, 0:2]-relcoords, axis=1))
+        self.label_target_no = selected
+        self.label_target_initial_click = relcoords
+        self.label_target_original = self.labels[self.current_frame][selected].copy()
+
+    def onmove(self, event):
+        relcoords = np.array((event.x / self.canvas.winfo_width(), event.y / self.canvas.winfo_height()))
+        delta = np.append(relcoords - self.label_target_initial_click, 0)
+        self.labels[self.current_frame][self.label_target_no] = self.label_target_original + delta
+        self.model_drawer.set_joints(self.labels[self.current_frame])
+
+    def onrelease(self, event):
+        relcoords = np.array((event.x / self.canvas.winfo_width(), event.y / self.canvas.winfo_height()))
+        delta = np.append(relcoords - self.label_target_initial_click, 0)
+        self.labels[self.current_frame][self.label_target_no] = self.label_target_original + delta
+        self.model_drawer.set_joints(self.labels[self.current_frame])
+        self.edited[self.current_frame] = 1
+        self.label_target_initial_click = None
+        self.label_target_original = None
+
+    @staticmethod
+    def encode_labels(labels):
+        ret = ""
+        for joint in labels:
+            ret += "%f;%f;%d;" % (joint[0], joint[1], joint[2])
+        return ret[:-1]
