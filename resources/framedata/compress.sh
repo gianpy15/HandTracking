@@ -16,9 +16,6 @@ echo archive created!
 
 echo deleting all zips...
 
-for file in hand*.zip
-do echo ${file}
-done
-
 rm hand*.zip
 
+echo done!
