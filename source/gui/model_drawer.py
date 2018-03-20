@@ -36,6 +36,14 @@ class ModelDrawer:
             BABY: "blue"
         }
         self.dot_radius = 3
+        self.onclickreaction = lambda e: None
+        self.onmovereaction = lambda e: None
+        self.onreleasereaction = lambda e: None
+
+    def set_reactions(self, onclick=lambda e: None, onmove=lambda e: None, onrelease=lambda e: None):
+        self.onclickreaction = onclick
+        self.onmovereaction = onmove
+        self.onreleasereaction = onrelease
 
     def set_target_area(self, canvas, position=(0, 0), size=None):
         """
@@ -160,6 +168,9 @@ class ModelDrawer:
                                                             fill=self.dot_colors[finger],
                                                             tags=[self.__all_tag, self.__dots_tag]
                                                             )
+        self.canvas.tag_bind(self.drawn[finger][joint], "<Button-1>", self.onclickreaction)
+        self.canvas.tag_bind(self.drawn[finger][joint], "<B1-Motion>", self.onmovereaction)
+        self.canvas.tag_bind(self.drawn[finger][joint], "<ButtonRelease-1>", self.onreleasereaction)
 
     def __draw_new_section(self, finger, basejoint):
         self.drawn[finger]["%d-%d" % (basejoint, basejoint + 1)] = self.__draw_custom_line(
