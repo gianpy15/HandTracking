@@ -169,6 +169,6 @@ def rewrite_labels(vidname, frameno, newlabels=None):
     index = get_index_from_vidname(vidname)
     if newlabels is None:
         set_index_flag(index, flag=FLAG_UNLABELED, idx=frameno)
-    rgb, depth = hio.load(framefile, format=(RGB_DATA, LABEL_DATA))
+    rgb, depth = hio.load(framefile, format=(RGB_DATA, DEPTH_DATA))
     hio.store(framefile, data=rgb, depth=depth, labels=newlabels)
     return True
