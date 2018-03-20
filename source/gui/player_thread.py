@@ -125,7 +125,7 @@ class PlayerThread:
             return "Labeled"
 
     def print_changes(self, vidname):
-        fname = vidname + str(randint(0, 999)) + ".txt"
+        fname = vidname + "-" + str(randint(0, 999)) + ".txt"
         filepath = os.path.join(framebase, fname)
         file = open(filepath, "w+")
         for i in range(len(self.changes)):
