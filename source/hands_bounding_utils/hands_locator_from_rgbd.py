@@ -63,7 +63,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
     else:
         basedir = savepath
     if not os.path.exists(basedir):
-        os.mkdir(basedir)
+        os.makedirs(basedir)
     framesdir = pm.resources_path("framedata")
     if videos_list is None:
         vids = os.listdir(framesdir)

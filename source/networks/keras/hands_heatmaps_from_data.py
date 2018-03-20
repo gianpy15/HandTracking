@@ -5,6 +5,7 @@ import keras.models as km
 import keras.layers as kl
 import keras.callbacks as kc
 import keras.optimizers as ko
+import keras.regularizers as kr
 import matplotlib.pyplot as plt
 import keras.losses as klo
 from networks.custom_layers.abs import Abs
@@ -23,12 +24,19 @@ model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')
 train = False
-shuffle = True
+shuffle = False
+build_dataset = False
+
+# Hyper parameters
 train_samples = 2000
 test_samples = 100
+weight_decay = kr.l2(1e-3)
 
-# create_dataset(savepath=dataset_path, fillgaps=True,
-#                resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
+
+if build_dataset:
+    create_dataset(savepath=dataset_path, fillgaps=True,
+                   resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
+
 images, heat_maps, depths = read_dataset(path=dataset_path)
 
 if shuffle:
@@ -68,15 +76,15 @@ tb_manager.add_images(test_maps, name="train_maps", max_out=5)
 model = km.Sequential()
 model.add(kl.Conv2D(input_shape=np.shape(model_input)[1:], filters=32, kernel_size=[3, 3], padding='same'))
 model.add(kl.Activation('relu'))
-model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu'))
-model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu'))
-model.add(kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation='relu'))
-model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu'))
-model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
+model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
+model.add(kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
+model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
+model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
 model.add(kl.MaxPooling2D())
-model.add(kl.Conv2D(filters=16, kernel_size=[3, 3], padding='same', activation='relu'))
+model.add(kl.Conv2D(filters=16, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
 model.add(kl.MaxPooling2D())
-model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same'))
+model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
 # model.add(Softmax4D(axis=1, name='softmax4D'))
 model.add(Abs())
 model.summary()
