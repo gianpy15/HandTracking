@@ -3,7 +3,9 @@
 
 framedata/*
 !framedata/contributors.txt
+!framedata/*.sh
 !framedata/compress.sh
+!framedata/expand.sh
 
 rawcam
 vids
