@@ -76,30 +76,33 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
         fr_num = frames.shape[0]
         for i in tqdm.tqdm(range(0, fr_num)):
             if labels[i] is not None:
-                fr_to_save = {}
-                frame = frames[i]
-                depth = depths[i]
-                frame, depth = transorm_rgd_depth(frame, depth, toofar=toofar, tooclose=tooclose)
-                frame = imresize(frame, resize_rate)
-                depth = depth_resize(depth, resize_rate)
-                label = labels[i][:, 0:2]
-                label *= [frame.shape[1], frame.shape[0]]
-                label = np.array(label, dtype=np.int32).tolist()
-                label = [[p[1], p[0]] for p in label]
-                frame = __add_padding(frame, frame.shape[1] - (frame.shape[1]//width_shrink_rate)*width_shrink_rate,
-                                      frame.shape[0] - (frame.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
-                depth = __add_padding(depth, depth.shape[1] - (depth.shape[1]//width_shrink_rate)*width_shrink_rate,
-                                      depth.shape[0] - (depth.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+                try:
+                    fr_to_save = {}
+                    frame = frames[i]
+                    depth = depths[i]
+                    frame, depth = transorm_rgd_depth(frame, depth, toofar=toofar, tooclose=tooclose)
+                    frame = imresize(frame, resize_rate)
+                    depth = depth_resize(depth, resize_rate)
+                    label = labels[i][:, 0:2]
+                    label *= [frame.shape[1], frame.shape[0]]
+                    label = np.array(label, dtype=np.int32).tolist()
+                    label = [[p[1], p[0]] for p in label]
+                    frame = __add_padding(frame, frame.shape[1] - (frame.shape[1]//width_shrink_rate)*width_shrink_rate,
+                                          frame.shape[0] - (frame.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+                    depth = __add_padding(depth, depth.shape[1] - (depth.shape[1]//width_shrink_rate)*width_shrink_rate,
+                                          depth.shape[0] - (depth.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
 
-                depth = depth.squeeze()
-                depth = np.uint8(depth)
-                fr_to_save['frame'] = frame
-                coords = [__get_coord_from_labels(label)]
-                fr_to_save['heatmap'] = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
-                                                                  coords, overlapping_penalty)
-                fr_to_save['depth'] = depth
-                path = os.path.join(basedir, vid + str(i))
-                scio.savemat(path, fr_to_save)
+                    depth = depth.squeeze()
+                    depth = np.uint8(depth)
+                    fr_to_save['frame'] = frame
+                    coords = [__get_coord_from_labels(label)]
+                    fr_to_save['heatmap'] = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
+                                                                      coords, overlapping_penalty)
+                    fr_to_save['depth'] = depth
+                    path = os.path.join(basedir, vid + str(i))
+                    scio.savemat(path, fr_to_save)
+                except ValueError:
+                    print(vid + str(i))
 
 
 def read_dataset(path=None, verbosity=0):
@@ -276,7 +279,7 @@ if __name__ == '__main__':
     # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
     # timetest()
-    create_dataset(["handsMichele"], fillgaps=True)
+    create_dataset()
     f, h, d = read_dataset()
     u.showimage(f[1])
     u.showimage(h[1])
