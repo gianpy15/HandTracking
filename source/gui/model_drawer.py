@@ -35,7 +35,7 @@ class ModelDrawer:
             RING: "purple",
             BABY: "blue"
         }
-        self.dot_radius = 5
+        self.dot_radius = 3
 
     def set_target_area(self, canvas, position=(0, 0), size=None):
         """
