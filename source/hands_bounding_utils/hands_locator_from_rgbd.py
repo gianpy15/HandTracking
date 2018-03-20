@@ -67,7 +67,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
     framesdir = pm.resources_path("framedata")
     if videos_list is None:
         vids = os.listdir(framesdir)
-        vids.remove("contributors.txt")
+        vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
     else:
         vids = videos_list
     for vid in tqdm.tqdm(vids):

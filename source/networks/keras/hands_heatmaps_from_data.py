@@ -17,21 +17,29 @@ pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = pm.resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v1.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v1.h5'))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.h5'))
 
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')
-train = True
-train_samples = 100
-test_samples = 20
+train = False
+shuffle = True
+train_samples = 2000
+test_samples = 100
 
-# create_dataset(["handsMichele"], savepath=dataset_path, fillgaps=True,
+# create_dataset(savepath=dataset_path, fillgaps=True,
 #                resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
 images, heat_maps, depths = read_dataset(path=dataset_path)
 
+if shuffle:
+    dataset = [images, heat_maps, depths]
+    dataset = np.transpose(dataset)
+    np.random.shuffle(dataset)
+    dataset = np.transpose(dataset)
+    images, heat_maps, depths = tuple(dataset)
+
 images, heat_maps, depths = np.array(images), np.array(heat_maps), np.array(depths)
-images, depths = images / 255, depths / 255
+images = images / 255
 heat_maps = np.reshape(heat_maps, newshape=np.shape(heat_maps) + (1,))
 depths = np.reshape(depths, newshape=np.shape(depths) + (1,))
 train_imgs, test_imgs = images[:np.shape(images)[0]//2], images[np.shape(images)[0]//2:]
