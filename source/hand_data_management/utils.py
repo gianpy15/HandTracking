@@ -167,8 +167,10 @@ def rewrite_labels(vidname, frameno, newlabels=None):
     if not os.path.exists(framefile):
         return False
     index = get_index_from_vidname(vidname)
-    if newlabels is None:
+    rgb, depth, labels = hio.load(framefile, format=(RGB_DATA, DEPTH_DATA, LABEL_DATA))
+    if labels is None and newlabels is not None:
+        set_index_flag(index, flag=FLAG_LABELED, idx=frameno)
+    if labels is not None and newlabels is None:
         set_index_flag(index, flag=FLAG_UNLABELED, idx=frameno)
-    rgb, depth = hio.load(framefile, format=(RGB_DATA, DEPTH_DATA))
     hio.store(framefile, data=rgb, depth=depth, labels=newlabels)
     return True
