@@ -136,7 +136,7 @@ def read_dataset(path=None, verbosity=0):
     return frames, heatmaps, depths
 
 
-def read_dataset_random(path=None, number = 1, verbosity=0):
+def read_dataset_random(path=None, number=1, verbosity=0):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -164,7 +164,7 @@ def read_dataset_random(path=None, number = 1, verbosity=0):
             print("Reading image: ", i, " of ", tot)
         which = int(math.floor(random.uniform(0, tot - 0.01)))
         while already_read[which] == 1:
-            which = math.floor(random.uniform(0, tot - 0.01))
+            which = int(math.floor(random.uniform(0, tot - 0.01)))
         already_read[which] = 1
         name = samples[which]
         realpath = os.path.join(basedir, name)
@@ -173,6 +173,27 @@ def read_dataset_random(path=None, number = 1, verbosity=0):
         heatmaps.append(matcontent['heatmap'])
         depths.append(matcontent['depth'])
     return frames, heatmaps, depths
+
+
+def shuffle_rgb_depth_heatmap(ri, di, hi):
+    ri = np.array(ri)
+    hi = np.array(hi)
+    di = np.array(di)
+    n = ri.shape[0]
+    pos = list(range(0, n))
+    n -= 0.01
+    r1 = []
+    d1 = []
+    h1 = []
+    while n > 0:
+        rand = int(math.floor(random.uniform(0, n)))
+        r1.append(ri[pos[rand]])
+        d1.append(di[pos[rand]])
+        h1.append(hi[pos[rand]])
+        pos.pop(rand)
+        n -= 1
+    return np.array(r1), np.array(d1), np.array(h1)
+
 
 
 def __get_coord_from_labels(lista):
@@ -320,8 +341,17 @@ if __name__ == '__main__':
 
     # timetest()
     # create_dataset()
-    f, h, d = read_dataset_random(number=2)
+    f, h, d = read_dataset_random(number=100)
+    f = np.array(f)
+    h = np.array(h)
+    d = np.array(d)
+
+    print(f.shape, h.shape, d.shape)
     u.showimage(f[1])
     u.showimage(h[1])
     u.showimage(d[1])
     u.showimages(u.get_crops_from_heatmap(f[1], h[1]))
+
+
+    f, h, d = shuffle_rgb_depth_heatmap(f, h, d)
+    print(f.shape, h.shape, d.shape)

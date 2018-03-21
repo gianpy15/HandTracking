@@ -1,4 +1,4 @@
-from hands_bounding_utils.hands_locator_from_rgbd import read_dataset, create_dataset
+from hands_bounding_utils.hands_locator_from_rgbd import read_dataset, create_dataset, read_dataset_random
 from networks.custom_layers.heatmap_loss import heatmap_loss
 import numpy as np
 import keras.models as km
@@ -23,21 +23,21 @@ model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2
 
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')
-train = False
+train = True
 shuffle = False
 build_dataset = False
+attach_depth = False
 
 # Hyper parameters
 train_samples = 2000
 test_samples = 100
 weight_decay = kr.l2(1e-3)
 
-
 if build_dataset:
     create_dataset(savepath=dataset_path, fillgaps=True,
                    resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
 
-images, heat_maps, depths = read_dataset(path=dataset_path)
+images, heat_maps, depths = read_dataset_random(path=dataset_path, number=2 * train_samples + test_samples)
 
 if shuffle:
     dataset = [images, heat_maps, depths]
@@ -62,15 +62,16 @@ print("Train images = {}, train maps = {}".format(np.shape(train_imgs), np.shape
 
 print("Test images = {}, test maps = {}".format(np.shape(test_imgs), np.shape(test_depths)))
 
-X = np.concatenate((train_imgs, train_depths), axis=-1)
-X_test = np.concatenate((test_imgs, test_depths), axis=-1)
-print("Input shape: {}".format(np.shape(X)))
+if attach_depth:
+    X = np.concatenate((train_imgs, train_depths), axis=-1)
+    X_test = np.concatenate((test_imgs, test_depths), axis=-1)
+    print("Input shape: {}".format(np.shape(X)))
 
-model_input = train_imgs
-model_test = test_imgs
+model_input = X if attach_depth else train_imgs
+model_test = X_test if attach_depth else test_imgs
 
-tb_manager.add_images(test_imgs, name="train_imgs", max_out=5)
-tb_manager.add_images(test_maps, name="train_maps", max_out=5)
+tb_manager.add_images(test_imgs[0:5], name="train_imgs", max_out=5)
+tb_manager.add_images(test_maps[0:5], name="train_maps", max_out=5)
 
 # Build up the model
 model = km.Sequential()
@@ -87,7 +88,8 @@ model.add(kl.MaxPooling2D())
 model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
 # model.add(Softmax4D(axis=1, name='softmax4D'))
 model.add(Abs())
-model.summary()
+if train:
+    model.summary()
 
 # Callbacks for keras
 tensor_board = kc.TensorBoard(log_dir=tensorboard_path, histogram_freq=1)
@@ -104,7 +106,8 @@ model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
 
 if train:
     print('training starting...')
-    model.fit(model_input, train_maps, epochs=100,  batch_size=20, callbacks=callbacks, verbose=1, validation_data=(model_test, test_maps))
+    model.fit(model_input, train_maps, epochs=100, batch_size=20, callbacks=callbacks, verbose=1,
+              validation_data=(model_test, test_maps))
     print('training complete!')
 
     model.save(model_save_path)
