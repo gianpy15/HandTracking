@@ -6,6 +6,7 @@ import tqdm
 import os
 import math
 from scipy import io as scio
+import random
 from scipy.ndimage import convolve
 from scipy.misc import imresize
 import hands_bounding_utils.utils as u
@@ -127,6 +128,45 @@ def read_dataset(path=None, verbosity=0):
         if verbosity == 1:
             print("Reading image: ", i, " of ", tot)
             i += 1
+        realpath = os.path.join(basedir, name)
+        matcontent = scio.loadmat(realpath)
+        frames.append(matcontent['frame'])
+        heatmaps.append(matcontent['heatmap'])
+        depths.append(matcontent['depth'])
+    return frames, heatmaps, depths
+
+
+def read_dataset_random(path=None, number = 1, verbosity=0):
+    """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
+    the create_dataset method
+    :param verbosity: setting this parameter to True will make the method print the number of .mat files read
+    every time it reads one
+    :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
+    /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param number: number of elements to read
+    """
+    if path is None:
+        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
+    else:
+        basedir = path
+    samples = os.listdir(basedir)
+    i = 0
+    tot = len(samples)
+    if number > tot:
+        raise ValueError("number must be smaller than the number of samples")
+    already_read = np.zeros([tot])
+    frames = []
+    heatmaps = []
+    depths = []
+    while i < number:
+        i += 1
+        if verbosity == 1:
+            print("Reading image: ", i, " of ", tot)
+        which = int(math.floor(random.uniform(0, tot - 0.01)))
+        while already_read[which] == 1:
+            which = math.floor(random.uniform(0, tot - 0.01))
+        already_read[which] = 1
+        name = samples[which]
         realpath = os.path.join(basedir, name)
         matcontent = scio.loadmat(realpath)
         frames.append(matcontent['frame'])
@@ -279,8 +319,8 @@ if __name__ == '__main__':
     # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
     # timetest()
-    create_dataset()
-    f, h, d = read_dataset()
+    # create_dataset()
+    f, h, d = read_dataset_random(number=2)
     u.showimage(f[1])
     u.showimage(h[1])
     u.showimage(d[1])
