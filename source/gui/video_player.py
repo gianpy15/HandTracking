@@ -127,6 +127,14 @@ if __name__ == '__main__':
         save_button = Button(cmd, text="Save")
         save_button.pack(fill=BOTH)
 
+        # Keep button
+        keep_button = Button(cmd, text="Keep")
+        keep_button.pack(fill=BOTH)
+
+        # Keep All button
+        keep_all_button = Button(cmd, text="Keep All")
+        keep_all_button.pack(fill=BOTH)
+
         # Build the model drawer
         md = ModelDrawer()
         md.set_target_area(canvas)
@@ -143,6 +151,8 @@ if __name__ == '__main__':
         )
         pause_button.bind('<Button-1>', lambda e: player.pause())
         play_button.bind('<Button-1>', lambda e: player.play())
+        keep_button.bind('<Button-1>', lambda e: player.keepthis())
+        keep_all_button.bind('<Button-1>', lambda e: player.keepall())
         root.after(50, player.nextframe, root)
 
         slider = Scale(root,
