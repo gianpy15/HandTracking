@@ -92,7 +92,7 @@ if __name__ == '__main__':
         image_width = np.shape(frames)[2]
         image_height = np.shape(frames)[1]
 
-        topframe = Frame(root, height=image_height, width=cmd_width+image_width)
+        topframe = Frame(root, height=image_height, width=cmd_width + image_width)
         topframe.pack(side=TOP)
 
         # Frame for buttons
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             modeldrawer=md,
             status=msg,
             indexes=indexes,
-            discard=discard
+            discard=discard,
         )
         pause_button.bind('<Button-1>', lambda e: player.pause())
         play_button.bind('<Button-1>', lambda e: player.play())
@@ -161,6 +161,13 @@ if __name__ == '__main__':
                        command=lambda v: player.set_speed_mult(v))
         slider.set(1)
         slider.pack(side=BOTTOM, fill=BOTH)
+        frameslider = Scale(root,
+                            from_=0, to=np.shape(frames)[0] - 1, resolution=1,
+                            orient=HORIZONTAL, tickinterval=20.0,
+                            command=lambda v: player.set_current_frame(int(v)))
+        frameslider.set(0)
+        player.frameslider = frameslider
+        frameslider.pack(side=BOTTOM, fill=BOTH)
 
         discard_button.bind('<Button-1>', lambda e: player.set_changes())
 

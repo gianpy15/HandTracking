@@ -46,6 +46,7 @@ class PlayerThread:
 
         # frame counter
         self.current_frame = 0
+        self.frameslider = None
 
         # persistent image canvas ID to be able to update it
         self.imageid = self.make_canvas_image()
@@ -109,6 +110,8 @@ class PlayerThread:
             self.current_frame %= len(self.photoimgs)
             # display the current photoimage
             self.update_frame()
+            if self.frameslider is not None:
+                self.frameslider.set(self.current_frame)
         tot = (time.time()-start) * 1000
         # make the tkinter main loop to call after the needed time
         root.after(int(-tot + 1000 // (self.current_fps * abs(self.speed_mult))), self.nextframe, root)
@@ -180,6 +183,10 @@ class PlayerThread:
     def keepall(self):
         for i in range(len(self.labels)):
             self.edited[i] = 1
+
+    def set_current_frame(self, frameno):
+        self.current_frame = frameno
+        self.update_frame()
 
     @staticmethod
     def encode_labels(labels):
