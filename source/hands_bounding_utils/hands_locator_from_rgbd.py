@@ -136,7 +136,7 @@ def read_dataset(path=None, verbosity=0):
     return frames, heatmaps, depths
 
 
-def read_dataset_random(path=None, number = 1, verbosity=0):
+def read_dataset_random(path=None, number=1, verbosity=0):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -164,7 +164,7 @@ def read_dataset_random(path=None, number = 1, verbosity=0):
             print("Reading image: ", i, " of ", tot)
         which = int(math.floor(random.uniform(0, tot - 0.01)))
         while already_read[which] == 1:
-            which = math.floor(random.uniform(0, tot - 0.01))
+            which = int(math.floor(random.uniform(0, tot - 0.01)))
         already_read[which] = 1
         name = samples[which]
         realpath = os.path.join(basedir, name)
