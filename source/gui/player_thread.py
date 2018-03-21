@@ -174,6 +174,13 @@ class PlayerThread:
         self.label_target_initial_click = None
         self.label_target_original = None
 
+    def keepthis(self):
+        self.edited[self.current_frame] = 1 - self.edited[self.current_frame]
+
+    def keepall(self):
+        for i in range(len(self.labels)):
+            self.edited[i] = 1
+
     @staticmethod
     def encode_labels(labels):
         ret = ""
