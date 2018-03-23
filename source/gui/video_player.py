@@ -123,10 +123,6 @@ if __name__ == '__main__':
         discard_label = Label(root, textvariable=discard)
         discard_label.pack()
 
-        # Save button
-        save_button = Button(cmd, text="Save")
-        save_button.pack(fill=BOTH)
-
         # Keep button
         keep_button = Button(cmd, text="Keep")
         keep_button.pack(fill=BOTH)
@@ -150,6 +146,14 @@ if __name__ == '__main__':
         # Prev Fixed button
         prev_fixed_button = Button(cmd, text="Previous fixed")
         prev_fixed_button.pack(fill=BOTH)
+
+        # Interpolate button
+        interp_button = Button(cmd, text="Interpolate fixed")
+        interp_button.pack(fill=BOTH)
+
+        # Save button
+        save_button = Button(cmd, text="Save")
+        save_button.pack(fill=BOTH)
 
         # Build the model drawer
         md = ModelDrawer()
@@ -196,5 +200,7 @@ if __name__ == '__main__':
         prev_button.bind('<Button-1>', lambda e: player.set_current_frame(player.current_frame-1))
 
         prev_fixed_button.bind('<Button-1>', lambda e: player.next_fixed_frame(jumps=-1))
+
+        interp_button.bind('<Button-1>', lambda e: player.reinterpolate())
 
         root.mainloop()

@@ -7,6 +7,7 @@ from PIL import ImageTk, Image
 from random import randint
 import time
 from hand_data_management.naming import framebase
+from hand_data_management.video_loader import linear_fill
 
 
 class PlayerThread:
@@ -15,7 +16,7 @@ class PlayerThread:
     """
 
     def __init__(self, frames, canvas, status, indexes, discard, modeldrawer=None, labels=None, fps=30):
-        self.labels = labels
+        self.labels = np.array(labels)
         self.canvas = canvas
         self.current_fps = fps
         self.speed_mult = 1.0
@@ -30,7 +31,7 @@ class PlayerThread:
         self.pic_width = np.shape(frames)[2]
         self.play_flag = False
         self.frame_status_msg = status
-        self.indexes = indexes
+        self.indexes = np.array([True if idx == 1 else False for idx in indexes]) if indexes is not None else None
         self.discard = discard
         # Build the frame buffer at once
         if frames[0].dtype in [np.float16, np.float32, np.float64]:
@@ -54,10 +55,10 @@ class PlayerThread:
         if self.labels is not None and self.model_drawer is not None:
             self.model_drawer.set_joints(self.labels[self.current_frame])
 
-        self.deleted = [0 for _ in range(len(framebuff))]
-        self.edited = [0 for _ in range(len(framebuff))]
+        self.deleted = np.array([False for _ in range(len(framebuff))])
+        self.edited = np.array([False for _ in range(len(framebuff))])
 
-        self.discard.set("Discarded" if self.deleted[self.current_frame] == 1 else "")
+        self.discard.set("Discarded" if self.deleted[self.current_frame] else "")
         if self.indexes is not None:
             self.frame_status_msg.set(self.update_frame_status(self.indexes[self.current_frame]))
 
@@ -97,8 +98,8 @@ class PlayerThread:
         if self.frame_status_msg.get() != new_msg:
             self.frame_status_msg.set(new_msg)
 
-        self.discard.set("Discarded" if self.deleted[self.current_frame] == 1
-                         else "Edited" if self.edited[self.current_frame] == 1
+        self.discard.set("Discarded" if self.deleted[self.current_frame]
+                         else "Edited" if self.edited[self.current_frame]
                          else "")
         if self.frameslider is not None:
             self.frameslider.set(self.current_frame)
@@ -131,10 +132,9 @@ class PlayerThread:
         self.speed_mult = float(mult)
 
     def update_frame_status(self, value):
-        if value == 0:
-            return "Interpolated"
-        elif value == 1:
+        if value:
             return "Labeled"
+        return "Interpolated"
 
     def print_changes(self, vidname):
         fname = vidname + "-" + str(randint(0, 999)) + ".txt"
@@ -143,16 +143,16 @@ class PlayerThread:
         for i in range(len(self.deleted)):
             if self.deleted[i] == 1:
                 file.write("D%d\n" % i)
-            elif self.edited[i] == 1:
+            elif self.edited[i]:
                 file.write("E%d;%s\n" % (i, PlayerThread.encode_labels(self.labels[i])))
 
     def set_changes(self):
-        if self.deleted[self.current_frame] == 0:
-            self.deleted[self.current_frame] = 1
+        if not self.deleted[self.current_frame]:
+            self.deleted[self.current_frame] = True
             self.discard.set("Discarded")
 
-        elif self.deleted[self.current_frame] == 1:
-            self.deleted[self.current_frame] = 0
+        elif self.deleted[self.current_frame]:
+            self.deleted[self.current_frame] = False
             self.discard.set("")
 
     def onclick(self, event):
@@ -175,18 +175,18 @@ class PlayerThread:
         delta = np.append(relcoords - self.label_target_initial_click, 0)
         self.labels[self.current_frame][self.label_target_no] = self.label_target_original + delta
         self.model_drawer.set_joints(self.labels[self.current_frame])
-        self.edited[self.current_frame] = 1
+        self.edited[self.current_frame] = True
         self.label_target_initial_click = None
         self.label_target_original = None
         self.update_frame()
 
     def keepthis(self):
-        self.edited[self.current_frame] = 1 - self.edited[self.current_frame]
+        self.edited[self.current_frame] = not self.edited[self.current_frame]
         self.update_frame()
 
     def keepall(self):
         for i in range(len(self.labels)):
-            self.edited[i] = 1
+            self.edited[i] = True
         self.update_frame()
 
     def set_current_frame(self, frameno):
@@ -200,6 +200,14 @@ class PlayerThread:
         while idx != self.current_frame and (self.deleted[idx] or not (self.indexes[idx] or self.edited[idx])):
             idx = (idx + jumps) % len(self.imgs)
         self.set_current_frame(idx)
+
+    def reinterpolate(self):
+        if self.indexes is None:
+            return
+        taken = np.logical_and(np.logical_or(self.indexes, self.edited), np.logical_not(self.deleted))
+        self.labels[np.logical_not(taken)] = None
+        self.labels = linear_fill(self.labels)
+        self.update_frame()
 
     @staticmethod
     def encode_labels(labels):
