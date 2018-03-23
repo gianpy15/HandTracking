@@ -135,6 +135,22 @@ if __name__ == '__main__':
         keep_all_button = Button(cmd, text="Keep All")
         keep_all_button.pack(fill=BOTH)
 
+        # Next button
+        next_button = Button(cmd, text="Next")
+        next_button.pack(fill=BOTH)
+
+        # Next Fixed button
+        next_fixed_button = Button(cmd, text="Next fixed")
+        next_fixed_button.pack(fill=BOTH)
+
+        # Prev button
+        prev_button = Button(cmd, text="Previous")
+        prev_button.pack(fill=BOTH)
+
+        # Prev Fixed button
+        prev_fixed_button = Button(cmd, text="Previous fixed")
+        prev_fixed_button.pack(fill=BOTH)
+
         # Build the model drawer
         md = ModelDrawer()
         md.set_target_area(canvas)
@@ -172,5 +188,13 @@ if __name__ == '__main__':
         discard_button.bind('<Button-1>', lambda e: player.set_changes())
 
         save_button.bind('<Button-1>', lambda e: player.print_changes(vidname))
+
+        next_button.bind('<Button-1>', lambda e: player.set_current_frame(player.current_frame+1))
+
+        next_fixed_button.bind('<Button-1>', lambda e: player.next_fixed_frame())
+
+        prev_button.bind('<Button-1>', lambda e: player.set_current_frame(player.current_frame-1))
+
+        prev_fixed_button.bind('<Button-1>', lambda e: player.next_fixed_frame(jumps=-1))
 
         root.mainloop()

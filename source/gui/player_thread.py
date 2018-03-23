@@ -97,7 +97,11 @@ class PlayerThread:
         if self.frame_status_msg.get() != new_msg:
             self.frame_status_msg.set(new_msg)
 
-        self.discard.set("Discarded" if self.deleted[self.current_frame] == 1 else "")
+        self.discard.set("Discarded" if self.deleted[self.current_frame] == 1
+                         else "Edited" if self.edited[self.current_frame] == 1
+                         else "")
+        if self.frameslider is not None:
+            self.frameslider.set(self.current_frame)
 
     def nextframe(self, root):
         if self.speed_mult == 0:
@@ -110,8 +114,6 @@ class PlayerThread:
             self.current_frame %= len(self.photoimgs)
             # display the current photoimage
             self.update_frame()
-            if self.frameslider is not None:
-                self.frameslider.set(self.current_frame)
         tot = (time.time()-start) * 1000
         # make the tkinter main loop to call after the needed time
         root.after(int(-tot + 1000 // (self.current_fps * abs(self.speed_mult))), self.nextframe, root)
@@ -176,17 +178,28 @@ class PlayerThread:
         self.edited[self.current_frame] = 1
         self.label_target_initial_click = None
         self.label_target_original = None
+        self.update_frame()
 
     def keepthis(self):
         self.edited[self.current_frame] = 1 - self.edited[self.current_frame]
+        self.update_frame()
 
     def keepall(self):
         for i in range(len(self.labels)):
             self.edited[i] = 1
+        self.update_frame()
 
     def set_current_frame(self, frameno):
-        self.current_frame = frameno
+        self.current_frame = frameno % len(self.imgs)
         self.update_frame()
+
+    def next_fixed_frame(self, jumps=1):
+        if self.indexes is None:
+            return
+        idx = (self.current_frame + jumps) % len(self.imgs)
+        while idx != self.current_frame and (self.deleted[idx] or not (self.indexes[idx] or self.edited[idx])):
+            idx = (idx + jumps) % len(self.imgs)
+        self.set_current_frame(idx)
 
     @staticmethod
     def encode_labels(labels):
