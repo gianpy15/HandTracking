@@ -200,6 +200,7 @@ class PlayerThread:
     def keepall(self):
         for i in range(len(self.labels)):
             self.edited[i] = True
+            self.deleted[i] = False
         self.update_frame()
 
     def set_current_frame(self, frameno):
