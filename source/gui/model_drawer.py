@@ -41,11 +41,16 @@ class ModelDrawer:
         self.onclickreaction = lambda e: None
         self.onmovereaction = lambda e: None
         self.onreleasereaction = lambda e: None
+        self.onrightclick = lambda e: None
 
-    def set_reactions(self, onclick=lambda e: None, onmove=lambda e: None, onrelease=lambda e: None):
+    def set_reactions(self, onclick=lambda e: None,
+                      onmove=lambda e: None,
+                      onrelease=lambda e: None,
+                      onrightclick=lambda e: None):
         self.onclickreaction = onclick
         self.onmovereaction = onmove
         self.onreleasereaction = onrelease
+        self.onrightclick = onrightclick
 
     def set_target_area(self, canvas, position=(0, 0), size=None):
         """
@@ -180,6 +185,9 @@ class ModelDrawer:
         self.canvas.tag_bind(self.drawn[finger][joint], "<Button-1>", self.onclickreaction)
         self.canvas.tag_bind(self.drawn[finger][joint], "<B1-Motion>", self.onmovereaction)
         self.canvas.tag_bind(self.drawn[finger][joint], "<ButtonRelease-1>", self.onreleasereaction)
+        self.canvas.tag_bind(self.drawn[finger][joint], "<Button-3>", self.onrightclick)
+        self.canvas.tag_bind(self.drawn[finger][joint], "<Button-2>", self.onrightclick)
+
 
     def __draw_new_section(self, finger, basejoint):
         self.drawn[finger]["%d-%d" % (basejoint, basejoint + 1)] = self.__draw_custom_line(

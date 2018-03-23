@@ -23,7 +23,8 @@ class PlayerThread:
         self.model_drawer = modeldrawer
         self.model_drawer.set_reactions(onclick=lambda e: self.onclick(e),
                                         onmove=lambda e: self.onmove(e),
-                                        onrelease=lambda e: self.onrelease(e))
+                                        onrelease=lambda e: self.onrelease(e),
+                                        onrightclick=lambda e: self.onrightclick(e))
         self.label_target_no = 0
         self.label_target_original = None
         self.label_target_initial_click = None
@@ -154,6 +155,18 @@ class PlayerThread:
         elif self.deleted[self.current_frame]:
             self.deleted[self.current_frame] = False
             self.discard.set("")
+
+    def change_visibility(self, index):
+        self.labels[self.current_frame][index][2] = int(1 - self.labels[self.current_frame][index][2])
+        self.edited[self.current_frame] = True
+        self.update_frame()
+
+    def onrightclick(self, event):
+        if self.play_flag:
+            return
+        relcoords = np.array((event.x / self.canvas.winfo_width(), event.y / self.canvas.winfo_height()))
+        selected = np.argmin(np.linalg.norm(self.labels[self.current_frame][:, 0:2] - relcoords, axis=1))
+        self.change_visibility(selected)
 
     def onclick(self, event):
         if self.play_flag:
