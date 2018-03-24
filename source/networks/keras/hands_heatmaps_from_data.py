@@ -1,14 +1,6 @@
-from hands_bounding_utils.hands_locator_from_rgbd import read_dataset, create_dataset, read_dataset_random
-from networks.custom_layers.heatmap_loss import heatmap_loss
-import numpy as np
-import keras.models as km
-import keras.layers as kl
-import keras.callbacks as kc
-import keras.optimizers as ko
-import keras.regularizers as kr
-import matplotlib.pyplot as plt
-import keras.losses as klo
-from networks.custom_layers.abs import Abs
+from hands_bounding_utils.hands_locator_from_rgbd import *
+from neural_network.keras.custom_layers import heatmap_loss
+from neural_network.keras.models.heatmap import *
 import os
 from data_manager.path_manager import PathManager
 from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
@@ -18,33 +10,36 @@ pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = pm.resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.h5'))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
 
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')
 train = True
-shuffle = False
+random_dataset = True
+shuffle = True
 build_dataset = False
-attach_depth = False
+attach_depth = True
 
 # Hyper parameters
 train_samples = 2000
-test_samples = 100
-weight_decay = kr.l2(1e-3)
+test_samples = 200
+weight_decay = kr.l2(1e-5)
+learning_rate = 1e-3
+
+# Data set stuff
 
 if build_dataset:
     create_dataset(savepath=dataset_path, fillgaps=True,
                    resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
 
-images, heat_maps, depths = read_dataset_random(path=dataset_path, number=2 * train_samples + test_samples)
+if random_dataset:
+    images, heat_maps, depths = read_dataset_random(path=dataset_path, number=2 * train_samples + test_samples)
+else:
+    images, heat_maps, depths = read_dataset(path=dataset_path)
 
 if shuffle:
-    dataset = [images, heat_maps, depths]
-    dataset = np.transpose(dataset)
-    np.random.shuffle(dataset)
-    dataset = np.transpose(dataset)
-    images, heat_maps, depths = tuple(dataset)
+    images, depths, heat_maps = shuffle_rgb_depth_heatmap(images, depths, heat_maps)
 
 images, heat_maps, depths = np.array(images), np.array(heat_maps), np.array(depths)
 images = images / 255
@@ -73,32 +68,20 @@ model_test = X_test if attach_depth else test_imgs
 tb_manager.add_images(test_imgs[0:5], name="train_imgs", max_out=5)
 tb_manager.add_images(test_maps[0:5], name="train_maps", max_out=5)
 
+
 # Build up the model
-model = km.Sequential()
-model.add(kl.Conv2D(input_shape=np.shape(model_input)[1:], filters=32, kernel_size=[3, 3], padding='same'))
-model.add(kl.Activation('relu'))
-model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
-model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
-model.add(kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
-model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
-model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
-model.add(kl.MaxPooling2D())
-model.add(kl.Conv2D(filters=16, kernel_size=[3, 3], padding='same', activation='relu', kernel_regularizer=weight_decay))
-model.add(kl.MaxPooling2D())
-model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
-# model.add(Softmax4D(axis=1, name='softmax4D'))
-model.add(Abs())
-if train:
-    model.summary()
+model = simple_model(input_shape=np.shape(model_input)[1:], weight_decay=weight_decay)
+model.summary()
 
 # Callbacks for keras
 tensor_board = kc.TensorBoard(log_dir=tensorboard_path, histogram_freq=1)
 model_ckp = kc.ModelCheckpoint(filepath=model_ck_path, monitor='val_loss',
                                verbose=1, save_best_only=True, mode='min', period=1)
-es = kc.EarlyStopping(patience=10, verbose=1, monitor='val_loss', mode='min')
+es = kc.EarlyStopping(patience=10, verbose=1, monitor='val_loss', mode='min', min_delta=1e-4)
 callbacks = [tensor_board, model_ckp, es]
 
-optimizer = ko.adam(lr=1e-3)
+# Training tools
+optimizer = ko.adam(lr=learning_rate)
 loss = heatmap_loss
 model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
 
@@ -106,7 +89,7 @@ model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
 
 if train:
     print('training starting...')
-    model.fit(model_input, train_maps, epochs=100, batch_size=20, callbacks=callbacks, verbose=1,
+    model.fit(model_input, train_maps, epochs=200, batch_size=10, callbacks=callbacks, verbose=0,
               validation_data=(model_test, test_maps))
     print('training complete!')
 

@@ -1,13 +1,11 @@
 from hands_bounding_utils.hands_locator_from_rgbd import read_dataset
 import numpy as np
 import keras.models as km
-import matplotlib.pyplot as plt
-from networks.custom_layers.abs import Abs
+from neural_network.keras.custom_layers.abs import Abs
 from skimage.transform import resize
 import os
 from data_manager.path_manager import PathManager
 import hands_bounding_utils.utils as u
-from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
 
 pm = PathManager()
 

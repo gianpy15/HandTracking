@@ -92,7 +92,7 @@ if __name__ == '__main__':
         image_width = np.shape(frames)[2]
         image_height = np.shape(frames)[1]
 
-        topframe = Frame(root, height=image_height, width=cmd_width+image_width)
+        topframe = Frame(root, height=image_height, width=cmd_width + image_width)
         topframe.pack(side=TOP)
 
         # Frame for buttons
@@ -123,10 +123,6 @@ if __name__ == '__main__':
         discard_label = Label(root, textvariable=discard)
         discard_label.pack()
 
-        # Save button
-        save_button = Button(cmd, text="Save")
-        save_button.pack(fill=BOTH)
-
         # Keep button
         keep_button = Button(cmd, text="Keep")
         keep_button.pack(fill=BOTH)
@@ -134,6 +130,30 @@ if __name__ == '__main__':
         # Keep All button
         keep_all_button = Button(cmd, text="Keep All")
         keep_all_button.pack(fill=BOTH)
+
+        # Next button
+        next_button = Button(cmd, text="Next")
+        next_button.pack(fill=BOTH)
+
+        # Next Fixed button
+        next_fixed_button = Button(cmd, text="Next fixed")
+        next_fixed_button.pack(fill=BOTH)
+
+        # Prev button
+        prev_button = Button(cmd, text="Previous")
+        prev_button.pack(fill=BOTH)
+
+        # Prev Fixed button
+        prev_fixed_button = Button(cmd, text="Previous fixed")
+        prev_fixed_button.pack(fill=BOTH)
+
+        # Interpolate button
+        interp_button = Button(cmd, text="Interpolate fixed")
+        interp_button.pack(fill=BOTH)
+
+        # Save button
+        save_button = Button(cmd, text="Save")
+        save_button.pack(fill=BOTH)
 
         # Build the model drawer
         md = ModelDrawer()
@@ -147,7 +167,7 @@ if __name__ == '__main__':
             modeldrawer=md,
             status=msg,
             indexes=indexes,
-            discard=discard
+            discard=discard,
         )
         pause_button.bind('<Button-1>', lambda e: player.pause())
         play_button.bind('<Button-1>', lambda e: player.play())
@@ -161,9 +181,26 @@ if __name__ == '__main__':
                        command=lambda v: player.set_speed_mult(v))
         slider.set(1)
         slider.pack(side=BOTTOM, fill=BOTH)
+        frameslider = Scale(root,
+                            from_=0, to=np.shape(frames)[0] - 1, resolution=1,
+                            orient=HORIZONTAL, tickinterval=20.0,
+                            command=lambda v: player.set_current_frame(int(v)))
+        frameslider.set(0)
+        player.frameslider = frameslider
+        frameslider.pack(side=BOTTOM, fill=BOTH)
 
         discard_button.bind('<Button-1>', lambda e: player.set_changes())
 
         save_button.bind('<Button-1>', lambda e: player.print_changes(vidname))
+
+        next_button.bind('<Button-1>', lambda e: player.set_current_frame(player.current_frame+1))
+
+        next_fixed_button.bind('<Button-1>', lambda e: player.next_fixed_frame())
+
+        prev_button.bind('<Button-1>', lambda e: player.set_current_frame(player.current_frame-1))
+
+        prev_fixed_button.bind('<Button-1>', lambda e: player.next_fixed_frame(jumps=-1))
+
+        interp_button.bind('<Button-1>', lambda e: player.reinterpolate())
 
         root.mainloop()

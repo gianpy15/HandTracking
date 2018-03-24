@@ -35,15 +35,22 @@ class ModelDrawer:
             RING: "purple",
             BABY: "blue"
         }
+        self.occluded_color = 0x304FFE
+        self.visible_color = 0x00E676
         self.dot_radius = 3
         self.onclickreaction = lambda e: None
         self.onmovereaction = lambda e: None
         self.onreleasereaction = lambda e: None
+        self.onrightclick = lambda e: None
 
-    def set_reactions(self, onclick=lambda e: None, onmove=lambda e: None, onrelease=lambda e: None):
+    def set_reactions(self, onclick=lambda e: None,
+                      onmove=lambda e: None,
+                      onrelease=lambda e: None,
+                      onrightclick=lambda e: None):
         self.onclickreaction = onclick
         self.onmovereaction = onmove
         self.onreleasereaction = onrelease
+        self.onrightclick = onrightclick
 
     def set_target_area(self, canvas, position=(0, 0), size=None):
         """
@@ -92,7 +99,7 @@ class ModelDrawer:
                 self.need_depth_update = True
             self.joints = hand_format([(p.coords[0] / resolution[0], p.coords[1] / resolution[1]) for p in joints])
         else:
-            self.joints = hand_format([(p[0] / resolution[0], p[1] / resolution[1]) for p in joints])
+            self.joints = hand_format([(p[0] / resolution[0], p[1] / resolution[1], p[2]) for p in joints])
         if self.canvas is not None:
             self.draw_model()
 
@@ -159,18 +166,28 @@ class ModelDrawer:
                                self.joints[key1][0],
                                self.joints[key2][0])
 
+    def __visibility_color(self, occlusion_rate):
+        return '#%06X' % int(occlusion_rate * self.occluded_color + (1 - occlusion_rate) * self.visible_color)
+
     def __draw_new_joint(self, finger, joint=0):
-        drawx, drawy = self.__get_coordinates(self.joints[finger][joint])
+        point = self.joints[finger][joint]
+        drawx, drawy = self.__get_coordinates(point)
+        linecol = self.__visibility_color(point[2]) if len(point) > 2 else 'black'
         self.drawn[finger][joint] = self.canvas.create_oval(drawx - self.dot_radius,
                                                             drawy - self.dot_radius,
                                                             drawx + self.dot_radius,
                                                             drawy + self.dot_radius,
                                                             fill=self.dot_colors[finger],
+                                                            outline=linecol,
+                                                            width=2,
                                                             tags=[self.__all_tag, self.__dots_tag]
                                                             )
         self.canvas.tag_bind(self.drawn[finger][joint], "<Button-1>", self.onclickreaction)
         self.canvas.tag_bind(self.drawn[finger][joint], "<B1-Motion>", self.onmovereaction)
         self.canvas.tag_bind(self.drawn[finger][joint], "<ButtonRelease-1>", self.onreleasereaction)
+        self.canvas.tag_bind(self.drawn[finger][joint], "<Button-3>", self.onrightclick)
+        self.canvas.tag_bind(self.drawn[finger][joint], "<Button-2>", self.onrightclick)
+
 
     def __draw_new_section(self, finger, basejoint):
         self.drawn[finger]["%d-%d" % (basejoint, basejoint + 1)] = self.__draw_custom_line(
@@ -192,13 +209,17 @@ class ModelDrawer:
                                        )
 
     def __update_joint(self, finger, joint=0):
-        drawx, drawy = self.__get_coordinates(self.joints[finger][joint])
+        point = self.joints[finger][joint]
+        drawx, drawy = self.__get_coordinates(point)
+        linecol = self.__visibility_color(point[2]) if len(point) > 2 else 'black'
         self.canvas.coords(self.drawn[finger][joint],
                            drawx - self.dot_radius,
                            drawy - self.dot_radius,
                            drawx + self.dot_radius,
                            drawy + self.dot_radius
                            )
+        self.canvas.itemconfig(self.drawn[finger][joint],
+                               outline=linecol)
 
     def __update_line(self, lineid, point1, point2):
         drawx1, drawy1 = self.__get_coordinates(point1)
