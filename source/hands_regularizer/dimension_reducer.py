@@ -40,7 +40,7 @@ crops = []
 num = len(images)
 for i in range(num):
     i_th_crop = u.get_crops_from_heatmap(images[i], heat_maps[i], height_shrink_rate=4, width_shrink_rate=4,
-                                         enlarge=0.8, accept_crop_minimum_dimension_pixels=600)
+                                         enlarge=0.8, accept_crop_minimum_dimension_pixels=50)
     crops.append(i_th_crop)
 
 # crops should now contain all crops. crops[i] contains all the crops
