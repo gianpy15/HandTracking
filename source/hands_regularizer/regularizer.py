@@ -54,6 +54,14 @@ class Regularizer:
             frame = normalize(frame)
         return frame
 
+    def apply_on_batch(self, batch):
+        ris = []
+        for frame in batch:
+            frame = np.array(frame)
+            frame = self.apply(frame)
+            ris.append(frame)
+        return np.array(ris)
+
 
 def add_padding(image, right_pad, bottom_pad):
     image = np.hstack((image, np.zeros([image.shape[0], right_pad, image.shape[2]], dtype=image.dtype)))
@@ -82,9 +90,10 @@ def normalize(frame):
     return frame
 
 
-test = scipy.misc.imread("t.jpg")
-r = Regularizer()
-r.padding(50, 50)
-r.fixresize(50, 50)
-res = r.apply(test)
-u.showimage(res)
+if __name__ == '__main__':
+    test = scipy.misc.imread("t.jpg")
+    r = Regularizer()
+    r.padding(50, 50)
+    r.fixresize(50, 50)
+    res = r.apply(test)
+    u.showimage(res)
