@@ -199,6 +199,8 @@ def get_crops_from_heatmap(image, heatmap, height_shrink_rate=10, width_shrink_r
     The default value for this parameter is 1000px,"""
     coords = __get_coords_from_heatmap(heatmap, precision, height_shrink_rate, width_shrink_rate,
                                        accept_crop_minimum_dimension_pixels)
+    if len(coords) == 0:
+        return []
     coords = __resize_coords(coords, height_shrink_rate, width_shrink_rate)
     crops = []
     for coord in coords:
