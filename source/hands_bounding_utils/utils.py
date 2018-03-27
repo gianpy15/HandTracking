@@ -185,7 +185,7 @@ def __resize_coords(coords, height_shrink_rate, width_shrink_rate):
 
 def get_crops_from_heatmap(image, heatmap, height_shrink_rate=10, width_shrink_rate=10, precision=0.5,
                            enlarge=0.5, accept_crop_minimum_dimension_pixels=1000):
-    """given an image path and a heatmap, returns an array of images representing the crops of the image w.r.t.
+    """given an image and a heatmap, returns an array of images representing the crops of the image w.r.t.
     the given heatmap.
     :type image: the image to crop
     :type heatmap: a matrix containing all values in the range [0,1] that represents where hands are most likely
@@ -207,6 +207,30 @@ def get_crops_from_heatmap(image, heatmap, height_shrink_rate=10, width_shrink_r
         cropped_image = __crop_from_coords(image, coord, enlarge)
         crops.append(cropped_image)
     return crops
+
+
+def get_crops_from_heatmap_batch(image, heatmap, height_shrink_rate=10, width_shrink_rate=10, precision=0.5,
+                           enlarge=0.5, accept_crop_minimum_dimension_pixels=1000):
+    """given an images batch and a heatmaps batch, returns an array of arrays of of images representing the crops
+    of the images w.r.t. the given heatmaps. crops[i] is THE LIST of the crops obtained from image[i] and heatmap[i].
+    :type image: the images to crop
+    :type heatmap: a list of matrixes containing all values in the range [0,1] that represents where hands are most likely
+    present in the given images.
+    :type enlarge: must be non-negative, crops are enlarged by the given percentage. Default is 0,3 (30%)
+    :type precision: represents which values of the heatmap will be taken into account for the crops
+    :type height_shrink_rate: the ratio used to rescale from the image height to heatmap height
+    :type width_shrink_rate: the ratio used to rescale from the image width to heatmap width
+    :type accept_crop_minimum_dimension_pixels: due to noise is may be possible that single pixels or small areas
+    will be detected as possible crops. All crops that are smaller than this parameter (square_pixels) are deleted
+    The default value for this parameter is 1000px,"""
+    num = len(image)
+    if num != len(heatmap):
+        raise ValueError("Different batch lengths.")
+    crops = []
+    for i in range(num):
+        crops.append(get_crops_from_heatmap_batch(image[i], heatmap[i], height_shrink_rate, width_shrink_rate,
+                                                  precision, enlarge, accept_crop_minimum_dimension_pixels))
+    return np.array(crops)
 
 
 # ############################## PRODUCING HEATMAP ###########################
