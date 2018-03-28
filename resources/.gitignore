@@ -10,4 +10,5 @@ framedata/*
 rawcam
 vids
 hands_bounding_dataset
+tbdata
 *.zip

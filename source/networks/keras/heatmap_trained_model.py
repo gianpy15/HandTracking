@@ -10,8 +10,8 @@ import hands_bounding_utils.utils as u
 pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("samples_for_heatmaps"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v1.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v1.h5'))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.h5'))
 
 images = read_dataset(path=dataset_path)[0]
 np.random.shuffle(images)
