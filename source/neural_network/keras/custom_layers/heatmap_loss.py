@@ -47,7 +47,7 @@ def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0):
     weight_map = K.square(heat_ground-shifted_mean)/norm_factor
 
     # now apply the weights with component-by-component product
-    weighted_loss = K.square(heat_pred-heat_ground)*weight_map
+    weighted_loss = K.mean(K.square(heat_pred-heat_ground)*weight_map)
 
     return weighted_loss
 
@@ -86,7 +86,7 @@ def prop_heatmap_loss_fast(heat_ground, heat_pred, mean_par, norm_factor):
     weight_map = K.square(heat_ground - mean_par) / norm_factor
 
     # now apply the weights with component-by-component product
-    weighted_loss = K.square(heat_pred - heat_ground) * weight_map
+    weighted_loss = K.mean(K.square(heat_pred - heat_ground) * weight_map)
 
     return weighted_loss
 
