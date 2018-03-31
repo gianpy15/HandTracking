@@ -16,7 +16,7 @@ def heatmap_loss_2(y_true, y_pred, white_weight=1, black_weight=0.1):
            + black_weight * K.mean(K.maximum((y_pred - y_true), 0.), axis=-1)
 
 
-def prop_heatmap_loss(heat_pred, heat_ground, white_priority):
+def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0):
     """
     Loss function for heatmaps to give priority weight to pixels that are
     far from the mean of the ground truth. This mean can be altered in order
@@ -78,7 +78,7 @@ def static_prop_heatmap_parameters(heat_grounds, white_priority):
     return shifted_mean, norm_factor
 
 
-def prop_heatmap_loss_fast(heat_pred, heat_ground, mean_par, norm_factor):
+def prop_heatmap_loss_fast(heat_ground, heat_pred, mean_par, norm_factor):
     """
     A fast version of the prop_heatmap_loss that assumes mean and normalization
     precomputed over some samples. See prop_heatmap_loss doc for more info.

@@ -22,8 +22,8 @@ build_dataset = False
 attach_depth = True
 
 # Hyper parameters
-train_samples = 3000
-test_samples = 200
+train_samples = 10
+test_samples = 10
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
@@ -83,8 +83,8 @@ callbacks = [tensor_board, model_ckp, es, im]
 
 # Training tools
 optimizer = ko.adam(lr=learning_rate)
-loss = heatmap_loss
-model.compile(optimizer=optimizer, loss='mse', metrics=['accuracy'])
+loss = heatmap_loss.prop_heatmap_loss
+model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
 # tb_manager.clear_data()
 
