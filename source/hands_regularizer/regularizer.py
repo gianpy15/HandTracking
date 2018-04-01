@@ -9,6 +9,7 @@ RGB2GREY = 'RGB2GREY'
 RESIZEPERC = 'RESIZEPERC'
 RESIZEFIX = 'RESIZEFIX'
 PADDING = 'PADDING'
+HEATMAPS_TH = 'HEATMAPS_TH'
 OPS = 'OPS'
 
 
@@ -35,6 +36,10 @@ class Regularizer:
     def normalize(self):
         self.pars[OPS].append(NORMALIZE_AVG_VARIANCE)
 
+    def heatmaps_threshold(self, thresh):
+        self.pars[OPS].append(HEATMAPS_TH)
+        self.pars[HEATMAPS_TH] = thresh
+
     def apply(self, frame):
         frame = np.array(frame)
         for op in self.pars[OPS]:
@@ -50,6 +55,9 @@ class Regularizer:
                 continue
             if op == RESIZEFIX:
                 frame = fixed_resize(frame, self.pars[RESIZEFIX])
+                continue
+            if op == HEATMAPS_TH:
+                frame = heat_thresh(frame, self.pars[HEATMAPS_TH])
                 continue
             frame = normalize(frame)
         return frame
@@ -88,6 +96,12 @@ def normalize(frame):
     std = frame.std()
     frame = (frame - avg)/std
     return frame
+
+
+def heat_thresh(heat, thresh):
+    heatm = np.zeros(np.shape(heat))
+    heatm[heat > thresh] = 1
+    return heatm
 
 
 if __name__ == '__main__':

@@ -85,7 +85,7 @@ def cropimage(imagepath, matfilepath, save=False, enlarge=0.3):
     image = read_image(imagepath)
     crops = []
     for coord in coords:
-        cropped_image = __crop_from_coords(image, coord, enlarge)
+        cropped_image = crop_from_coords(image, coord, enlarge)
         crops.append(cropped_image)
     if save:
         split = os_p.splitext(imagepath)
@@ -94,7 +94,7 @@ def cropimage(imagepath, matfilepath, save=False, enlarge=0.3):
     return np.array(crops)
 
 
-def __crop_from_coords(image, coord, enlarge):
+def crop_from_coords(image, coord, enlarge):
     """given a list of 4 coordinates (coord) and an image, returns a crop of the image w.r.t the given coordinates,
     enlarged by a factor defined by the enlarge parameter."""
     image_height = len(image)
@@ -204,7 +204,7 @@ def get_crops_from_heatmap(image, heatmap, height_shrink_rate=10, width_shrink_r
     coords = __resize_coords(coords, height_shrink_rate, width_shrink_rate)
     crops = []
     for coord in coords:
-        cropped_image = __crop_from_coords(image, coord, enlarge)
+        cropped_image = crop_from_coords(image, coord, enlarge)
         crops.append(cropped_image)
     return crops
 
