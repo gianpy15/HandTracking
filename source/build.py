@@ -7,7 +7,6 @@ import hand_data_management.utils as ut
 from image_loader.hand_io import pm
 import re
 
-
 def is_vid_condition(vname):
     if os.path.isdir(vname):
         return False

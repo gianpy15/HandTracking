@@ -1,14 +1,9 @@
 import numpy as np
 import keras.backend as K
-import tensorflow as tf
-
-
-def heatmap_loss(y_true, y_pred, white_weight=1, black_weight=0.1):
-    y_data = tf.reshape(y_true, [-1])
-    y_predictions = tf.reshape(y_pred, [-1])
-    loss = 0
-
-    return loss
+from hands_bounding_utils.hands_locator_from_rgbd import *
+from neural_network.keras.models.heatmap import *
+import hands_bounding_utils.utils as u
+import os
 
 
 def heatmap_loss_2(y_true, y_pred, white_weight=1, black_weight=0.1):
@@ -91,4 +86,13 @@ def prop_heatmap_loss_fast(heat_ground, heat_pred, mean_par, norm_factor):
     return weighted_loss
 
 
-
+if __name__ == '__main__':
+    dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
+    images, heat_maps, depths = read_dataset_random(path=dataset_path, number=1)
+    shifted_mean, norm_factor = static_prop_heatmap_parameters(heat_maps[0], -3)
+    print(shifted_mean, norm_factor)
+    u.showimage(heat_maps[0])
+    weight_map = np.square(heat_maps[0] - shifted_mean) / norm_factor
+    print(np.mean(weight_map))
+    print(weight_map)
+    u.showimage(weight_map)

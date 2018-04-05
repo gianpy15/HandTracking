@@ -15,15 +15,15 @@ model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3
 
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')
-train = False
+train = True
 random_dataset = True
 shuffle = True
 build_dataset = False
-attach_depth = True
+attach_depth = False
 
 # Hyper parameters
-train_samples = 10
-test_samples = 10
+train_samples = 1000
+test_samples = 100
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
@@ -34,7 +34,7 @@ if build_dataset:
                    resize_rate=0.25, width_shrink_rate=4, heigth_shrink_rate=4)
 
 if random_dataset:
-    images, heat_maps, depths = read_dataset_random(path=dataset_path, number=2 * train_samples + test_samples)
+    images, heat_maps, depths = read_dataset_random(path=dataset_path, number=train_samples + test_samples + 10)
 else:
     images, heat_maps, depths = read_dataset(path=dataset_path)
 
@@ -65,8 +65,10 @@ if attach_depth:
 model_input = X if attach_depth else train_imgs
 model_test = X_test if attach_depth else test_imgs
 
-tb_manager.add_images(test_imgs[0:5], name="train_imgs", max_out=5)
-tb_manager.add_images(test_maps[0:5], name="train_maps", max_out=5)
+tb_manager.add_images(test_imgs[0:5], name="test_imgs", max_out=5)
+tb_manager.add_images(test_maps[0:5], name="test_maps", max_out=5)
+tb_manager.add_images(train_imgs[0:5], name="train_imgs", max_out=5)
+tb_manager.add_images(train_maps[0:5], name="train_maps", max_out=5)
 
 
 # Build up the model
@@ -78,19 +80,26 @@ tensor_board = kc.TensorBoard(log_dir=tensorboard_path, histogram_freq=1)
 model_ckp = kc.ModelCheckpoint(filepath=model_ck_path, monitor='val_loss',
                                verbose=1, save_best_only=True, mode='min', period=1)
 es = kc.EarlyStopping(patience=10, verbose=1, monitor='val_loss', mode='min', min_delta=2e-4)
-im = ImageWriter(images=test_imgs[0:5], tb_manager=tb_manager)
-callbacks = [tensor_board, model_ckp, es, im]
+im = ImageWriter(images=train_imgs[0:5], tb_manager=tb_manager, name='train_output')
+im2 = ImageWriter(images=test_imgs[0:5], tb_manager=tb_manager, name='test_output')
+callbacks = [tensor_board, model_ckp, es, im, im2]
 
 # Training tools
 optimizer = ko.adam(lr=learning_rate)
-loss = heatmap_loss.prop_heatmap_loss
+
+
+def my_loss(heat_ground, heat_pred):
+    return heatmap_loss.prop_heatmap_loss(heat_ground, heat_pred, white_priority=-1.5)
+
+
+loss = my_loss
 model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 
 # tb_manager.clear_data()
 
 if train:
     print('training starting...')
-    model.fit(model_input, train_maps, epochs=200, batch_size=20, callbacks=callbacks, verbose=0,
+    model.fit(model_input, train_maps, epochs=100, batch_size=20, callbacks=callbacks, verbose=0,
               validation_data=(model_test, test_maps))
     print('training complete!')
 
