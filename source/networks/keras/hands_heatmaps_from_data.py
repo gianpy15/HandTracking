@@ -2,6 +2,7 @@ from hands_bounding_utils.hands_locator_from_rgbd import *
 from neural_network.keras.custom_layers import heatmap_loss
 from neural_network.keras.models.heatmap import *
 from neural_network.keras.callbacks.image_writer import ImageWriter
+from neural_network.keras.custom_layers.heatmap_loss import my_loss
 import os
 from data_manager.path_manager import PathManager
 from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
@@ -10,11 +11,12 @@ pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = pm.resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v4.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v4.h5'))
 
 TBManager.set_path("heat_maps")
-tb_manager = TBManager('images')
+tb_manager_train = TBManager('train_images')
+tb_manager_test = TBManager('test_images')
 train = True
 random_dataset = True
 shuffle = True
@@ -65,10 +67,10 @@ if attach_depth:
 model_input = X if attach_depth else train_imgs
 model_test = X_test if attach_depth else test_imgs
 
-tb_manager.add_images(test_imgs[0:5], name="test_imgs", max_out=5)
-tb_manager.add_images(test_maps[0:5], name="test_maps", max_out=5)
-tb_manager.add_images(train_imgs[0:5], name="train_imgs", max_out=5)
-tb_manager.add_images(train_maps[0:5], name="train_maps", max_out=5)
+tb_manager_test.add_images(test_imgs[0:5], name="test_imgs", max_out=5)
+tb_manager_test.add_images(test_maps[0:5], name="test_maps", max_out=5)
+tb_manager_train.add_images(train_imgs[0:5], name="train_imgs", max_out=5)
+tb_manager_train.add_images(train_maps[0:5], name="train_maps", max_out=5)
 
 
 # Build up the model
@@ -80,18 +82,12 @@ tensor_board = kc.TensorBoard(log_dir=tensorboard_path, histogram_freq=1)
 model_ckp = kc.ModelCheckpoint(filepath=model_ck_path, monitor='val_loss',
                                verbose=1, save_best_only=True, mode='min', period=1)
 es = kc.EarlyStopping(patience=10, verbose=1, monitor='val_loss', mode='min', min_delta=2e-4)
-im = ImageWriter(images=train_imgs[0:5], tb_manager=tb_manager, name='train_output')
-im2 = ImageWriter(images=test_imgs[0:5], tb_manager=tb_manager, name='test_output')
+im = ImageWriter(images=train_imgs[0:5], tb_manager=tb_manager_train, name='train_output')
+im2 = ImageWriter(images=test_imgs[0:5], tb_manager=tb_manager_test, name='test_output')
 callbacks = [tensor_board, model_ckp, es, im, im2]
 
 # Training tools
 optimizer = ko.adam(lr=learning_rate)
-
-
-def my_loss(heat_ground, heat_pred):
-    return heatmap_loss.prop_heatmap_loss(heat_ground, heat_pred, white_priority=-1.5)
-
-
 loss = my_loss
 model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])
 

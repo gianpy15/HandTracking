@@ -13,8 +13,8 @@ pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = pm.resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v4.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v4.h5'))
 
 TBManager.set_path("heat_maps")
 tb_manager = TBManager('images')

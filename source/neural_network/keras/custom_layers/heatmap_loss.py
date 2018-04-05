@@ -11,7 +11,11 @@ def heatmap_loss_2(y_true, y_pred, white_weight=1, black_weight=0.1):
            + black_weight * K.mean(K.maximum((y_pred - y_true), 0.), axis=-1)
 
 
-def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0):
+def my_loss(heat_ground, heat_pred):
+    return prop_heatmap_loss(heat_ground, heat_pred, white_priority=-1.5)
+
+
+def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0.0):
     """
     Loss function for heatmaps to give priority weight to pixels that are
     far from the mean of the ground truth. This mean can be altered in order

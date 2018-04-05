@@ -1,7 +1,7 @@
-from hands_bounding_utils.hands_locator_from_rgbd import read_dataset
+from hands_bounding_utils.hands_locator_from_rgbd import read_dataset_random
 import numpy as np
 import keras.models as km
-from neural_network.keras.custom_layers.abs import Abs
+from neural_network.keras.custom_layers.heatmap_loss import my_loss
 from skimage.transform import resize
 import os
 from data_manager.path_manager import PathManager
@@ -10,10 +10,10 @@ import hands_bounding_utils.utils as u
 pm = PathManager()
 
 dataset_path = pm.resources_path(os.path.join("samples_for_heatmaps"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v2.h5'))
+model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
+model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
 
-images = read_dataset(path=dataset_path)[0]
+images = read_dataset_random(path=dataset_path, number=10)[0]
 np.random.shuffle(images)
 
 images = np.array(images)
@@ -33,7 +33,8 @@ def gray2rgb(gray):
 
 
 # Build up the model
-model = km.load_model(model_save_path, custom_objects={'Abs': Abs})
+model = km.load_model(model_save_path, custom_objects={'my_loss': my_loss})
+model.load_weights(model_ck_path)
 model.summary()
 
 # Testing the model getting some outputs
