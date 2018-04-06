@@ -6,17 +6,26 @@ from skimage.transform import resize
 import os
 from data_manager.path_manager import PathManager
 import hands_bounding_utils.utils as u
+from scipy.misc import imresize
+from image_loader.image_loader import load_from_png
 
 pm = PathManager()
-
 dataset_path = pm.resources_path(os.path.join("samples_for_heatmaps"))
+png_path = pm.resources_path(os.path.join("gui", "hands.png"))
 model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
 model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
 
-images = read_dataset_random(path=dataset_path, number=10)[0]
-np.random.shuffle(images)
+read_from_png = True
 
-images = np.array(images)
+if read_from_png:
+    images = load_from_png(png_path)[:, :, 0:3]
+    images = imresize(images, 0.25)
+    images = np.reshape(images, newshape=(1,) + np.shape(images))
+
+else:
+    images = read_dataset_random(path=dataset_path, number=10)[0]
+    np.random.shuffle(images)
+
 images = images / 255
 
 
@@ -38,12 +47,10 @@ model.load_weights(model_ck_path)
 model.summary()
 
 # Testing the model getting some outputs
-net_out = model.predict(images[0:2])[0]
+net_out = model.predict(images)[0]
 net_out = net_out.clip(max=1)
 first_out = resize(net_out, output_shape=(120, 160, 1))
 total_sum = np.sum(first_out[0])
-
-first_image = rgb2gray(images[0])
 
 u.showimage(images[0])
 u.showimage(u.heatmap_to_rgb(net_out))
