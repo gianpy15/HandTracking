@@ -193,7 +193,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
 
 def __matches(s, leave_out):
     for stri in leave_out:
-        if s.startswith(stri):
+        if s.startswith(stri + "_"):
             return True
     return False
 
