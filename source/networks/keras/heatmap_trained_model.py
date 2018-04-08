@@ -7,7 +7,7 @@ import os
 from data_manager.path_manager import PathManager
 import hands_bounding_utils.utils as u
 from scipy.misc import imresize
-from image_loader.image_loader import load_from_png
+from image_loader.image_loader import load, load_from_png
 
 pm = PathManager()
 dataset_path = pm.resources_path(os.path.join("samples_for_heatmaps"))
@@ -18,9 +18,10 @@ model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3
 read_from_png = True
 
 if read_from_png:
-    images = load_from_png(png_path)[:, :, 0:3]
-    images = imresize(images, 0.25)
-    images = np.reshape(images, newshape=(1,) + np.shape(images))
+    # images = load_from_png(png_path)[:, :, 0:3]
+    # images = imresize(images, (120, 160))
+    # images = np.reshape(images, newshape=(1,) + np.shape(images))
+    images = load(png_path, force_format=(120, 160, 3), affine_transform=[255, 0])
 
 else:
     images = read_dataset_random(path=dataset_path, number=10)[0]
@@ -35,9 +36,9 @@ def rgb2gray(rgb):
 
 
 def gray2rgb(gray):
-    r = (1/0.2989) * gray
-    g = (1/0.5870) * gray
-    b = (1/0.1140) * gray
+    r = (1 / 0.2989) * gray
+    g = (1 / 0.5870) * gray
+    b = (1 / 0.1140) * gray
     return np.concatenate((r, g, b), axis=-1)
 
 
