@@ -100,19 +100,22 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                     fr_to_save['heatmap'] = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
                                                                       coords, overlapping_penalty)
                     fr_to_save['depth'] = depth
-                    path = os.path.join(basedir, vid + str(i))
+                    path = os.path.join(basedir, vid + "_" + str(i))
                     scio.savemat(path, fr_to_save)
                 except ValueError:
                     print(vid + str(i))
 
 
-def read_dataset(path=None, verbosity=0):
+def read_dataset(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
     every time it reads one
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param leave_out: list of videos whose elements will be put in the test set. Note that is this parameter is not
+    provided, only 3 arrays will be returned (frames, heatmaps, depths). If this is provided, 6 arrays are returned
+    (frames, heatmaps, depths, test_frames, test_heatmaps, test_depths)
     """
     if path is None:
         basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
@@ -124,19 +127,29 @@ def read_dataset(path=None, verbosity=0):
     frames = []
     heatmaps = []
     depths = []
+    t_frames = []
+    t_heatmaps = []
+    t_depths = []
     for name in samples:
         if verbosity == 1:
             print("Reading image: ", i, " of ", tot)
             i += 1
         realpath = os.path.join(basedir, name)
         matcontent = scio.loadmat(realpath)
-        frames.append(matcontent['frame'])
-        heatmaps.append(matcontent['heatmap'])
-        depths.append(matcontent['depth'])
-    return frames, heatmaps, depths
+        if leave_out is None or not __matches(name, leave_out):
+            frames.append(matcontent['frame'])
+            heatmaps.append(matcontent['heatmap'])
+            depths.append(matcontent['depth'])
+        else:
+            t_frames.append(matcontent['frame'])
+            t_heatmaps.append(matcontent['heatmap'])
+            t_depths.append(matcontent['depth'])
+    if leave_out is None:
+        return frames, heatmaps, depths
+    return frames, heatmaps, depths, t_frames, t_heatmaps, t_depths
 
 
-def read_dataset_random(path=None, number=1, verbosity=0):
+def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -144,12 +157,15 @@ def read_dataset_random(path=None, number=1, verbosity=0):
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
     :param number: number of elements to read
+    :param leave_out: list of videos from which samples will NOT be taken
     """
     if path is None:
         basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
     else:
         basedir = path
     samples = os.listdir(basedir)
+    if leave_out is not None:
+        samples = [s for s in samples if not __matches(s, leave_out)]
     i = 0
     tot = len(samples)
     if number > tot:
@@ -173,6 +189,13 @@ def read_dataset_random(path=None, number=1, verbosity=0):
         heatmaps.append(matcontent['heatmap'])
         depths.append(matcontent['depth'])
     return frames, heatmaps, depths
+
+
+def __matches(s, leave_out):
+    for stri in leave_out:
+        if s.startswith(stri):
+            return True
+    return False
 
 
 def shuffle_rgb_depth_heatmap(ri, di, hi):
@@ -341,7 +364,7 @@ if __name__ == '__main__':
 
     # timetest()
     # create_dataset()
-    f, h, d = read_dataset_random(number=100)
+    f, h, d = read_dataset_random(leave_out=['HandsEverton', 'handsGianpy', 'handsMaddalena1', 'handsMaddalena2'], number=2)
     f = np.array(f)
     h = np.array(h)
     d = np.array(d)
