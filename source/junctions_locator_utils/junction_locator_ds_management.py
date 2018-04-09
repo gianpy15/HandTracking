@@ -67,9 +67,12 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     label = [[p[1], p[0]] for p in label]
                     coords = __get_coord_from_labels(label)
                     cut = u.crop_from_coords(frame, coords, enlarge)
-                    heatmaps = __create_21_heatmaps(label, coords, np.shape(frame), cross_radius, enlarge)
+                    heatmaps = __create_21_heatmaps(label, coords,
+                                                    np.shape(frame), cross_radius, enlarge)
                     cut = im_regularizer.apply(cut)
                     heatmaps = heat_regularizer.apply_on_batch(heatmaps)
+                    heatmaps = __heatmaps_dim_reducer(heatmaps)
+                    heatmaps = __stack_heatmaps(heatmaps)
                     fr_to_save['cut'] = cut
                     fr_to_save['heatmap_array'] = heatmaps
                     fr_to_save['visible'] = visible
@@ -77,6 +80,14 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     scio.savemat(path, fr_to_save)
                 except ValueError:
                     print(vid + str(i))
+
+
+def __heatmaps_dim_reducer(heatmaps):
+    heatris = []
+    for he in heatmaps:
+        heat = he[:, :, 0:1]
+        heatris.append(heat)
+    return heatris
 
 
 def read_dataset(path=None, verbosity=0):
@@ -119,12 +130,17 @@ def __create_21_heatmaps(label, coords_for_cut, original_shape, cross_radius, en
     return np.array(heatmaps)
 
 
+def __stack_heatmaps(heatmaps):
+    stacked_heats = np.dstack(tuple(heatmaps))
+    return np.array(stacked_heats)
+
+
 def __set_cross(heatmap, center, radius):
     for i in range(-radius, radius):
         for j in range(-radius, radius):
             if abs(i) + abs(j) <= radius and 0 <= center[0] + i <= heatmap.shape[0] \
                     and 0 <= center[1] + j <= heatmap.shape[1]:
-                heatmap[center[0]+i][center[1]+j] = 1
+                heatmap[center[0]+i][center[1]+j] = [1, 1, 1]
     return heatmap
 
 
@@ -141,11 +157,15 @@ def __get_coord_from_labels(lista):
 if __name__ == '__main__':
     im_r = reg.Regularizer()
     im_r.fixresize(200, 200)
+    im_r.percresize(0.5)
     h_r = reg.Regularizer()
     h_r.fixresize(200, 200)
+    h_r.percresize(0.5)
     h_r.heatmaps_threshold(0.5)
-    create_dataset(["handsGianpy"], im_regularizer=im_r, heat_regularizer=h_r, enlarge=0.5, cross_radius=7)
+    create_dataset(["handsGianpy"], im_regularizer=im_r, heat_regularizer=h_r, enlarge=0.5, cross_radius=5)
     c, h, v = read_dataset()
     u.showimage(c[1])
-    u.showimages(h[1])
+    print(np.shape(h))
+    # show heatmap for the first junction of the second item
+    u.showimage(u.heatmap_to_rgb(h[1][:, :, 0:1]))
     print(v[1])
