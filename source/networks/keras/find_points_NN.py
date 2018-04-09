@@ -17,7 +17,7 @@ input_width = resize
 threshold = .5
 batch_size = 25
 num_filters = 15
-kernel = [4, 4]
+kernel = (4, 4)
 pool = (2, 2)
 
 # input building
