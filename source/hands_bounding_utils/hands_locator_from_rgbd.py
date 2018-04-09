@@ -7,7 +7,6 @@ import os
 import math
 from scipy import io as scio
 import random
-from scipy.ndimage import convolve
 from scipy.misc import imresize
 import hands_bounding_utils.utils as u
 from data_manager.path_manager import PathManager

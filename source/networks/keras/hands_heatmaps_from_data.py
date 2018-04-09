@@ -1,5 +1,4 @@
 from hands_bounding_utils.hands_locator_from_rgbd import *
-from neural_network.keras.custom_layers import heatmap_loss
 from neural_network.keras.models.heatmap import *
 from neural_network.keras.callbacks.image_writer import ImageWriter
 from neural_network.keras.custom_layers.heatmap_loss import my_loss
@@ -17,19 +16,23 @@ model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v4
 TBManager.set_path("heat_maps")
 tb_manager_train = TBManager('train_images')
 tb_manager_test = TBManager('test_images')
-train = True
+train = False
 random_dataset = True
 shuffle = True
 build_dataset = False
 attach_depth = False
 
 # Hyper parameters
-train_samples = 1000
-test_samples = 100
+train_samples = 2e+3
+test_samples = 1e+2
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
 # Data set stuff
+
+basedir = pm.resources_path(os.path.join("framedata"))
+vids = [x for x in os.listdir(basedir) if x not in ['.DS_Store', 'compress.sh', 'expand.sh', 'contributors.txt']]
+print(vids)
 
 if build_dataset:
     create_dataset(savepath=dataset_path, fillgaps=True,
