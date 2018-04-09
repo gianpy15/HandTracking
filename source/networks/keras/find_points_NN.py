@@ -1,163 +1,59 @@
-from keras.models import Sequential
-import keras.layers as kl
-from keras.initializers import RandomNormal
-from keras.optimizers import Adam, SGD
-from keras.losses import mean_squared_error
+from keras.optimizers import Adam
+from neural_network.keras.custom_layers.heatmap_loss import my_loss
 import numpy as np
 import junctions_locator_utils.junction_locator_ds_management as jlocator
 import hands_regularizer.regularizer as regularizer
-import hands_bounding_utils.utils as utils
+from neural_network.keras.models.joints import *
 
-# some values
+if __name__ == '__main__':
+    # some values
 
-resize = 200
-hm_resize = 100
-input_height = resize
-input_width = resize
-threshold = .5
-batch_size = 25
-num_filters = 15
-kernel = (4, 4)
-pool = (2, 2)
+    resize = 200
+    hm_resize = 100
+    input_height = resize
+    input_width = resize
+    threshold = .5
+    batch_size = 25
+    num_filters = 15
+    kernel = (3, 3)
+    pool = (2, 2)
 
-# input building
+    BUILD_DATASET = False
+    VERBOSE = True
 
-img_reg = regularizer.Regularizer()
-img_reg.fixresize(resize, resize)
-hm_reg = regularizer.Regularizer()
-hm_reg.fixresize(hm_resize, hm_resize)
-hm_reg.heatmaps_threshold(threshold)
-jlocator.create_dataset(["handsAlberto1"], im_regularizer=img_reg, heat_regularizer=hm_reg, enlarge=.5, cross_radius=5)
-cuts, hms, visible = jlocator.read_dataset(verbosity=1)
-utils.showimage(cuts[1])
-utils.showimages(hms[1])
-print(visible[1])
+    # input building
 
-x_train = np.array(cuts)
-print(x_train.shape)
-y_train = np.array(hms)
+    img_reg = regularizer.Regularizer()
+    img_reg.fixresize(resize, resize)
+    hm_reg = regularizer.Regularizer()
+    hm_reg.fixresize(hm_resize, hm_resize)
+    hm_reg.heatmaps_threshold(threshold)
+    if BUILD_DATASET:
+        jlocator.create_dataset(["handsAlberto1"], im_regularizer=img_reg, heat_regularizer=hm_reg, enlarge=.5, cross_radius=5)
+    cuts, hms, visible = jlocator.read_dataset(verbosity=1)
+    # Note:
+    #   not it holds:
+    #   hms.shape == (frames, 21, hm_resize, hm_resize, 3)
+    #   but should be:
+    #   hms.shape == (frames, hm_resize, hm_resize, 21)
+    # probably need bugfix on jlocator.read_dataset
+    x_train = np.array(cuts)
+    y_train = np.array(hms)
 
-# model building
-model = Sequential()
+    if VERBOSE:
+        print("train set shape: " + str(x_train.shape))
+        print("target shape: " + str(y_train.shape))
 
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    input_shape=(None, None, 3),
-                    data_format="channels_last",
-                    padding="same"
-                    )
-          )
+    # Models are collected in neural_network/keras/models
+    model = uniform_model(kernel=kernel, num_filters=num_filters)
+    # config
 
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
+    model.compile(
+        optimizer=Adam(),
+        loss=my_loss,
+        metrics=['accuracy']
+    )
 
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
+    # training
 
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-model.add(kl.Conv2D(filters=num_filters,
-                    kernel_size=kernel,
-                    kernel_initializer=RandomNormal,
-                    activation='relu',
-                    # input_shape=(batch_size, input_height, input_width, 3),
-                    data_format="channels_last"
-                    )
-          )
-
-# model.add(kl.MaxPooling2D(pool_size=pool))
-
-# config
-
-model.compile(
-    optimizer=Adam(),
-    loss=mean_squared_error(),
-    metrics=['accuracy']
-)
-
-# training
-
-model.fit(epochs=100, batch_size=batch_size, x=x_train, y=y_train)
+    model.fit(epochs=100, batch_size=batch_size, x=x_train, y=y_train)
