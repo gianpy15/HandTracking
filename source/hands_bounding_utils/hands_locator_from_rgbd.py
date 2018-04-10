@@ -1,6 +1,6 @@
-import source.hand_data_management.camera_data_conversion as cdc
-import source.hand_data_management.video_loader as vl
-import source.hand_data_management.grey_to_redblue_codec as gtrbc
+import hand_data_management.camera_data_conversion as cdc
+import hand_data_management.video_loader as vl
+import hand_data_management.grey_to_redblue_codec as gtrbc
 import numpy as np
 import tqdm
 import os

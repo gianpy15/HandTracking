@@ -1,5 +1,5 @@
-from source.hand_data_management.naming import *
-from source.image_loader.hand_io import *
+from hand_data_management.naming import *
+from image_loader.hand_io import *
 import numpy as np
 import os
 

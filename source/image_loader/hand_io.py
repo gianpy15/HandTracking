@@ -1,4 +1,4 @@
-from source.data_manager import path_manager as pm
+from data_manager import path_manager as pm
 import scipy.io as scio
 
 

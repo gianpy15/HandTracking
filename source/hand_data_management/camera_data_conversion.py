@@ -2,7 +2,7 @@ from os.path import *
 import skvideo.io as skio
 import re
 import numpy as np
-from source.image_loader.hand_io import *
+from image_loader.hand_io import *
 # import hand_data_management.grey_to_redblue_codec as gtrbc
 
 VIDDIR = pm.resources_path("vids")

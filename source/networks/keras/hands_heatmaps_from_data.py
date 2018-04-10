@@ -1,13 +1,13 @@
 import sys
 import os
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../../..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
 
-from source.hands_bounding_utils.hands_locator_from_rgbd import *
-from source.neural_network.keras.models.heatmap import *
-from source.neural_network.keras.callbacks.image_writer import ImageWriter
-from source.neural_network.keras.custom_layers.heatmap_loss import my_loss
-from source.data_manager.path_manager import PathManager
-from source.tensorboard.tensorboard_manager import TensorBoardManager as TBManager
+from hands_bounding_utils.hands_locator_from_rgbd import *
+from neural_network.keras.models.heatmap import *
+from neural_network.keras.callbacks.image_writer import ImageWriter
+from neural_network.keras.custom_layers.heatmap_loss import my_loss
+from data_manager.path_manager import PathManager
+from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
 
 pm = PathManager()
 
