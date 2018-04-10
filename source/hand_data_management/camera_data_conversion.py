@@ -1,9 +1,5 @@
-import sys
-import os
 from os.path import *
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
 import skvideo.io as skio
-import os
 import re
 import numpy as np
 from source.image_loader.hand_io import *

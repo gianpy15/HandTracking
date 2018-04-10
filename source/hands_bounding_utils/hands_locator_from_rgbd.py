@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
 import source.hand_data_management.camera_data_conversion as cdc
 import source.hand_data_management.video_loader as vl
 import source.hand_data_management.grey_to_redblue_codec as gtrbc
