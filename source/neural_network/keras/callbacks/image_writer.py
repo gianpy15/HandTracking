@@ -9,13 +9,14 @@ class ImageWriter(Callback):
         super(ImageWriter, self).__init__()
         self.input_images = self.validation_data if images is None else images
         self.tb_manager = TBManager(name) if tb_manager is None else tb_manager
+        self.name = name
         self.max_imgs = max_imgs
         self.input_images = self.input_images[0:self.max_imgs]
         self.image_tensor = None
 
     def on_train_begin(self, logs=None):
         self.image_tensor = tf.placeholder(dtype=tf.float32, shape=np.shape(self.model.predict(self.input_images)))
-        self.tb_manager.add_images(self.image_tensor, name='output', max_out=self.max_imgs)
+        self.tb_manager.add_images(self.image_tensor, name=self.name, max_out=self.max_imgs)
         # self.tb_manager.add_images(self.model.predict(self.input_images), name='output', max_out=self.max_imgs)
 
     def on_epoch_end(self, epoch, logs=None):

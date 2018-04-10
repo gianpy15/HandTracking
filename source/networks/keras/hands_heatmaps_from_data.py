@@ -18,17 +18,17 @@ model_ck_path = resources_path(os.path.join('models/hand_cropper/cropper_v4.ckp'
 model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v4.h5'))
 
 TBManager.set_path("heat_maps")
-tb_manager_train = TBManager('train_images')
-tb_manager_test = TBManager('test_images')
+tb_manager_train = TBManager()
+tb_manager_test = TBManager()
 train = False
-random_dataset = False
+random_dataset = True
 shuffle = True
 build_dataset = False
 attach_depth = False
 
 # Hyper parameters
-train_samples = 20
-test_samples = 10
+train_samples = 4000
+test_samples = 200
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
