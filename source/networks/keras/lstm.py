@@ -7,7 +7,7 @@ import keras.callbacks as kc
 import numpy as np
 from random import *
 
-tb_dir = '../../../resources/tensorboard/tbdata'
+tb_dir = '../../../resources/tensorboard_utils/tbdata'
 
 # Preparing the data
 n_samples = 500

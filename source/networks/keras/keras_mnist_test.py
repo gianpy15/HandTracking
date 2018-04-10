@@ -9,7 +9,7 @@ from networks.keras.utils import reshape_image
 x_train = x_train[:5000]
 y_train = y_train[:5000]
 
-tb_dir = '../../../resources/tensorboard/tbdata'
+tb_dir = '../../../resources/tensorboard_utils/tbdata'
 
 x_train = reshape_image(x_train, 28, 28)
 x_test = reshape_image(x_test, 28, 28)

@@ -13,7 +13,7 @@ train_images_path = ego.default_train_images_path()
 train_annots_path = ego.default_train_annotations_path()
 # test_images_path = ego.default_test_images_path()
 # test_annots_path = ego.default_test_annotations_path()
-tb_dir = '../../../resources/tensorboard/tbdata'
+tb_dir = '../../../resources/tensorboard_utils/tbdata'
 model_path = '../../../resources/models/hand_cropper/cropper_v1.ckp'
 
 

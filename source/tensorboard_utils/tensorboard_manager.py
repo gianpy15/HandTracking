@@ -42,13 +42,13 @@ class TensorBoardManager:
 
     def add_embedding(self, emb_var, sprite=None, sprite_window=None):
         """
-        Add an embedding for the projector visualization in tensorboard
+        Add an embedding for the projector visualization in tensorboard_utils
         :param emb_var: the 2D float variable (matrix of floats) that contains the embedding
         :param sprite: the path to the optional sprite to be attached to the embedding
         :param sprite_window: the [width, height] of a single thumbnail in the sprite
         """
         if self.__proj_config is None:
-            # Format: tensorflow/contrib/tensorboard/plugins/projector/projector_config.proto
+            # Format: tensorflow/contrib/tensorboard_utils/plugins/projector/projector_config.proto
             self.__proj_config = projector.ProjectorConfig()
         embedding = self.__proj_config.embeddings.add()
         embedding.tensor_name = emb_var.name
@@ -60,7 +60,7 @@ class TensorBoardManager:
 
     def get_runnable(self, get_summaries=True, get_embeds=True):
         """
-        Get all runnable elements for tensorboard to be run into a session.
+        Get all runnable elements for tensorboard_utils to be run into a session.
         :param get_summaries: decide whether to get all summaries
         :param get_embeds: decide whether to get all embeddings
         :return: a list containing all selected runnables
@@ -88,7 +88,7 @@ class TensorBoardManager:
     @staticmethod
     def set_path(dir_name):
         """
-        Change the path where tensorboard saves all data
+        Change the path where tensorboard_utils saves all data
         :param dir_name: the new directory destination (inside the default base one)
         """
         TensorBoardManager.__save_path = os.path.join(TensorBoardManager.__def_save_path, dir_name)
@@ -106,8 +106,8 @@ class TensorBoardManager:
     @staticmethod
     def write_graph(graph):
         """
-        Save the given graph for tensorboard to display it
-        :param graph: the graph to be displayed into tensorboard
+        Save the given graph for tensorboard_utils to display it
+        :param graph: the graph to be displayed into tensorboard_utils
         """
         TensorBoardManager.__writer.add_graph(graph)
 

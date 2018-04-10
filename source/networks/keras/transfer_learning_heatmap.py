@@ -7,7 +7,7 @@ from neural_network.keras.callbacks.image_writer import ImageWriter
 from keras.models import Model
 import os
 from data_manager.path_manager import PathManager
-from tensorboard.tensorboard_manager import TensorBoardManager as TBManager
+from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 
 pm = PathManager()
 
