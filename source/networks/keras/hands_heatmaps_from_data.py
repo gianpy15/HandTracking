@@ -9,6 +9,7 @@ from neural_network.keras.callbacks.image_writer import ImageWriter
 from neural_network.keras.custom_layers.heatmap_loss import my_loss
 from data_manager.path_manager import resources_path
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
+import random as rnd
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = resources_path(os.path.join("tbdata/heat_maps"))
@@ -18,15 +19,15 @@ model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v4.h5
 TBManager.set_path("heat_maps")
 tb_manager_train = TBManager('train_images')
 tb_manager_test = TBManager('test_images')
-train = True
+train = False
 random_dataset = True
 shuffle = True
 build_dataset = False
 attach_depth = False
 
 # Hyper parameters
-train_samples = 4000
-test_samples = 200
+train_samples = 200
+test_samples = 100
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
@@ -35,14 +36,16 @@ validation_set_proportion = 0.3
 # Data set stuff
 
 basedir = pm.resources_path(os.path.join("framedata"))
-vids = [x for x in os.listdir(basedir) if x not in ['.DS_Store', 'compress.sh', 'expand.sh', 'contributors.txt']]
+vids = rnd.shuffle([x for x in os.listdir(basedir) if x not in ['.DS_Store',
+                                                                'compress.sh',
+                                                                'expand.sh',
+                                                                'contributors.txt']])
 
 split_idx = int(validation_set_proportion * len(vids))
 test_vids = vids[0:split_idx]
 train_vids = vids[split_idx + 1:]
-
-print(test_vids)
-print(train_vids)
+print("test videos: " + str(test_vids))
+print("train videos: " + str(train_vids))
 
 if build_dataset:
     create_dataset(savepath=dataset_path, fillgaps=True,
@@ -53,7 +56,7 @@ if random_dataset:
                                                                number=train_samples,
                                                                leave_out=test_vids)
     test_imgs, test_maps, test_depths = read_dataset_random(path=dataset_path,
-                                                            number=train_samples,
+                                                            number=test_samples,
                                                             leave_out=train_vids)
 
 else:
@@ -63,13 +66,15 @@ else:
 if shuffle:
     train_imgs, train_depths, train_maps = shuffle_rgb_depth_heatmap(train_imgs, train_depths, train_maps)
 
-
-train_imgs = np.array(train_imgs)/255
-test_imgs = np.array(test_imgs)/255
+train_imgs = np.array(train_imgs) / 255
+test_imgs = np.array(test_imgs) / 255
 train_maps = np.array(train_maps)
 test_maps = np.array(test_maps)
 train_depths = np.array(train_depths)
 test_depths = np.array(test_depths)
+
+print(len(train_imgs))
+print(len(test_imgs))
 
 train_maps = np.reshape(train_maps, newshape=np.shape(train_maps) + (1,))
 train_depths = np.reshape(train_depths, newshape=np.shape(train_depths) + (1,))
