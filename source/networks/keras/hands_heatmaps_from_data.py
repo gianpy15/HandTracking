@@ -14,8 +14,8 @@ import random as rnd
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = resources_path(os.path.join('models/hand_cropper/cropper_v4.ckp'))
-model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v4.h5'))
+model_ck_path = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
+model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
 
 TBManager.set_path("heat_maps")
 tb_manager_train = TBManager()
@@ -45,6 +45,7 @@ vids = [x for x in os.listdir(basedir) if x not in ['.DS_Store',
                                                     'expand.sh',
                                                     'contributors.txt']]
 rnd.shuffle(vids)
+
 
 split_idx = int(validation_set_proportion * len(vids))
 test_vids = vids[0:split_idx]

@@ -138,3 +138,41 @@ def high_fov_model(input_shape, weight_decay=0):
     # FOV: 100
 
     return model
+
+
+def incremental_predictor_1(input_shape, weight_decay=0):
+    model = km.Sequential()
+    model.add(kl.Conv2D(input_shape=input_shape, filters=64, kernel_size=[5, 5], padding='same'))
+    model.add(kl.Activation('relu'))
+    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.MaxPooling2D())
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.MaxPooling2D())
+
+    model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
+    model.add(kl.Activation('sigmoid'))
+
+    return model
+
+
+def incremental_predictor_2(input_shape, weight_decay=0):
+    model = km.Sequential()
+    model.add(kl.Conv2D(input_shape=input_shape, filters=64, kernel_size=[5, 5], padding='same'))
+    model.add(kl.Activation('relu'))
+    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same', activation='relu',
+                        kernel_regularizer=weight_decay))
+    model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
+    model.add(kl.Activation('sigmoid'))
+    return model
