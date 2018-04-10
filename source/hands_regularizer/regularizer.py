@@ -63,12 +63,10 @@ class Regularizer:
         return frame
 
     def apply_on_batch(self, batch):
-        ris = []
-        for frame in batch:
-            frame = np.array(frame)
-            frame = self.apply(frame)
-            ris.append(frame)
-        return np.array(ris)
+        ris = np.empty(shape=np.shape(batch))
+        for idx in range(len(batch)):
+            ris[idx] = self.apply(batch[idx])
+        return ris
 
 
 def add_padding(image, right_pad, bottom_pad):
@@ -94,7 +92,7 @@ def fixed_resize(frame, size):
 def normalize(frame):
     avg = frame.mean()
     std = frame.std()
-    frame = (frame - avg)/std
+    frame = (frame - avg) / std
     return frame
 
 

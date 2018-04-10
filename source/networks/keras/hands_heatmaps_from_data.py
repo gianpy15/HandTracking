@@ -9,6 +9,7 @@ from neural_network.keras.callbacks.image_writer import ImageWriter
 from neural_network.keras.custom_layers.heatmap_loss import my_loss
 from data_manager.path_manager import resources_path
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
+from hands_regularizer.regularizer import Regularizer
 import random as rnd
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
@@ -19,19 +20,22 @@ model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v4.h5
 TBManager.set_path("heat_maps")
 tb_manager_train = TBManager('train_images')
 tb_manager_test = TBManager('test_images')
-train = True
-random_dataset = True
+train = False
+random_dataset = False
 shuffle = True
 build_dataset = False
 attach_depth = False
 
 # Hyper parameters
-train_samples = 200
-test_samples = 100
+train_samples = 20
+test_samples = 10
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
 validation_set_proportion = 0.3
+
+reg = Regularizer()
+reg.normalize()
 
 # Data set stuff
 
@@ -67,15 +71,15 @@ else:
 if shuffle:
     train_imgs, train_depths, train_maps = shuffle_rgb_depth_heatmap(train_imgs, train_depths, train_maps)
 
-train_imgs = np.array(train_imgs) / 255
-test_imgs = np.array(test_imgs) / 255
+train_imgs = np.array(train_imgs)
+test_imgs = np.array(test_imgs)
 train_maps = np.array(train_maps)
 test_maps = np.array(test_maps)
 train_depths = np.array(train_depths)
 test_depths = np.array(test_depths)
 
-print(len(train_imgs))
-print(len(test_imgs))
+train_imgs = reg.apply_on_batch(train_imgs)
+test_imgs = reg.apply_on_batch(test_imgs)
 
 train_maps = np.reshape(train_maps, newshape=np.shape(train_maps) + (1,))
 train_depths = np.reshape(train_depths, newshape=np.shape(train_depths) + (1,))
