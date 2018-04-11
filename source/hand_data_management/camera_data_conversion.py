@@ -1,6 +1,5 @@
-import skvideo.io as skio
 from os.path import *
-import os
+import skvideo.io as skio
 import re
 import numpy as np
 from image_loader.hand_io import *

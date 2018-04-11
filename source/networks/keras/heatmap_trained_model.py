@@ -15,7 +15,7 @@ png_path = pm.resources_path(os.path.join("gui", "hands.png"))
 model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
 model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
 
-read_from_png = True
+read_from_png = False
 
 if read_from_png:
     # images = load_from_png(png_path)[:, :, 0:3]
