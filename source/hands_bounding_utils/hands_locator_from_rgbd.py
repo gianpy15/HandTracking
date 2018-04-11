@@ -106,6 +106,216 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                     print(vid + str(i))
 
 
+def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
+                   overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500):
+    """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
+    the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
+    :param tooclose: threshold value used to eliminate too close objects/values in the depth
+    :param toofar: threshold value used to eliminate too far objects/values in the depth
+    :param fillgaps: set to True to also get interpolated frames
+    :param overlapping_penalty: penalty "inflicted" to the overlapping hands area in the images
+    :param width_shrink_rate: shrink rate of heatmaps width wrt the resized image
+    :param heigth_shrink_rate: shrink rate of heatmaps height wrt the resized image
+    :param resize_rate: resize rate of the images (1 (default) is the original image)
+    :param savepath: path of the folder where the produces .mat files will be saved. If left to the default value None,
+    the /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param videos_list: list of videos you need the .mat files of. If left to the default value None, all videos will
+    be exploited"""
+    if savepath is None:
+        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
+    else:
+        basedir = savepath
+    if not os.path.exists(basedir):
+        os.makedirs(basedir)
+    framesdir = pm.resources_path("framedata")
+    if videos_list is None:
+        vids = os.listdir(framesdir)
+        vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
+    else:
+        vids = videos_list
+    for vid in tqdm.tqdm(vids):
+        frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
+        depths, _ = load_labelled_videos(vid, getdepth=True, fillgaps=fillgaps)
+        fr_num = frames.shape[0]
+        for i in tqdm.tqdm(range(0, fr_num)):
+            if labels[i] is not None:
+                    fr_to_save = {}
+                    frame = frames[i]
+                    depth = depths[i]
+                    frame, depth = transorm_rgd_depth(frame, depth, toofar=toofar, tooclose=tooclose)
+                    frame = imresize(frame, resize_rate)
+                    depth = depth_resize(depth, resize_rate)
+                    label = labels[i][:, 0:2]
+                    label *= [frame.shape[1], frame.shape[0]]
+                    label = np.array(label, dtype=np.int32).tolist()
+                    label = [[p[1], p[0]] for p in label]
+                    frame = __add_padding(frame, frame.shape[1] - (frame.shape[1]//width_shrink_rate)*width_shrink_rate,
+                                          frame.shape[0] - (frame.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+                    depth = __add_padding(depth, depth.shape[1] - (depth.shape[1]//width_shrink_rate)*width_shrink_rate,
+                                          depth.shape[0] - (depth.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+
+                    depth = depth.squeeze()
+                    depth = np.uint8(depth)
+                    fr_to_save['frame'] = frame
+                    coords = [__get_coord_from_labels(label)]
+                    heat = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
+                                                                      coords, overlapping_penalty)
+                    coords = coords[0]
+                    heat = __shade_heatmap(heat,
+                                           [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in coords],
+                                           [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in label])
+                    fr_to_save['heatmap'] = heat
+                    fr_to_save['depth'] = depth
+                    path = os.path.join(basedir, vid + "_" + str(i))
+                    scio.savemat(path, fr_to_save)
+
+
+def __shade_heatmap(heat, square_coords, joint_coords):
+    h = [s[0] for s in square_coords]
+    w = [w[1] for w in square_coords]
+    min_h = np.min(h)
+    max_h = np.max(h)
+    min_w = np.min(w)
+    max_w = np.max(w)
+    supp_heat = np.zeros([max_h + 1 - min_h, max_w + 1 - min_w])
+    for i in range(min_h, max_h + 1):
+        for j in range(min_w, max_w + 1):
+            if __in_triangle([i, j], joint_coords[0], joint_coords[5], joint_coords[17]) or \
+                    __in_triangle([i, j], joint_coords[1], joint_coords[5], joint_coords[17]) or \
+                    __in_triangle([i, j], joint_coords[0], joint_coords[2], joint_coords[17]):
+                supp_heat[i - min_h][j - min_w] = 0
+            else:
+                distances = [__dist([i, j], jc) for jc in joint_coords]
+                distances2 = __dists_p_seg([i, j], joint_coords)
+                supp_heat[i-min_h][j-min_w] = np.min(distances + distances2)
+    mean = np.mean(supp_heat)
+    std = np.std(supp_heat)
+    for i in range(min_h, max_h + 1):
+        for j in range(min_w, max_w + 1):
+            heat[i][j] = (supp_heat[i-min_h][j-min_w] - mean) / std
+    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], 1 / (1 + math.exp(-np.max(supp_heat)/(15*mean))))
+    max_gauss = np.max(heat[min_h:max_h + 1, min_w: max_w + 1])
+    for i in range(min_h, max_h + 1):
+        for j in range(min_w, max_w + 1):
+            heat[i][j] = min((max_gauss - heat[i][j]) / (max_gauss - min_gauss), 1)
+    return heat
+
+
+def __in_triangle(p, v0, v1, v2):
+    v1 = [v1[0] - v0[0], v1[1] - v0[1]]
+    v2 = [v2[0] - v0[0], v2[1] - v0[1]]
+    vv2 = [p, v2]
+    vv1 = [p, v1]
+    v0v2 = [v0, v2]
+    v1v2 = [v1, v2]
+    v0v1 = [v0, v1]
+    try:
+        a = (__det22(vv2) - __det22(v0v2)) / __det22(v1v2)
+        b = - (__det22(vv1) - __det22(v0v1)) / __det22(v1v2)
+        return a > 0 and b > 0 and a + b <= 1
+    except ZeroDivisionError:
+        return False
+
+
+def __det22(mat):
+    return mat[0][0] * mat[1][1] - mat[1][0] * mat[0][1]
+
+
+def __percentile(mat, perc):
+    array = mat.flatten()
+    array = list(array)
+    array = sorted(array)
+    return array[int(len(array)*perc)]
+
+
+def __dists_p_seg(p, joints):
+    ris = []
+    num = len(joints)
+    for i in range(num - 1):
+        if i % 4 != 0 or i == 0:
+            ris.append(__dist_p_seg(p, joints[i], joints[i+1]))
+    ris.append(__dist_p_seg(p, joints[0], joints[5]))
+    ris.append(__dist_p_seg(p, joints[0], joints[9]))
+    ris.append(__dist_p_seg(p, joints[0], joints[13]))
+    ris.append(__dist_p_seg(p, joints[0], joints[17]))
+    ris.append(__dist_p_seg(p, joints[1], joints[5]))
+    ris.append(__dist_p_seg(p, joints[1], joints[9]))
+    ris.append(__dist_p_seg(p, joints[1], joints[13]))
+    ris.append(__dist_p_seg(p, joints[1], joints[17]))
+    ris.append(__dist_p_seg(p, joints[1], joints[5]))
+    ris.append(__dist_p_seg(p, joints[5], joints[9]))
+    ris.append(__dist_p_seg(p, joints[9], joints[13]))
+    ris.append(__dist_p_seg(p, joints[13], joints[17]))
+    return ris
+
+
+def __dist_p_seg(p, e1, e2):
+    if e2[0] - e1[0] != 0 and e2[1] - e1[1] != 0:
+        ang_coeff = (e2[1] - e1[1]) / (e2[0] - e1[0])
+        intercept = e2[1] - ang_coeff * e2[0]
+        ang_coeff1 = - 1 / ang_coeff
+        ang_coeff2 = - 1 / ang_coeff
+        p1 = e1
+        p2 = e1
+        intercept1 = e2[1] - ang_coeff1 * e2[0]
+        intercept2 = e1[1] - ang_coeff2 * e1[0]
+        if intercept1 > intercept2:
+            p1 = e2
+            p2 = e1
+            app = intercept1
+            intercept1 = intercept2
+            intercept2 = app
+        if p[1] > ang_coeff1 * p[0] + intercept1 and p[1] < ang_coeff2 * p[0] + intercept2:
+            return __dist_p_rect(p, ang_coeff, intercept)
+        if p[1] <= ang_coeff1 * p[0] + intercept1:
+            return __dist(p, p1)
+        return __dist(p, p2)
+    if e2[0] - e1[0] == 0:
+        p1 = e1
+        p2 = e2
+        if e1[1] > e2[1]:
+            p2 = e1
+            p1 = e2
+        if p1[1] <= p[1] <= p2[1]:
+            return abs(p[0] - p2[0])
+        if p[1] < p1[1]:
+            return __dist(p, p1)
+        return __dist(p, p2)
+    p1 = e1
+    p2 = e2
+    if e1[0] > e2[0]:
+        p2 = e1
+        p1 = e2
+    if p1[0] <= p[0] <= p2[0]:
+        return abs(p[1] - p2[1])
+    if p[0] < p1[0]:
+        return __dist(p, p1)
+    return __dist(p, p2)
+
+
+def __dist_p_rect(p, m, q):
+    return abs(p[1] - m*p[0] - q)/math.sqrt(1 + m*m)
+
+
+def __extend_joints(joints):
+    num = len(joints)
+    joints = np.array(joints)
+    ris = []
+    for i in range(num -1):
+        ris.append(joints[i])
+        if i % 4 != 0 or i == 0:
+            ris.append((joints[i] + joints[i+1]) // 2)
+        ris.append((joints[0] + joints[5]) // 2)
+        ris.append((joints[0] + joints[9]) // 2)
+        ris.append((joints[0] + joints[13]) // 2)
+        ris.append((joints[0] + joints[17]) // 2)
+    return ris
+
+
+def __dist(p1, p2):
+    return math.sqrt(math.pow(p1[0]-p2[0], 2) + math.pow(p1[1]-p2[1], 2))
+
+
 def read_dataset(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
@@ -216,7 +426,6 @@ def shuffle_rgb_depth_heatmap(ri, di, hi):
         pos.pop(rand)
         n -= 1
     return np.array(r1), np.array(d1), np.array(h1)
-
 
 
 def __get_coord_from_labels(lista):
@@ -363,18 +572,14 @@ if __name__ == '__main__':
     # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
     # timetest()
-    # create_dataset()
-    f, h, d = read_dataset_random(leave_out=['HandsEverton', 'handsGianpy', 'handsMaddalena1', 'handsMaddalena2'], number=2)
+    #create_dataset_shaded_heatmaps(videos_list=['HandsEverton', 'handsMatteo'], resize_rate=0.5, heigth_shrink_rate=2, width_shrink_rate=2)
+    f, h, d = read_dataset_random(number=1)
     f = np.array(f)
     h = np.array(h)
     d = np.array(d)
 
     print(f.shape, h.shape, d.shape)
-    u.showimage(f[1])
-    u.showimage(h[1])
-    u.showimage(d[1])
-    u.showimages(u.get_crops_from_heatmap(f[1], h[1]))
-
-
-    f, h, d = shuffle_rgb_depth_heatmap(f, h, d)
-    print(f.shape, h.shape, d.shape)
+    #u.showimage(f[0])
+    u.showimage(h[0])
+    #u.showimage(d[0])
+    u.showimages(u.get_crops_from_heatmap(f[0], h[0], height_shrink_rate=2, width_shrink_rate=2, accept_crop_minimum_dimension_pixels=200))
