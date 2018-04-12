@@ -1,14 +1,13 @@
 import sys
 import os
 
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
 
-from neural_network.keras.models.heatmap import *
-from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
+from neural_network.keras.models.heatmap import high_fov_model
 from neural_network.keras.utils.data_loader import load_dataset
 from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
-from data_manager.path_manager import resources_path
+import keras.regularizers as kr
 
 # dataset_path = crops_path() # this should be the standard, but for now...
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
@@ -16,9 +15,6 @@ tensorboard_path = tensorboard_path("heat_maps")
 model_ck_path = cropper_ckp_path("cropper_v5")
 model_save_path = cropper_h5_path("cropper_v5")
 
-TBManager.set_path("heat_maps")
-tb_manager_train = TBManager()
-tb_manager_test = TBManager()
 train = True
 
 dataset = load_dataset(train_samples=2,
