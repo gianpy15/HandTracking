@@ -5,8 +5,10 @@ sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..
 
 from neural_network.keras.models.heatmap import *
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
-from neural_network.keras.utils.data_loader import *
+from neural_network.keras.utils.data_loader import load_dataset
+from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
+from data_manager.path_manager import resources_path
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 tensorboard_path = resources_path(os.path.join("tbdata/heat_maps"))

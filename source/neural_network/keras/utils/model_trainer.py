@@ -3,7 +3,7 @@ from neural_network.keras.callbacks.image_writer import ImageWriter
 from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from data_manager.path_manager import resources_path
-from neural_network.keras.utils.data_loader import *
+from neural_network.keras.utils.naming import *
 import os
 
 DEFAULT_TENSORBOARD_PATH = "heat_maps"

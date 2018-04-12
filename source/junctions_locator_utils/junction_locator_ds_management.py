@@ -73,13 +73,10 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     heatmaps = heat_regularizer.apply_on_batch(heatmaps)
                     heatmaps = __heatmaps_dim_reducer(heatmaps)
                     heatmaps = __stack_heatmaps(heatmaps)
-                    fr_to_save['cut'] = cut
-                    fr_to_save['heatmap_array'] = heatmaps
-                    fr_to_save['visible'] = visible
                     path = os.path.join(basedir, vid + str(i))
-                    scio.savemat(path, fr_to_save)
-                except ValueError:
-                    print(vid + str(i))
+                    __persist_frame(path, cut, heatmaps, visible)
+                except ValueError as e:
+                    print("Error " + e + " on vid " + vid + str(i))
 
 
 def __heatmaps_dim_reducer(heatmaps):
@@ -113,10 +110,10 @@ def read_dataset(path=None, verbosity=0):
             print("Reading image: ", i, " of ", tot)
             i += 1
         realpath = os.path.join(basedir, name)
-        matcontent = scio.loadmat(realpath)
-        cuts.append(matcontent['cut'])
-        heatmaps.append(matcontent['heatmap_array'])
-        visible.append(matcontent['visible'])
+        readcuts, readheats, readvis = __read_frame(realpath)
+        cuts.append(readcuts)
+        heatmaps.append(readheats)
+        visible.append(readvis)
     return cuts, heatmaps, visible
 
 
@@ -152,6 +149,18 @@ def __get_coord_from_labels(lista):
     min_y = np.min(list_y)
     max_y = np.max(list_y)
     return [[min_x, min_y], [min_x, max_y], [max_x, min_y], [max_x, max_y]]
+
+
+def __persist_frame(path, cut, heatmaps, visible_flags):
+    fr_to_save = {'cut': cut,
+                  'heatmap_array': np.array(heatmaps * 255, dtype=np.uint8),
+                  'visible': np.array(visible_flags, dtype=np.float32)}
+    scio.savemat(path, fr_to_save)
+
+
+def __read_frame(path):
+    matcontent = scio.loadmat(path)
+    return matcontent['cut'], matcontent['heatmap_array'] / 255.0, matcontent['visible']
 
 
 if __name__ == '__main__':

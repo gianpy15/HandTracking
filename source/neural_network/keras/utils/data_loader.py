@@ -1,15 +1,11 @@
 from hands_bounding_utils.hands_locator_from_rgbd import *
 from data_manager.path_manager import resources_path
 from hands_regularizer.regularizer import Regularizer
+from neural_network.keras.utils.naming import *
 import random as rnd
 import sys
 
 DEFAULT_DATASET_PATH = resources_path("hands_bounding_dataset", "network_test")
-
-TRAIN_IN = 'TRAIN_IN'
-TRAIN_TARGET = 'TRAIN_TARGET'
-VALID_IN = 'TEST_IN'
-VALID_TARGET = 'TEST_TARGET'
 
 
 def load_dataset(train_samples, valid_samples,
