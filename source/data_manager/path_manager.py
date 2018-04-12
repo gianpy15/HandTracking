@@ -25,41 +25,41 @@ JOINTSDATAFOLDER = os.path.join(DATASETSFOLDER, "joints")
 
 
 def resources_path(*paths):
-    return os.path.join(RESPATH, *paths)
-
-
-def __generative_fetch_path(basegen, *paths):
-    if not os.path.exists(resources_path(basegen)):
-        os.makedirs(resources_path(basegen))
-    return resources_path(basegen, *paths)
+    p = os.path.join(RESPATH, *paths)
+    if os.path.splitext(p)[1] != '':
+        basep = os.path.split(p)[0]
+    else:
+        basep = p
+    os.makedirs(basep, exist_ok=True)
+    return p
 
 
 def tensorboard_path(*paths):
-    return __generative_fetch_path(TBFOLDER, *paths)
+    return resources_path(TBFOLDER, *paths)
 
 
 def models_path(*paths):
-    return __generative_fetch_path(MODELSFOLDER, *paths)
+    return resources_path(MODELSFOLDER, *paths)
 
 
 def croppers_path(*paths):
-    return __generative_fetch_path(CROPPERSFOLDER, *paths)
+    return resources_path(CROPPERSFOLDER, *paths)
 
 
 def joint_locators_path(*paths):
-    return __generative_fetch_path(JLOCATORSFOLDER, *paths)
+    return resources_path(JLOCATORSFOLDER, *paths)
 
 
 def datasets_path(*paths):
-    return __generative_fetch_path(DATASETSFOLDER, *paths)
+    return resources_path(DATASETSFOLDER, *paths)
 
 
 def crops_path(*paths):
-    return __generative_fetch_path(CROPSDATAFOLDER, *paths)
+    return resources_path(CROPSDATAFOLDER, *paths)
 
 
 def joints_path(*paths):
-    return __generative_fetch_path(JOINTSDATAFOLDER, *paths)
+    return resources_path(JOINTSDATAFOLDER, *paths)
 
 
 class PathManager:
