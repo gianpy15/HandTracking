@@ -49,11 +49,11 @@ def load_dataset(train_samples, valid_samples,
         sys.stderr.write("WARNING: unable to load required dataset\n")
         sys.stderr.write("Cause: not enough data (%d available %d requested)\n" % (availability, requested))
         train_ratio = train_samples / requested
-        train_samples = int(availability * train_ratio)
+        train_samples = int(min(availability, requested) * train_ratio)
         train_vids, valid_vids = choose_train_valid_videos(dataset_info, train_samples, -1)
         if not separate_valid:
             merge_vids = True
-            valid_samples = availability - train_samples
+            valid_samples = min(availability, requested) - train_samples
         else:
             train_samples = available_frames(dataset_info, train_vids)
             valid_samples = available_frames(dataset_info, valid_vids)
