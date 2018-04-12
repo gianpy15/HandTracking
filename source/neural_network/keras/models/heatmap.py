@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def simple_model(input_shape, weight_decay=0):
+def simple_model(channels=3, weight_decay=0):
     model = km.Sequential()
-    model.add(kl.Conv2D(input_shape=input_shape, filters=32, kernel_size=[3, 3], padding='same'))
+    model.add(kl.Conv2D(input_shape=(None, None, channels), filters=32, kernel_size=[3, 3], padding='same'))
     model.add(kl.Activation('relu'))
     model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu',
                         kernel_regularizer=weight_decay))
@@ -32,9 +32,9 @@ def simple_model(input_shape, weight_decay=0):
     return model
 
 
-def simple_model2(input_shape, weight_decay=0):
+def simple_model2(channels=3, weight_decay=0):
     model = km.Sequential()
-    model.add(kl.Conv2D(input_shape=input_shape, filters=32, kernel_size=[3, 3], padding='same'))
+    model.add(kl.Conv2D(input_shape=(None, None, channels), filters=32, kernel_size=[3, 3], padding='same'))
     model.add(kl.Activation('relu'))
     model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu',
                         kernel_regularizer=weight_decay))
@@ -57,9 +57,9 @@ def simple_model2(input_shape, weight_decay=0):
     return model
 
 
-def exotic_model(input_shape, weight_decay=0):
+def exotic_model(channels=3, weight_decay=0):
     model = km.Sequential()
-    model.add(kl.Conv2D(input_shape=input_shape, filters=32, kernel_size=[3, 3], padding='same'))
+    model.add(kl.Conv2D(input_shape=(None, None, channels), filters=32, kernel_size=[3, 3], padding='same'))
     model.add(kl.Activation('relu'))
     model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation='relu',
                         kernel_regularizer=weight_decay))
@@ -98,9 +98,9 @@ def exotic_model(input_shape, weight_decay=0):
     return model
 
 
-def high_fov_model(input_shape, weight_decay=0):
+def high_fov_model(channels=3, weight_decay=0):
     model = km.Sequential()
-    model.add(kl.Conv2D(input_shape=input_shape, filters=32, kernel_size=[5, 5], padding='same'))
+    model.add(kl.Conv2D(input_shape=(None, None, channels), filters=32, kernel_size=[5, 5], padding='same'))
     model.add(kl.Activation('relu'))
     # FOV: 5
     model.add(kl.Conv2D(filters=64, kernel_size=[5, 5], padding='same', activation='relu',

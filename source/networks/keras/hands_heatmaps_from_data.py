@@ -28,12 +28,10 @@ dataset = load_dataset(train_samples=2,
                        use_depth=False,
                        verbose=True)
 
-model = high_fov_model(input_shape=np.shape(dataset[TRAIN_IN])[1:],
-                       weight_decay=kr.l2(1e-5))
-model.summary()
-
+model_generator = lambda: high_fov_model(channels=3,
+                                         weight_decay=kr.l2(1e-5))
 if train:
-    model = train_model(model=model,
+    model = train_model(model_generator=model_generator,
                         dataset=dataset,
                         tb_path=tensorboard_path,
                         checkpoint_path=model_ck_path,

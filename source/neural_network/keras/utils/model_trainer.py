@@ -4,6 +4,7 @@ from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from data_manager.path_manager import resources_path
 from neural_network.keras.utils.naming import *
+import keras as K
 import os
 
 DEFAULT_TENSORBOARD_PATH = "heat_maps"
@@ -11,10 +12,17 @@ DEFAULT_CHECKPOINT_PATH = resources_path(os.path.join('models/hand_cropper/cropp
 DEFAULT_H5MODEL_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
 
 
-def train_model(model, dataset,
+def train_model(model_generator, dataset,
                 tb_path="DEFAULT", checkpoint_path=None, h5model_path=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
                 additional_callbacks=None, loss_white_prio=-1.5, verbose=False):
+    K.backend.clear_session()
+
+    model = model_generator()
+
+    if verbose:
+        print("Model:")
+        model.summary()
 
     callbacks = []
     if checkpoint_path is not None:
