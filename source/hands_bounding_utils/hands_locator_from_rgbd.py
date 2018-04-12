@@ -5,6 +5,7 @@ import numpy as np
 import tqdm
 import os
 import math
+import sys
 from scipy import io as scio
 import random
 from scipy.misc import imresize
@@ -390,18 +391,14 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     else:
         basedir = path
     samples = os.listdir(basedir)
-    i = 0
-    tot = len(samples)
     frames = []
     heatmaps = []
     depths = []
     t_frames = []
     t_heatmaps = []
     t_depths = []
-    for name in samples:
-        if verbosity == 1:
-            print("Reading image: ", i, " of ", tot)
-            i += 1
+    iterator = tqdm.tqdm(samples, file=sys.stdout, unit='frms') if verbosity == 1 else samples
+    for name in iterator:
         realpath = os.path.join(basedir, name)
         matcontent = scio.loadmat(realpath)
         if leave_out is None or not __matches(name, leave_out):
@@ -434,7 +431,6 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     samples = os.listdir(basedir)
     if leave_out is not None:
         samples = [s for s in samples if not __matches(s, leave_out)]
-    i = 0
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
@@ -442,10 +438,8 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     frames = []
     heatmaps = []
     depths = []
-    while i < number:
-        i += 1
-        if verbosity == 1:
-            print("Reading image: ", i, " of ", tot)
+    iterator = tqdm.trange(number, file=sys.stdout, unit='frms') if verbosity == 1 else range(number)
+    for _ in iterator:
         which = int(math.floor(random.uniform(0, tot - 0.01)))
         while already_read[which] == 1:
             which = int(math.floor(random.uniform(0, tot - 0.01)))
