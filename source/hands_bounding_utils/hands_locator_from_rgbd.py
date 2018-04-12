@@ -8,6 +8,7 @@ import math
 from scipy import io as scio
 import random
 from scipy.misc import imresize
+from scipy.signal import convolve
 import hands_bounding_utils.utils as u
 from data_manager.path_manager import PathManager
 from timeit import timeit as tm
@@ -106,7 +107,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
 
 
 def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
-                   overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500):
+                   overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500, enlarge_heat=0.3):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
     :param tooclose: threshold value used to eliminate too close objects/values in the depth
@@ -160,13 +161,68 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=
                     heat = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
                                                                       coords, overlapping_penalty)
                     coords = coords[0]
-                    heat = __shade_heatmap(heat,
-                                           [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in coords],
-                                           [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in label])
+                    res_coords = [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in coords]
+                    res_coords = __enlarge_coords(res_coords, enlarge_heat, np.shape(heat))
+                    res_labels = [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in label]
+                    heat = __shade_heatmap(heat, res_coords, res_labels)
                     fr_to_save['heatmap'] = heat
                     fr_to_save['depth'] = depth
                     path = os.path.join(basedir, vid + "_" + str(i))
                     scio.savemat(path, fr_to_save)
+
+
+def __enlarge_coords(coord, enlarge, shape):
+    image_height = shape[0]
+    image_width = shape[1]
+    up, down, left, right = __get_bounds(coord)
+    up -= (down - up) * (enlarge / 2)
+    down += (down - up) * (enlarge / 2)
+    left -= (right - left) * (enlarge / 2)
+    right += (right - left) * (enlarge / 2)
+    up = int(up)
+    down = int(down)
+    left = int(left)
+    right = int(right)
+    if up < 0:
+        up = 0
+    if left < 0:
+        left = 0
+    if right >= image_width:
+        right = image_width - 1
+    if down >= image_height:
+        down = image_height - 1
+    return [[up, left], [up, right], [down, left], [down, right]]
+
+
+def __get_bounds(coord):
+    """given an array of 4 coordinates (x,y), simply computes and
+    returns the highest and lowest vertical and horizontal points"""
+    if len(coord) != 4:
+        raise AttributeError("coord must be a set of 4 coordinates")
+    x = [coord[i][0] for i in range(len(coord))]
+    y = [coord[i][1] for i in range(len(coord))]
+    up = np.min(x)
+    down = np.max(x)
+    left = np.min(y)
+    right = np.max(y)
+    return up, down, left, right
+
+
+def __smoothen(heat, coords):
+    h = [s[0] for s in coords]
+    w = [w[1] for w in coords]
+    min_h = np.min(h)
+    max_h = np.max(h)
+    min_w = np.min(w)
+    max_w = np.max(w)
+    h = max_h - min_h + 1
+    w = max_w - min_w + 1
+    copy = np.array(heat[min_h:max_h+1, min_w:max_w+1])
+    ker_size = heat.shape[0] // h + heat.shape[1] // w
+    ker = 2 * __ones_kernel(ker_size) / (ker_size * ker_size)
+    heat = convolve(heat, ker, mode='same')
+    heat[min_h:max_h + 1, min_w:max_w + 1] = copy
+    return heat
 
 
 def __shade_heatmap(heat, square_coords, joint_coords):
@@ -192,11 +248,14 @@ def __shade_heatmap(heat, square_coords, joint_coords):
     for i in range(min_h, max_h + 1):
         for j in range(min_w, max_w + 1):
             heat[i][j] = (supp_heat[i-min_h][j-min_w] - mean) / std
-    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], 1 / (1 + math.exp(-np.max(supp_heat)/(15*mean))))
-    max_gauss = np.max(heat[min_h:max_h + 1, min_w: max_w + 1])
+    heat[min_h:max_h + 1, min_w: max_w + 1] -= np.min(heat[min_h:max_h + 1, min_w: max_w + 1])
+    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], 0.4)
     for i in range(min_h, max_h + 1):
         for j in range(min_w, max_w + 1):
-            heat[i][j] = min((max_gauss - heat[i][j]) / (max_gauss - min_gauss), 1)
+            if heat[i][j] > min_gauss:
+                heat[i][j] = 0
+            else:
+                heat[i][j] = math.sqrt(1 - (heat[i][j] * heat[i][j])/(min_gauss * min_gauss))
     return heat
 
 
@@ -570,8 +629,8 @@ if __name__ == '__main__':
 
     # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
-    # timetest()
-    #create_dataset_shaded_heatmaps(videos_list=['HandsEverton', 'handsMatteo'], resize_rate=0.5, heigth_shrink_rate=2, width_shrink_rate=2)
+    # timetest() , 'handsMatteo'
+    #create_dataset_shaded_heatmaps(videos_list=['HandsEverton', 'handsMattia'], resize_rate=0.5, heigth_shrink_rate=2, width_shrink_rate=2)
     f, h, d = read_dataset_random(number=1)
     f = np.array(f)
     h = np.array(h)
