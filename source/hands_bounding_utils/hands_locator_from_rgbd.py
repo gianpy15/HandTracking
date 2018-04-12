@@ -27,8 +27,6 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
     :param vname: name of the video. Note that the video must be present in the framedata folder, under resources
     """
     frames, labels = vl.load_labeled_video(vname, getdepth, fillgaps, gapflags)
-    frames = np.array(frames)
-    labels = np.array(labels)
     if verbosity == 1:
         print("FRAMES SHAPE: ", frames.shape)
         print("LABELS SHAPE: ", labels.shape)
@@ -74,6 +72,8 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
         vids = videos_list
     for vid in tqdm.tqdm(vids):
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
+        if labels is None:
+            continue
         depths, _ = load_labelled_videos(vid, getdepth=True, fillgaps=fillgaps)
         fr_num = frames.shape[0]
         for i in tqdm.tqdm(range(0, fr_num)):
@@ -136,6 +136,8 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=
         vids = videos_list
     for vid in tqdm.tqdm(vids):
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
+        if labels is None:
+            continue
         depths, _ = load_labelled_videos(vid, getdepth=True, fillgaps=fillgaps)
         fr_num = frames.shape[0]
         for i in tqdm.tqdm(range(0, fr_num)):
@@ -254,9 +256,12 @@ def __shade_heatmap(heat, square_coords, joint_coords):
     for i in range(min_h, max_h + 1):
         for j in range(min_w, max_w + 1):
             if heat[i][j] > min_gauss:
-                heat[i][j] = 0
-            else:
+                heat[i][j] = 0.
+            elif min_gauss != 0:
                 heat[i][j] = math.sqrt(1 - (heat[i][j] * heat[i][j])/(min_gauss * min_gauss))
+            else:
+                heat[i][j] = 1.
+
     return heat
 
 
