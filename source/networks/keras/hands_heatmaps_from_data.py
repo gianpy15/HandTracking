@@ -39,4 +39,5 @@ if train:
                         learning_rate=1e-3,
                         epochs=1,
                         batch_size=1,
-                        patience=5)
+                        patience=5,
+                        verbose=True)
