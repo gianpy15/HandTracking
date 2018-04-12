@@ -15,10 +15,51 @@ def __robust_respath_search():
 
 
 RESPATH = __robust_respath_search()
+TBFOLDER = "tbdata"
+MODELSFOLDER = "models"
+CROPPERSFOLDER = os.path.join(MODELSFOLDER, "croppers")
+JLOCATORSFOLDER = os.path.join(MODELSFOLDER, "jlocators")
+DATASETSFOLDER = "datasets"
+CROPSDATAFOLDER = os.path.join(DATASETSFOLDER, "crops")
+JOINTSDATAFOLDER = os.path.join(DATASETSFOLDER, "joints")
 
 
 def resources_path(*paths):
     return os.path.join(RESPATH, *paths)
+
+
+def __generative_fetch_path(basegen, *paths):
+    if not os.path.exists(resources_path(basegen)):
+        os.makedirs(resources_path(basegen))
+    return resources_path(basegen, *paths)
+
+
+def tensorboard_path(*paths):
+    return __generative_fetch_path(TBFOLDER, *paths)
+
+
+def models_path(*paths):
+    return __generative_fetch_path(MODELSFOLDER, *paths)
+
+
+def croppers_path(*paths):
+    return __generative_fetch_path(CROPPERSFOLDER, *paths)
+
+
+def joint_locators_path(*paths):
+    return __generative_fetch_path(JLOCATORSFOLDER, *paths)
+
+
+def datasets_path(*paths):
+    return __generative_fetch_path(DATASETSFOLDER, *paths)
+
+
+def crops_path(*paths):
+    return __generative_fetch_path(CROPSDATAFOLDER, *paths)
+
+
+def joints_path(*paths):
+    return __generative_fetch_path(JOINTSDATAFOLDER, *paths)
 
 
 class PathManager:
@@ -53,3 +94,10 @@ def list_files(basedir):
     for f in subelems:
         rets.extend(list_files(f))
     return rets
+
+
+if __name__ == '__main__':
+    print(joints_path("j1", "jj.mat"))
+    print(croppers_path("mod1.ckp"))
+    print(joint_locators_path("j1", "jj1"))
+    print(crops_path())

@@ -10,10 +10,11 @@ from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
 from data_manager.path_manager import resources_path
 
-dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
-tensorboard_path = resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
-model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
+# dataset_path = crops_path() # this should be the standard, but for now...
+dataset_path = resources_path("hands_bounding_dataset", "network_test")
+tensorboard_path = tensorboard_path("heat_maps")
+model_ck_path = cropper_ckp_path("cropper_v5")
+model_save_path = cropper_h5_path("cropper_v5")
 
 TBManager.set_path("heat_maps")
 tb_manager_train = TBManager()
@@ -30,6 +31,7 @@ dataset = load_dataset(train_samples=2,
 
 model_generator = lambda: high_fov_model(channels=3,
                                          weight_decay=kr.l2(1e-5))
+
 if train:
     model = train_model(model_generator=model_generator,
                         dataset=dataset,
