@@ -4,16 +4,14 @@ import keras.models as km
 from neural_network.keras.custom_layers.heatmap_loss import my_loss
 from skimage.transform import resize
 import os
-from data_manager.path_manager import PathManager
 import hands_bounding_utils.utils as u
-from scipy.misc import imresize
-from image_loader.image_loader import load, load_from_png
+from image_loader.image_loader import load
+from neural_network.keras.utils.naming import *
 
-pm = PathManager()
-dataset_path = pm.resources_path(os.path.join("samples_for_heatmaps"))
-png_path = pm.resources_path(os.path.join("gui", "hands.png"))
-model_ck_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.ckp'))
-model_save_path = pm.resources_path(os.path.join('models/hand_cropper/cropper_v3.h5'))
+dataset_path = resources_path("samples_for_heatmaps")
+png_path = resources_path("gui", "hands.png")
+model_ck_path = models_path('hand_cropper', 'cropper_v3.ckp')
+model_save_path = models_path('hand_cropper', 'cropper_v3.h5')
 
 read_from_png = False
 

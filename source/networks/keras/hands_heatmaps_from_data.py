@@ -9,8 +9,6 @@ from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
 import keras.regularizers as kr
 
-# dataset_path = crops_path() # this should be the standard, but for now...
-dataset_path = resources_path("hands_bounding_dataset", "network_test")
 tensorboard_path = tensorboard_path("heat_maps")
 model_ck_path = cropper_ckp_path("cropper_v5")
 model_save_path = cropper_h5_path("cropper_v5")
@@ -19,7 +17,6 @@ train = True
 
 dataset = load_dataset(train_samples=2,
                        valid_samples=1,
-                       dataset_path=dataset_path,
                        random_dataset=True,
                        shuffle=True,
                        use_depth=False,

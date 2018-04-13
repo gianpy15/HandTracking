@@ -5,7 +5,7 @@ import hands_bounding_utils.utils as u
 import hands_regularizer.regularizer as reg
 
 
-dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
+dataset_path = resources_path("hands_bounding_dataset", "network_test")
 
 images, heat_maps, depths = read_dataset_random(path=dataset_path, number=904)
 

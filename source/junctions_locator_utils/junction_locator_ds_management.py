@@ -4,11 +4,9 @@ import hands_bounding_utils.utils as u
 import numpy as np
 import source.hand_data_management.video_loader as vl
 import hands_regularizer.regularizer as reg
-import os
-import data_manager.path_manager as pm
 import tqdm
 import scipy.io as scio
-pm = pm.PathManager()
+from neural_network.keras.utils.naming import *
 
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):
@@ -29,7 +27,7 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
     return frames, labels
 
 
-def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regularizer(),
+def create_dataset(videos_list=None, savepath=joints_path(), im_regularizer=reg.Regularizer(),
                    heat_regularizer=reg.Regularizer(), fillgaps=False, cross_radius=3, enlarge=0.2, shade=False):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
@@ -45,12 +43,12 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
     :param shade: set to true to shade the pixels that identify a junction in a heatmap according to their
     distance with the center (real position of junction"""
     if savepath is None:
-        basedir = pm.resources_path(os.path.join("hands_locator_dataset", "cuts_tranformed"))
+        basedir = joints_path()
     else:
         basedir = savepath
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    framesdir = pm.resources_path("framedata")
+    framesdir = resources_path("framedata")
     if videos_list is None:
         vids = os.listdir(framesdir)
         vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
@@ -91,7 +89,7 @@ def __heatmaps_dim_reducer(heatmaps):
     return heatris
 
 
-def read_dataset(path=None, verbosity=0, leave_out=None):
+def read_dataset(path=joints_path(), verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -103,7 +101,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     (cuts, heatmaps, vis, test_cuts, test_heatmaps, test_vis)
     """
     if path is None:
-        basedir = pm.resources_path(os.path.join("hands_locator_dataset", "cuts_tranformed"))
+        basedir =joints_path()
     else:
         basedir = path
     samples = os.listdir(basedir)
@@ -134,7 +132,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     return cuts, heatmaps, visible, t_cuts, t_heatmaps, t_visible
 
 
-def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
+def read_dataset_random(path=joints_path(), number=1, verbosity=0, leave_out=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to 1 will make the method print the number of .mat files read
@@ -145,7 +143,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     :param leave_out: list of videos from which samples will NOT be taken
     """
     if path is None:
-        basedir = pm.resources_path(os.path.join("hands_locator_dataset", "cuts_tranformed"))
+        basedir = joints_path()
     else:
         basedir = path
     samples = os.listdir(basedir)

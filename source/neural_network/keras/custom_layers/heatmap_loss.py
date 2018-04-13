@@ -3,7 +3,6 @@ import keras.backend as K
 from hands_bounding_utils.hands_locator_from_rgbd import *
 from neural_network.keras.models.heatmap import *
 import hands_bounding_utils.utils as u
-import os
 
 
 def heatmap_loss_2(y_true, y_pred, white_weight=1, black_weight=0.1):
@@ -91,7 +90,7 @@ def prop_heatmap_loss_fast(heat_ground, heat_pred, mean_par, norm_factor):
 
 
 if __name__ == '__main__':
-    dataset_path = pm.resources_path(os.path.join("hands_bounding_dataset", "network_test"))
+    dataset_path = resources_path("hands_bounding_dataset", "network_test")
     images, heat_maps, depths = read_dataset_random(path=dataset_path, number=1)
     shifted_mean, norm_factor = static_prop_heatmap_parameters(heat_maps[0], -3)
     print(shifted_mean, norm_factor)

@@ -3,7 +3,6 @@ import hand_data_management.video_loader as vl
 import hand_data_management.grey_to_redblue_codec as gtrbc
 import numpy as np
 import tqdm
-import os
 import math
 import sys
 from scipy import io as scio
@@ -11,10 +10,9 @@ import random
 from scipy.misc import imresize
 from scipy.signal import convolve
 import hands_bounding_utils.utils as u
-from data_manager.path_manager import PathManager
+from neural_network.keras.utils.naming import *
 from timeit import timeit as tm
 
-pm = PathManager()
 
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):
@@ -43,7 +41,7 @@ def depth_resize(depth, rr):
     return imresize(depth, rr)[:, :, 0:1]
 
 
-def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
+def create_dataset(videos_list=None, savepath=crops_path(), resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
                    overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
@@ -59,12 +57,12 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
     :param videos_list: list of videos you need the .mat files of. If left to the default value None, all videos will
     be exploited"""
     if savepath is None:
-        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
+        basedir = crops_path()
     else:
         basedir = savepath
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    framesdir = pm.resources_path("framedata")
+    framesdir = resources_path("framedata")
     if videos_list is None:
         vids = os.listdir(framesdir)
         vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
@@ -108,7 +106,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                     print(vid + str(i) + " => " + e)
 
 
-def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
+def create_dataset_shaded_heatmaps(videos_list=None, savepath=crops_path(), resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
                    overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500, enlarge_heat=0.3):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
@@ -124,12 +122,12 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=
     :param videos_list: list of videos you need the .mat files of. If left to the default value None, all videos will
     be exploited"""
     if savepath is None:
-        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
+        basedir = crops_path()
     else:
         basedir = savepath
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    framesdir = pm.resources_path("framedata")
+    framesdir = resources_path("framedata")
     if videos_list is None:
         vids = os.listdir(framesdir)
         vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
@@ -387,7 +385,7 @@ def __dist(p1, p2):
     return math.sqrt(math.pow(p1[0]-p2[0], 2) + math.pow(p1[1]-p2[1], 2))
 
 
-def read_dataset(path=None, verbosity=0, leave_out=None):
+def read_dataset(path=crops_path(), verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -399,7 +397,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     (frames, heatmaps, depths, test_frames, test_heatmaps, test_depths)
     """
     if path is None:
-        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
+        basedir = crops_path()
     else:
         basedir = path
     samples = os.listdir(basedir)
@@ -426,7 +424,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     return frames, heatmaps, depths, t_frames, t_heatmaps, t_depths
 
 
-def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
+def read_dataset_random(path=crops_path(), number=1, verbosity=0, leave_out=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -437,7 +435,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     :param leave_out: list of videos from which samples will NOT be taken
     """
     if path is None:
-        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "hands_rgbd_tranformed"))
+        basedir = crops_path()
     else:
         basedir = path
     samples = os.listdir(basedir)
@@ -503,7 +501,7 @@ def __get_coord_from_labels(lista):
 
 
 def load_all_frames_data(framespath, verbosity=0):
-    framespathreal = pm.resources_path(framespath)
+    framespathreal = resources_path(framespath)
     frames = cdc.read_frame_data(**cdc.default_read_rgb_args(framespathreal))
     depths = cdc.read_frame_data(**cdc.default_read_z16_args(framespathreal))
     frames = np.array(frames)

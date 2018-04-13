@@ -5,8 +5,6 @@ from neural_network.keras.utils.naming import *
 import random as rnd
 import sys
 
-DEFAULT_DATASET_PATH = resources_path("hands_bounding_dataset", "network_test")
-
 
 def load_dataset(train_samples, valid_samples,
                  random_dataset=False,
@@ -18,9 +16,6 @@ def load_dataset(train_samples, valid_samples,
                  separate_valid=True):
 
     merge_vids = False
-
-    if dataset_path is None:
-        dataset_path = DEFAULT_DATASET_PATH
 
     if verbose:
         print("Dataset location: %s" % dataset_path)
