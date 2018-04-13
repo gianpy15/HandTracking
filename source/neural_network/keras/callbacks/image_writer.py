@@ -41,7 +41,6 @@ class ImageWriter(Callback):
 
         if self.input_images is not None and self.target_images is not None:
             heat_maps = self.model.predict(self.input_images)
-            print("Heatmaps = {}".format(np.shape(heat_maps)))
             with tf.Session() as s:
                 summary = s.run(self.tb_manager.get_runnable(),
                                 feed_dict={self.image_tensor: self.input_images_3d,

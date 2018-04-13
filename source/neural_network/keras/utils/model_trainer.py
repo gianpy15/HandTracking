@@ -2,7 +2,6 @@ from neural_network.keras.models.heatmap import *
 from neural_network.keras.callbacks.image_writer import ImageWriter
 from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
-from data_manager.path_manager import resources_path
 from neural_network.keras.utils.naming import *
 import keras as K
 import os
@@ -68,23 +67,16 @@ def train_model(model_generator, dataset,
             print("Setting up tensorboard...")
             print("Clearing tensorboard files...")
         TBManager.clear_data()
-        tb_manager_train = TBManager()
-        tb_manager_test = TBManager()
-
-        tb_manager_test.add_images(dataset[VALID_IN][0:5], name="test_imgs", max_out=5)
-        tb_manager_test.add_images(dataset[VALID_TARGET][0:5], name="test_maps", max_out=5)
-        tb_manager_train.add_images(dataset[TRAIN_IN][0:5], name="train_imgs", max_out=5)
-        tb_manager_train.add_images(dataset[TRAIN_TARGET][0:5], name="train_maps", max_out=5)
 
         if verbose:
             print("Adding tensorboard callbacks...")
         callbacks.append(kc.TensorBoard(log_dir=tb_path,
                                         histogram_freq=1))
-        callbacks.append(ImageWriter(images=dataset[TRAIN_IN][0:5],
-                                     tb_manager=tb_manager_train,
+        callbacks.append(ImageWriter(data=(dataset[TRAIN_IN],
+                                           dataset[TRAIN_TARGET]),
                                      name='train_output'))
-        callbacks.append(ImageWriter(images=dataset[VALID_IN][0:5],
-                                     tb_manager=tb_manager_test,
+        callbacks.append(ImageWriter(data=(dataset[VALID_IN],
+                                           dataset[VALID_TARGET]),
                                      name='test_output'))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
