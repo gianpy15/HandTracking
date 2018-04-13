@@ -14,17 +14,20 @@ model2_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper
 model3_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m3.h5')
 
 read_from_png = True
-images_ = None
 
+height = 4*50
+width = 4*50
 if read_from_png:
-    images = load(png_path, force_format=(240, 320, 3))
+    images = load(png_path, force_format=(height, width, 3))
 else:
     images = load_dataset(train_samples=2,
                           valid_samples=0,
                           dataset_path=dataset_path,
                           random_dataset=True)[TRAIN_IN]
 
-images_ = np.concatenate((images, np.zeros(shape=np.shape(images)[0:-1] + (1,))), axis=-1)
+images_ = (images - np.mean(images))/np.std(images)
+# images_ = images
+images_ = np.concatenate((images_, np.zeros(shape=np.shape(images_)[0:-1] + (1,))), axis=-1)
 print(np.shape(images_))
 
 
@@ -51,10 +54,11 @@ model = km.load_model(model3_save_path)
 # Testing the model getting some outputs
 net_out = model.predict(images_)[0]
 net_out = net_out.clip(max=1)
-first_out = resize(net_out, output_shape=(120, 160, 1))
+first_out = resize(net_out, output_shape=(height, width, 1))
 total_sum = np.sum(first_out[0])
 
 u.showimage(images[0])
 u.showimage(u.heatmap_to_rgb(net_out))
+u.showimage(images[0]*first_out)
 u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=0.5,
                                       accept_crop_minimum_dimension_pixels=100))
