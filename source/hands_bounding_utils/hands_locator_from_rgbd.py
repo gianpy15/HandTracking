@@ -253,11 +253,9 @@ def __shade_heatmap(heat, square_coords, joint_coords):
                 supp_heat[i-min_h][j-min_w] = np.min(distances + distances2)
     mean = np.mean(supp_heat)
     std = np.std(supp_heat)
-    for i in range(min_h, max_h + 1):
-        for j in range(min_w, max_w + 1):
-            heat[i][j] = (supp_heat[i-min_h][j-min_w] - mean) / std
+    heat[min_h:max_h + 1, min_w: max_w + 1] = (supp_heat - mean) / std
     heat[min_h:max_h + 1, min_w: max_w + 1] -= np.min(heat[min_h:max_h + 1, min_w: max_w + 1])
-    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], 0.4)
+    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], - 0.1 + __sigmoid(mean/5))
     for i in range(min_h, max_h + 1):
         for j in range(min_w, max_w + 1):
             if heat[i][j] > min_gauss:
@@ -268,6 +266,10 @@ def __shade_heatmap(heat, square_coords, joint_coords):
                 heat[i][j] = 1.
 
     return heat
+
+
+def __sigmoid(x):
+    return 1 / (1 + math.exp(-x))
 
 
 def __in_triangle(p, v0, v1, v2):
