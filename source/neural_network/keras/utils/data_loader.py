@@ -1,12 +1,14 @@
-from hands_bounding_utils.hands_locator_from_rgbd import *
-from data_manager.path_manager import resources_path
+from hands_bounding_utils import hands_locator_from_rgbd as croputils
+import hands_regularizer.regularizer as regularizer
 from hands_regularizer.regularizer import Regularizer
 from neural_network.keras.utils.naming import *
+from junctions_locator_utils import junction_locator_ds_management as jlocutils
+import numpy as np
 import random as rnd
 import sys
 
 
-def load_dataset(train_samples, valid_samples,
+def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                  random_dataset=False,
                  shuffle=True,
                  use_depth=False,
@@ -14,11 +16,7 @@ def load_dataset(train_samples, valid_samples,
                  dataset_path=None,
                  verbose=False,
                  separate_valid=True):
-
     merge_vids = False
-
-    if verbose:
-        print("Dataset location: %s" % dataset_path)
 
     if build_videos is not None:
         # if we want to build all videos we have the special token "ALL":
@@ -28,9 +26,19 @@ def load_dataset(train_samples, valid_samples,
             videos_list = build_videos
         if verbose:
             print("Building dataset on videos %s" % videos_list)
-        create_dataset_shaded_heatmaps(savepath=dataset_path, fillgaps=True,
-                                       resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4,
-                                       videos_list=videos_list)
+        if data_format == CROPPER:
+            croputils.create_dataset_shaded_heatmaps(savepath=dataset_path, fillgaps=True,
+                                                     resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4,
+                                                     videos_list=videos_list)
+        else:
+            img_reg = regularizer.Regularizer()
+            img_reg.fixresize(200, 200)
+            hm_reg = regularizer.Regularizer()
+            hm_reg.fixresize(100, 100)
+            hm_reg.heatmaps_threshold(.5)
+            jlocutils.create_dataset(savepath=dataset_path, fillgaps=True, im_regularizer=img_reg,
+                                     heat_regularizer=hm_reg, enlarge=.5, cross_radius=5,
+                                     videos_list=videos_list)
 
     dataset_info = _get_available_dataset_stats(dataset_path)
 
@@ -61,72 +69,84 @@ def load_dataset(train_samples, valid_samples,
         print("Chosen train videos: %s" % train_vids)
         print("Chosen valid videos: %s" % valid_vids)
 
+    if data_format == CROPPER:
+        read_dataset_random = croputils.read_dataset_random
+        read_dataset = croputils.read_dataset
+        need_expand_greys = True
+        double_target = False
+    else:
+        read_dataset_random = jlocutils.read_dataset_random
+        read_dataset = jlocutils.read_dataset
+        need_expand_greys = False
+        double_target = True
+
     if random_dataset:
         if merge_vids:
             if verbose:
                 print("Reading data...")
-            imgs, maps, depths = read_dataset_random(path=dataset_path,
-                                                     number=train_samples+valid_samples,
-                                                     verbosity=1 if verbose else 0)
-            imgs, depths, maps = shuffle_rgb_depth_heatmap(imgs, depths, maps)
+            imgs, maps, trd = read_dataset_random(path=dataset_path,
+                                                  number=train_samples + valid_samples,
+                                                  verbosity=1 if verbose else 0)
+            imgs, trd, maps = croputils.shuffle_rgb_depth_heatmap(imgs, trd, maps)
             train_imgs = imgs[:train_samples]
             train_maps = maps[:train_samples]
-            train_depths = depths[:train_samples]
-            valid_imgs = imgs[train_samples:]
-            valid_maps = maps[train_samples:]
-            valid_depths = depths[train_samples:]
+            train_trd = trd[:train_samples]
+            valid_imgs = imgs[train_samples:train_samples+valid_samples]
+            valid_maps = np.array(maps[train_samples:train_samples+valid_samples])
+            valid_trd = trd[train_samples:train_samples+valid_samples]
         else:
             if verbose:
                 print("Reading training data...")
-            train_imgs, train_maps, train_depths = read_dataset_random(path=dataset_path,
-                                                                       number=train_samples,
-                                                                       leave_out=valid_vids,
-                                                                       verbosity=1 if verbose else 0)
+            train_imgs, train_maps, train_trd = read_dataset_random(path=dataset_path,
+                                                                    number=train_samples,
+                                                                    leave_out=valid_vids,
+                                                                    verbosity=1 if verbose else 0)
             if verbose:
                 print("Reading validation data...")
-            valid_imgs, valid_maps, valid_depths = read_dataset_random(path=dataset_path,
-                                                                       number=valid_samples,
-                                                                       leave_out=train_vids,
-                                                                       verbosity=1 if verbose else 0)
+            valid_imgs, valid_maps, valid_trd = read_dataset_random(path=dataset_path,
+                                                                    number=valid_samples,
+                                                                    leave_out=train_vids,
+                                                                    verbosity=1 if verbose else 0)
 
     else:
         if verbose:
             print("Reading data...")
         if merge_vids:
-            imgs, maps, depths = read_dataset(path=dataset_path,
-                                              verbosity=1 if verbose else 0)
-            imgs, depths, maps = shuffle_rgb_depth_heatmap(imgs, depths, maps)
+            imgs, maps, trd = read_dataset(path=dataset_path,
+                                           verbosity=1 if verbose else 0)
+            imgs, trd, maps = croputils.shuffle_rgb_depth_heatmap(imgs, trd, maps)
             train_imgs = imgs[:train_samples]
             train_maps = maps[:train_samples]
-            train_depths = depths[:train_samples]
+            train_trd = trd[:train_samples]
             valid_imgs = imgs[train_samples:]
             valid_maps = maps[train_samples:]
-            valid_depths = depths[train_samples:]
+            valid_trd = trd[train_samples:]
         else:
-            train_imgs, train_maps, train_depths, \
-            valid_imgs, valid_maps, valid_depths = read_dataset(path=dataset_path,
-                                                                leave_out=valid_vids,
-                                                                verbosity=1 if verbose else 0)
+            train_imgs, train_maps, train_trd, \
+            valid_imgs, valid_maps, valid_trd = read_dataset(path=dataset_path,
+                                                             leave_out=valid_vids,
+                                                             verbosity=1 if verbose else 0)
 
-            train_imgs, train_maps, train_depths = train_imgs[0:train_samples], \
-                                                   train_maps[0:train_samples], \
-                                                   train_depths[0:train_samples]
-            valid_imgs, valid_maps, valid_depths = valid_imgs[0:valid_samples], \
-                                                   valid_maps[0:valid_samples], \
-                                                   valid_depths[0:valid_samples]
+            train_imgs, train_maps, train_trd = train_imgs[0:train_samples], \
+                                                train_maps[0:train_samples], \
+                                                train_trd[0:train_samples]
+            valid_imgs, valid_maps, valid_trd = valid_imgs[0:valid_samples], \
+                                                valid_maps[0:valid_samples], \
+                                                valid_trd[0:valid_samples]
 
     if shuffle:
         if verbose:
             print("Shuffling data...")
-        train_imgs, train_depths, train_maps = shuffle_rgb_depth_heatmap(train_imgs, train_depths, train_maps)
+        train_imgs, train_trd, train_maps = croputils.shuffle_rgb_depth_heatmap(train_imgs, train_trd, train_maps)
 
-    if verbose:
-        print("Formatting greys...")
-    train_maps = np.expand_dims(train_maps, axis=np.ndim(train_maps))
-    valid_maps = np.expand_dims(valid_maps, axis=np.ndim(valid_maps))
-    if use_depth:
-        train_depths = np.expand_dims(train_depths, axis=np.ndim(train_depths))
-        valid_depths = np.expand_dims(valid_depths, axis=np.ndim(valid_depths))
+    if need_expand_greys:
+        if verbose:
+            print("Formatting greys...")
+        train_maps = np.expand_dims(train_maps, axis=np.ndim(train_maps))
+        valid_maps = np.expand_dims(valid_maps, axis=np.ndim(valid_maps))
+        if use_depth:
+            train_trd = np.expand_dims(train_trd, axis=np.ndim(train_trd))
+            valid_trd = np.expand_dims(valid_trd, axis=np.ndim(valid_trd))
 
     reg = Regularizer()
     reg.normalize()
@@ -139,8 +159,8 @@ def load_dataset(train_samples, valid_samples,
     if use_depth:
         if verbose:
             print("Attaching depth...")
-        train_input = np.concatenate((train_imgs, train_depths), axis=-1)
-        valid_input = np.concatenate((valid_imgs, valid_depths), axis=-1)
+        train_input = np.concatenate((train_imgs, train_trd), axis=-1)
+        valid_input = np.concatenate((valid_imgs, valid_trd), axis=-1)
     else:
         train_input = train_imgs
         valid_input = valid_imgs
@@ -148,10 +168,19 @@ def load_dataset(train_samples, valid_samples,
     if verbose:
         print("Dataset ready!")
 
+    if double_target:
+        train_second_target = train_trd
+        valid_second_target = valid_trd
+    else:
+        train_second_target = None
+        valid_second_target = None
+
     return {TRAIN_IN: train_input,
             TRAIN_TARGET: train_maps,
+            TRAIN_TARGET2: train_second_target,
             VALID_IN: valid_input,
-            VALID_TARGET: valid_maps}
+            VALID_TARGET: valid_maps,
+            VALID_TARGET2: valid_second_target}
 
 
 def _get_available_dataset_stats(dataset_dir):
