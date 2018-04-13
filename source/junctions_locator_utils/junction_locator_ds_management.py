@@ -1,3 +1,5 @@
+import random
+
 import hands_bounding_utils.utils as u
 import numpy as np
 import source.hand_data_management.video_loader as vl
@@ -28,7 +30,7 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
 
 
 def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regularizer(),
-                   heat_regularizer=reg.Regularizer(), fillgaps=False, cross_radius=3, enlarge=0.2):
+                   heat_regularizer=reg.Regularizer(), fillgaps=False, cross_radius=3, enlarge=0.2, shade=False):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
     :param fillgaps: set to True to also get interpolated frames
@@ -38,7 +40,10 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
     the /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
     :param videos_list: list of videos you need the .mat files of. If left to the default value None, all videos will
     be exploited
-    :param cross_radius: radius of the crosses of the heatmaps"""
+    :param cross_radius: radius of the crosses of the heatmaps
+    :param enlarge: crops enlarge factor
+    :param shade: set to true to shade the pixels that identify a junction in a heatmap according to their
+    distance with the center (real position of junction"""
     if savepath is None:
         basedir = pm.resources_path(os.path.join("hands_locator_dataset", "cuts_tranformed"))
     else:
@@ -58,7 +63,6 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
         for i in tqdm.tqdm(range(0, fr_num)):
             if labels[i] is not None:
                 try:
-                    fr_to_save = {}
                     frame = frames[i]
                     label = labels[i][:, 0:2]
                     visible = labels[i][:, 2:3]
@@ -68,12 +72,12 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     coords = __get_coord_from_labels(label)
                     cut = u.crop_from_coords(frame, coords, enlarge)
                     heatmaps = __create_21_heatmaps(label, coords,
-                                                    np.shape(frame), cross_radius, enlarge)
+                                                    np.shape(frame), cross_radius, enlarge, shade)
                     cut = im_regularizer.apply(cut)
                     heatmaps = heat_regularizer.apply_on_batch(heatmaps)
-                    heatmaps = __heatmaps_dim_reducer(heatmaps)
+                    # heatmaps = __heatmaps_dim_reducer(heatmaps)
                     heatmaps = __stack_heatmaps(heatmaps)
-                    path = os.path.join(basedir, vid + str(i))
+                    path = os.path.join(basedir, vid + "_" + str(i))
                     __persist_frame(path, cut, heatmaps, visible)
                 except ValueError as e:
                     print("Error " + e + " on vid " + vid + str(i))
@@ -87,13 +91,16 @@ def __heatmaps_dim_reducer(heatmaps):
     return heatris
 
 
-def read_dataset(path=None, verbosity=0):
+def read_dataset(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
     every time it reads one
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param leave_out: list of videos whose elements will be put in the test set. Note that is this parameter is not
+    provided, only 3 arrays will be returned (cuts, heatmaps, vis). If this is provided, 6 arrays are returned
+    (cuts, heatmaps, vis, test_cuts, test_heatmaps, test_vis)
     """
     if path is None:
         basedir = pm.resources_path(os.path.join("hands_locator_dataset", "cuts_tranformed"))
@@ -105,11 +112,59 @@ def read_dataset(path=None, verbosity=0):
     cuts = []
     heatmaps = []
     visible = []
+    t_cuts = []
+    t_heatmaps = []
+    t_visible = []
     for name in samples:
         if verbosity == 1:
             print("Reading image: ", i, " of ", tot)
             i += 1
         realpath = os.path.join(basedir, name)
+        readcuts, readheats, readvis = __read_frame(realpath)
+        if leave_out is None or not __matches(name, leave_out):
+            cuts.append(readcuts)
+            heatmaps.append(readheats)
+            visible.append(readvis)
+        else:
+            t_cuts.append(readcuts)
+            t_heatmaps.append(readheats)
+            t_visible.append(readvis)
+    if leave_out is None:
+        return cuts, heatmaps, visible
+    return cuts, heatmaps, visible, t_cuts, t_heatmaps, t_visible
+
+
+def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
+    """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
+    the create_dataset method
+    :param verbosity: setting this parameter to 1 will make the method print the number of .mat files read
+    every time it reads one
+    :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
+    /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param number: number of elements to read
+    :param leave_out: list of videos from which samples will NOT be taken
+    """
+    if path is None:
+        basedir = pm.resources_path(os.path.join("hands_locator_dataset", "cuts_tranformed"))
+    else:
+        basedir = path
+    samples = os.listdir(basedir)
+    if leave_out is not None:
+        samples = [s for s in samples if not __matches(s, leave_out)]
+    tot = len(samples)
+    if number > tot:
+        raise ValueError("number must be smaller than the number of samples")
+    cuts = []
+    heatmaps = []
+    visible = []
+    for i in range(number):
+        if verbosity == 1:
+            print("Reading image: ", i, " of ", tot)
+            i += 1
+        which = int(np.math.floor(random.uniform(0, tot - 0.01)))
+        realpath = os.path.join(basedir, samples[which])
+        samples.pop(which)
+        tot -= 1
         readcuts, readheats, readvis = __read_frame(realpath)
         cuts.append(readcuts)
         heatmaps.append(readheats)
@@ -117,11 +172,18 @@ def read_dataset(path=None, verbosity=0):
     return cuts, heatmaps, visible
 
 
-def __create_21_heatmaps(label, coords_for_cut, original_shape, cross_radius, enlarge):
+def __matches(s, leave_out):
+    for stri in leave_out:
+        if s.startswith(stri + "_"):
+            return True
+    return False
+
+
+def __create_21_heatmaps(label, coords_for_cut, original_shape, cross_radius, enlarge, shade=False):
     heatmaps = []
     for l in label:
-        heat = np.zeros(original_shape)
-        heat = __set_cross(heat, l, cross_radius)
+        heat = np.zeros([original_shape[0], original_shape[1]])
+        heat = __set_cross(heat, l, cross_radius, shade)
         heat = u.crop_from_coords(heat, coords_for_cut, enlarge)
         heatmaps.append(heat)
     return np.array(heatmaps)
@@ -132,12 +194,21 @@ def __stack_heatmaps(heatmaps):
     return np.array(stacked_heats)
 
 
-def __set_cross(heatmap, center, radius):
-    for i in range(-radius, radius):
-        for j in range(-radius, radius):
-            if abs(i) + abs(j) <= radius and 0 <= center[0] + i <= heatmap.shape[0] \
-                    and 0 <= center[1] + j <= heatmap.shape[1]:
-                heatmap[center[0]+i][center[1]+j] = [1, 1, 1]
+def __set_cross(heatmap, center, radius, shade=False):
+    if not shade:
+        for i in range(-radius, radius):
+            for j in range(-radius, radius):
+                if abs(i) + abs(j) <= radius and 0 <= center[0] + i <= heatmap.shape[0] \
+                        and 0 <= center[1] + j <= heatmap.shape[1]:
+                    heatmap[center[0]+i][center[1]+j] = 1
+    else:
+        for i in range(-radius, radius):
+            for j in range(-radius, radius):
+                if abs(i) + abs(j) <= radius and 0 <= center[0] + i <= heatmap.shape[0] \
+                        and 0 <= center[1] + j <= heatmap.shape[1]:
+                    heatmap[center[0]+i][center[1]+j] = 1
+                    if i != 0 or j != 0:
+                        heatmap[center[0] + i][center[1] + j] /= abs(i) + abs(j)
     return heatmap
 
 
@@ -170,9 +241,8 @@ if __name__ == '__main__':
     h_r = reg.Regularizer()
     h_r.fixresize(200, 200)
     h_r.percresize(0.5)
-    h_r.heatmaps_threshold(0.5)
-    create_dataset(["handsGianpy"], im_regularizer=im_r, heat_regularizer=h_r, enlarge=0.5, cross_radius=5)
-    c, h, v = read_dataset()
+    create_dataset(im_regularizer=im_r, heat_regularizer=h_r, enlarge=0.5, cross_radius=10, shade=True)
+    c, h, v = read_dataset_random(number=2)
     u.showimage(c[1])
     print(np.shape(h))
     # show heatmap for the first junction of the second item

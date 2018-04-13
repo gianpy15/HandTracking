@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.misc import imresize
+from skimage.transform import rescale
+from skimage.transform import resize
 import scipy
 import hands_bounding_utils.utils as u
 
@@ -51,10 +53,16 @@ class Regularizer:
                 frame = rgb2gray(frame)
                 continue
             if op == RESIZEPERC:
-                frame = imresizeperc(frame, self.pars[RESIZEPERC])
+                if len(frame.shape) == 3:
+                    frame = imresizeperc(frame, self.pars[RESIZEPERC])
+                else:
+                    frame = rescale(frame, self.pars[RESIZEPERC])
                 continue
             if op == RESIZEFIX:
-                frame = fixed_resize(frame, self.pars[RESIZEFIX])
+                if len(frame.shape) == 3:
+                    frame = fixed_resize(frame, self.pars[RESIZEFIX])
+                else:
+                    frame = resize(frame, self.pars[RESIZEFIX])
                 continue
             if op == HEATMAPS_TH:
                 frame = heat_thresh(frame, self.pars[HEATMAPS_TH])

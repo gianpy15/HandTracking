@@ -5,6 +5,9 @@ TRAIN_TARGET = 'TRAIN_TARGET'
 VALID_IN = 'TEST_IN'
 VALID_TARGET = 'TEST_TARGET'
 
+CROPPER = 'cropper'
+JLOCATOR = 'jlocator'
+
 
 def cropper_h5_path(name):
     return croppers_path(name+".h5")

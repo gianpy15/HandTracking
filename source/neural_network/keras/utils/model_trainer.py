@@ -13,12 +13,26 @@ DEFAULT_H5MODEL_PATH = resources_path(os.path.join('models/hand_cropper/cropper_
 
 
 def train_model(model_generator, dataset,
-                tb_path="DEFAULT", checkpoint_path=None, h5model_path=None,
+                tb_path="DEFAULT", model_name=None, model_type=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
                 additional_callbacks=None, loss_white_prio=-1.5, verbose=False):
     K.backend.clear_session()
 
     model = model_generator()
+
+    if model_name is None or model_type is None:
+        checkpoint_path = None
+        h5model_path = None
+    else:
+        if model_type == CROPPER:
+            checkpoint_path = cropper_ckp_path(model_name)
+            h5model_path = cropper_h5_path(model_name)
+        elif model_type == JLOCATOR:
+            checkpoint_path = jlocator_ckp_path(model_name)
+            h5model_path = jlocator_h5_path(model_name)
+        else:
+            checkpoint_path = None
+            h5model_path = None
 
     if verbose:
         print("Model:")

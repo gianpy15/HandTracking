@@ -27,8 +27,6 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
     :param vname: name of the video. Note that the video must be present in the framedata folder, under resources
     """
     frames, labels = vl.load_labeled_video(vname, getdepth, fillgaps, gapflags)
-    frames = np.array(frames)
-    labels = np.array(labels)
     if verbosity == 1:
         print("FRAMES SHAPE: ", frames.shape)
         print("LABELS SHAPE: ", labels.shape)
@@ -74,6 +72,8 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
         vids = videos_list
     for vid in tqdm.tqdm(vids):
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
+        if labels is None:
+            continue
         depths, _ = load_labelled_videos(vid, getdepth=True, fillgaps=fillgaps)
         fr_num = frames.shape[0]
         for i in tqdm.tqdm(range(0, fr_num)):
@@ -98,13 +98,14 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                     depth = np.uint8(depth)
                     fr_to_save['frame'] = frame
                     coords = [__get_coord_from_labels(label)]
-                    fr_to_save['heatmap'] = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
+                    heat = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
                                                                       coords, overlapping_penalty)
+                    fr_to_save['heatmap'] = __heatmap_to_uint8(heat)
                     fr_to_save['depth'] = depth
                     path = os.path.join(basedir, vid + "_" + str(i))
                     scio.savemat(path, fr_to_save)
-                except ValueError:
-                    print(vid + str(i))
+                except ValueError as e:
+                    print(vid + str(i) + " => " + e)
 
 
 def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
@@ -136,10 +137,13 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=
         vids = videos_list
     for vid in tqdm.tqdm(vids):
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
+        if labels is None:
+            continue
         depths, _ = load_labelled_videos(vid, getdepth=True, fillgaps=fillgaps)
         fr_num = frames.shape[0]
         for i in tqdm.tqdm(range(0, fr_num)):
             if labels[i] is not None:
+                try:
                     fr_to_save = {}
                     frame = frames[i]
                     depth = depths[i]
@@ -166,10 +170,13 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=None, resize_rate=
                     res_coords = __enlarge_coords(res_coords, enlarge_heat, np.shape(heat))
                     res_labels = [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in label]
                     heat = __shade_heatmap(heat, res_coords, res_labels)
+                    heat = __heatmap_to_uint8(heat)
                     fr_to_save['heatmap'] = heat
                     fr_to_save['depth'] = depth
                     path = os.path.join(basedir, vid + "_" + str(i))
                     scio.savemat(path, fr_to_save)
+                except ValueError as e:
+                    print(vid + str(i) + " => " + e)
 
 
 def __enlarge_coords(coord, enlarge, shape):
@@ -246,18 +253,23 @@ def __shade_heatmap(heat, square_coords, joint_coords):
                 supp_heat[i-min_h][j-min_w] = np.min(distances + distances2)
     mean = np.mean(supp_heat)
     std = np.std(supp_heat)
-    for i in range(min_h, max_h + 1):
-        for j in range(min_w, max_w + 1):
-            heat[i][j] = (supp_heat[i-min_h][j-min_w] - mean) / std
+    heat[min_h:max_h + 1, min_w: max_w + 1] = (supp_heat - mean) / std
     heat[min_h:max_h + 1, min_w: max_w + 1] -= np.min(heat[min_h:max_h + 1, min_w: max_w + 1])
-    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], 0.4)
+    min_gauss = __percentile(heat[min_h:max_h + 1, min_w: max_w + 1], - 0.1 + __sigmoid(mean/5))
     for i in range(min_h, max_h + 1):
         for j in range(min_w, max_w + 1):
             if heat[i][j] > min_gauss:
-                heat[i][j] = 0
-            else:
+                heat[i][j] = 0.
+            elif min_gauss != 0:
                 heat[i][j] = math.sqrt(1 - (heat[i][j] * heat[i][j])/(min_gauss * min_gauss))
+            else:
+                heat[i][j] = 1.
+
     return heat
+
+
+def __sigmoid(x):
+    return 1 / (1 + math.exp(-x))
 
 
 def __in_triangle(p, v0, v1, v2):
@@ -403,11 +415,11 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
         matcontent = scio.loadmat(realpath)
         if leave_out is None or not __matches(name, leave_out):
             frames.append(matcontent['frame'])
-            heatmaps.append(matcontent['heatmap'])
+            heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
             depths.append(matcontent['depth'])
         else:
             t_frames.append(matcontent['frame'])
-            t_heatmaps.append(matcontent['heatmap'])
+            t_heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
             t_depths.append(matcontent['depth'])
     if leave_out is None:
         return frames, heatmaps, depths
@@ -448,7 +460,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
         realpath = os.path.join(basedir, name)
         matcontent = scio.loadmat(realpath)
         frames.append(matcontent['frame'])
-        heatmaps.append(matcontent['heatmap'])
+        heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
         depths.append(matcontent['depth'])
     return frames, heatmaps, depths
 
@@ -552,6 +564,18 @@ def elementwise_product(frame, mapp):
     frame_rec = np.dstack((frame1, frame2))
     frame_rec = np.dstack((frame_rec, frame3))
     return np.uint8(frame_rec)
+
+
+def __heatmap_to_uint8(heat):
+    heat = heat * 255
+    heat.astype(np.uint8, copy=False)
+    return heat
+
+
+def __heatmap_uint8_to_float32(heat):
+    heat.astype(np.float32, copy=False)
+    heat = heat / 255
+    return heat
 
 
 def transorm_rgd_depth(frame, depth, showimages=False, toofar=1500, tooclose=500, toosmall=500):
