@@ -5,7 +5,6 @@ sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..
 
 from neural_network.keras.models.heatmap import *
 from neural_network.keras.callbacks.image_writer import ImageWriter
-from neural_network.keras.callbacks.input_writer import InputWriter
 from neural_network.keras.custom_layers.heatmap_loss import my_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from keras.engine import training as kt
@@ -48,10 +47,11 @@ def fit_new_model(_4d_inputs, _4d_tests, decay=0, train_model=False, model_type=
         # Callbacks for keras
         tensor_board = kc.TensorBoard(log_dir=tensorboard_path + "/" + name, histogram_freq=1)
         es = kc.EarlyStopping(patience=5, verbose=1, monitor='val_loss', mode='min', min_delta=2e-4)
-        im = ImageWriter(data=(_4d_inputs, dataset[TRAIN_TARGET][0:5]), name='train_images')
+        test_writer = ImageWriter(data=(_4d_inputs, dataset[TRAIN_TARGET][0:5]), name='train_images')
+        validation_writer = ImageWriter(data=(_4d_tests, dataset[VALID_IN][0:5]), name='validation_images')
         model_ckp = kc.ModelCheckpoint(filepath=model_ck_path + name + ".ckp", monitor='val_loss',
                                        verbose=1, save_best_only=True, mode='min', period=1)
-        callbacks = [es, model_ckp, im, tensor_board]
+        callbacks = [es, model_ckp, test_writer, validation_writer, tensor_board]
         print("train shapes: {} {}".format(np.shape(_4d_inputs), np.shape(_4d_tests)))
         model.fit(_4d_inputs, dataset[TRAIN_TARGET], epochs=5, batch_size=1, verbose=1, callbacks=callbacks,
                   validation_data=(_4d_tests, dataset[VALID_TARGET]))
