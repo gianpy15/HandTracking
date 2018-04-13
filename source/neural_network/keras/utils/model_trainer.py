@@ -6,13 +6,12 @@ from neural_network.keras.utils.naming import *
 import keras as K
 import os
 
-DEFAULT_TENSORBOARD_PATH = "heat_maps"
 DEFAULT_CHECKPOINT_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
 DEFAULT_H5MODEL_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
 
 
 def train_model(model_generator, dataset,
-                tb_path="DEFAULT", model_name=None, model_type=None,
+                tb_path='', model_name=None, model_type=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
                 additional_callbacks=None, loss_white_prio=-1.5, verbose=False):
     K.backend.clear_session()
@@ -56,11 +55,6 @@ def train_model(model_generator, dataset,
                                           mode='min',
                                           min_delta=2e-4))
 
-    if tb_path == "DEFAULT":
-        tb_path = resources_path(os.path.join("tbdata", DEFAULT_TENSORBOARD_PATH))
-        if verbose:
-            print("Setting tensorboard path to default %s" % tb_path)
-
     if tb_path is not None:
         TBManager.set_path(tb_path)
         if verbose:
@@ -70,7 +64,7 @@ def train_model(model_generator, dataset,
 
         if verbose:
             print("Adding tensorboard callbacks...")
-        callbacks.append(kc.TensorBoard(log_dir=tb_path,
+        callbacks.append(kc.TensorBoard(log_dir=tensorboard_path(tb_path),
                                         histogram_freq=1))
         callbacks.append(ImageWriter(data=(dataset[TRAIN_IN],
                                            dataset[TRAIN_TARGET]),

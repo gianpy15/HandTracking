@@ -140,9 +140,9 @@ def high_fov_model(channels=3, weight_decay=0):
     return model
 
 
-def incremental_predictor_1(input_shape, weight_decay=0, name='incremental_predictor_1'):
+def incremental_predictor_1(channels=4, weight_decay=0, name='incremental_predictor_1'):
     model = km.Sequential(name=name)
-    model.add(kl.Conv2D(input_shape=input_shape, filters=64, kernel_size=[5, 5], padding='same'))
+    model.add(kl.Conv2D(input_shape=(None, None, channels), filters=64, kernel_size=[5, 5], padding='same'))
     model.add(kl.Activation('relu'))
     model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same', activation='relu',
                         kernel_regularizer=weight_decay))
