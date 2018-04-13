@@ -31,7 +31,7 @@ if __name__ == '__main__':
     hm_reg.fixresize(hm_resize, hm_resize)
     hm_reg.heatmaps_threshold(threshold)
     if BUILD_DATASET:
-        jlocator.create_dataset(["handsBorgo2"], im_regularizer=img_reg, heat_regularizer=hm_reg, enlarge=.5, cross_radius=5)
+        jlocator.create_dataset(["handsGianpy"], im_regularizer=img_reg, heat_regularizer=hm_reg, enlarge=.5, cross_radius=5)
     cuts, hms, visible = jlocator.read_dataset(verbosity=1)
     # Note:
     #   not it holds:
@@ -47,10 +47,10 @@ if __name__ == '__main__':
         print("target shape: " + str(y_train.shape))
 
     # Models are collected in neural_network/keras/models
-    model = high_fov_model(weight_decay=kl.regularizers.l2(1e-5))
+    model = lambda: high_fov_model(weight_decay=kl.regularizers.l2(1e-5))
     # config
 
-    model = train_model(model=model,
+    model = train_model(model_generator=model,
                         dataset={TRAIN_IN: x_train,
                                  TRAIN_TARGET: y_train,
                                  VALID_IN: x_train,
