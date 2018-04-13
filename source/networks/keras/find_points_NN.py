@@ -10,7 +10,7 @@ if __name__ == '__main__':
                            random_dataset=True,
                            shuffle=True,
                            verbose=True,
-                           separate_valid=False)
+                           separate_valid=True)
 
     model = train_model(model_generator=lambda: high_fov_model(weight_decay=kl.regularizers.l2(1e-5)),
                         dataset=dataset,

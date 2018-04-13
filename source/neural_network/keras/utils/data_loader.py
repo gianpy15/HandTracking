@@ -18,6 +18,9 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                  separate_valid=True):
     merge_vids = False
 
+    if dataset_path is None:
+        dataset_path = crops_path() if data_format == CROPPER else joints_path()
+
     if build_videos is not None:
         # if we want to build all videos we have the special token "ALL":
         if build_videos == "ALL":
@@ -41,11 +44,12 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                                      videos_list=videos_list)
 
     dataset_info = _get_available_dataset_stats(dataset_path)
-
+    print(dataset_info)
     train_vids, valid_vids = choose_train_valid_videos(dataset_info, train_samples, valid_samples)
     traincount = available_frames(dataset_info, train_vids)
     validcount = available_frames(dataset_info, valid_vids)
-
+    print(train_vids)
+    print(valid_vids)
     if validcount < valid_samples or traincount < train_samples:
         availability = traincount + validcount
         requested = train_samples + valid_samples
@@ -91,9 +95,9 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
             train_imgs = imgs[:train_samples]
             train_maps = maps[:train_samples]
             train_trd = trd[:train_samples]
-            valid_imgs = imgs[train_samples:train_samples+valid_samples]
-            valid_maps = np.array(maps[train_samples:train_samples+valid_samples])
-            valid_trd = trd[train_samples:train_samples+valid_samples]
+            valid_imgs = imgs[train_samples:train_samples + valid_samples]
+            valid_maps = np.array(maps[train_samples:train_samples + valid_samples])
+            valid_trd = trd[train_samples:train_samples + valid_samples]
         else:
             if verbose:
                 print("Reading training data...")
@@ -175,12 +179,18 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
         train_second_target = None
         valid_second_target = None
 
-    return {TRAIN_IN: train_input,
-            TRAIN_TARGET: train_maps,
-            TRAIN_TARGET2: train_second_target,
-            VALID_IN: valid_input,
-            VALID_TARGET: valid_maps,
-            VALID_TARGET2: valid_second_target}
+    ret = {TRAIN_IN: train_input,
+           TRAIN_TARGET: train_maps,
+           TRAIN_TARGET2: train_second_target,
+           VALID_IN: valid_input,
+           VALID_TARGET: valid_maps,
+           VALID_TARGET2: valid_second_target}
+
+    for k in ret.keys():
+        if not isinstance(ret[k], np.ndarray):
+            ret[k] = np.array(ret[k])
+
+    return ret
 
 
 def _get_available_dataset_stats(dataset_dir):
