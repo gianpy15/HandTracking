@@ -14,7 +14,11 @@ def load_dataset(train_samples, valid_samples,
                  use_depth=False,
                  build_videos=None,
                  dataset_path=None,
-                 verbose=False):
+                 verbose=False,
+                 separate_valid=True):
+
+    merge_vids = False
+
     if dataset_path is None:
         dataset_path = DEFAULT_DATASET_PATH
 
@@ -29,14 +33,13 @@ def load_dataset(train_samples, valid_samples,
             videos_list = build_videos
         if verbose:
             print("Building dataset on videos %s" % videos_list)
-        create_dataset(savepath=dataset_path, fillgaps=True,
-                       resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4,
-                       videos_list=videos_list)
+        create_dataset_shaded_heatmaps(savepath=dataset_path, fillgaps=True,
+                                       resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4,
+                                       videos_list=videos_list)
 
     dataset_info = _get_available_dataset_stats(dataset_path)
 
     train_vids, valid_vids = choose_train_valid_videos(dataset_info, train_samples, valid_samples)
-
     traincount = available_frames(dataset_info, train_vids)
     validcount = available_frames(dataset_info, valid_vids)
 
@@ -46,10 +49,15 @@ def load_dataset(train_samples, valid_samples,
         sys.stderr.write("WARNING: unable to load required dataset\n")
         sys.stderr.write("Cause: not enough data (%d available %d requested)\n" % (availability, requested))
         train_ratio = train_samples / requested
-        train_samples = int(availability * train_ratio)
+        train_samples = int(min(availability, requested) * train_ratio)
         train_vids, valid_vids = choose_train_valid_videos(dataset_info, train_samples, -1)
-        train_samples = available_frames(dataset_info, train_vids)
-        valid_samples = available_frames(dataset_info, valid_vids)
+        if not separate_valid:
+            merge_vids = True
+            valid_samples = min(availability, requested) - train_samples
+        else:
+            train_samples = available_frames(dataset_info, train_vids)
+            valid_samples = available_frames(dataset_info, valid_vids)
+
         sys.stderr.write("Using %d training samples and %d validation samples instead\n" % (train_samples,
                                                                                             valid_samples))
         sys.stderr.flush()
@@ -59,33 +67,58 @@ def load_dataset(train_samples, valid_samples,
         print("Chosen valid videos: %s" % valid_vids)
 
     if random_dataset:
-        if verbose:
-            print("Reading training data...")
-        train_imgs, train_maps, train_depths = read_dataset_random(path=dataset_path,
-                                                                   number=train_samples,
-                                                                   leave_out=valid_vids,
-                                                                   verbosity=1 if verbose else 0)
-        if verbose:
-            print("Reading validation data...")
-        valid_imgs, valid_maps, valid_depths = read_dataset_random(path=dataset_path,
-                                                                   number=valid_samples,
-                                                                   leave_out=train_vids,
-                                                                   verbosity=1 if verbose else 0)
+        if merge_vids:
+            if verbose:
+                print("Reading data...")
+            imgs, maps, depths = read_dataset_random(path=dataset_path,
+                                                     number=train_samples+valid_samples,
+                                                     verbosity=1 if verbose else 0)
+            imgs, depths, maps = shuffle_rgb_depth_heatmap(imgs, depths, maps)
+            train_imgs = imgs[:train_samples]
+            train_maps = maps[:train_samples]
+            train_depths = depths[:train_samples]
+            valid_imgs = imgs[train_samples:]
+            valid_maps = maps[train_samples:]
+            valid_depths = depths[train_samples:]
+        else:
+            if verbose:
+                print("Reading training data...")
+            train_imgs, train_maps, train_depths = read_dataset_random(path=dataset_path,
+                                                                       number=train_samples,
+                                                                       leave_out=valid_vids,
+                                                                       verbosity=1 if verbose else 0)
+            if verbose:
+                print("Reading validation data...")
+            valid_imgs, valid_maps, valid_depths = read_dataset_random(path=dataset_path,
+                                                                       number=valid_samples,
+                                                                       leave_out=train_vids,
+                                                                       verbosity=1 if verbose else 0)
 
     else:
         if verbose:
             print("Reading data...")
-        train_imgs, train_maps, train_depths, \
-        valid_imgs, valid_maps, valid_depths = read_dataset(path=dataset_path,
-                                                            leave_out=valid_vids,
-                                                            verbosity=1 if verbose else 0)
+        if merge_vids:
+            imgs, maps, depths = read_dataset(path=dataset_path,
+                                              verbosity=1 if verbose else 0)
+            imgs, depths, maps = shuffle_rgb_depth_heatmap(imgs, depths, maps)
+            train_imgs = imgs[:train_samples]
+            train_maps = maps[:train_samples]
+            train_depths = depths[:train_samples]
+            valid_imgs = imgs[train_samples:]
+            valid_maps = maps[train_samples:]
+            valid_depths = depths[train_samples:]
+        else:
+            train_imgs, train_maps, train_depths, \
+            valid_imgs, valid_maps, valid_depths = read_dataset(path=dataset_path,
+                                                                leave_out=valid_vids,
+                                                                verbosity=1 if verbose else 0)
 
-        train_imgs, train_maps, train_depths = train_imgs[0:train_samples], \
-                                               train_maps[0:train_samples], \
-                                               train_depths[0:train_samples]
-        valid_imgs, valid_maps, valid_depths = valid_imgs[0:valid_samples], \
-                                               valid_maps[0:valid_samples], \
-                                               valid_depths[0:valid_samples]
+            train_imgs, train_maps, train_depths = train_imgs[0:train_samples], \
+                                                   train_maps[0:train_samples], \
+                                                   train_depths[0:train_samples]
+            valid_imgs, valid_maps, valid_depths = valid_imgs[0:valid_samples], \
+                                                   valid_maps[0:valid_samples], \
+                                                   valid_depths[0:valid_samples]
 
     if shuffle:
         if verbose:

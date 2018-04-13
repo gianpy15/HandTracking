@@ -1,23 +1,20 @@
 import sys
 import os
 
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
 
-from neural_network.keras.models.heatmap import *
-from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
+from neural_network.keras.models.heatmap import high_fov_model
 from neural_network.keras.utils.data_loader import load_dataset
 from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
-from data_manager.path_manager import resources_path
+import keras.regularizers as kr
 
-dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
-tensorboard_path = resources_path(os.path.join("tbdata/heat_maps"))
-model_ck_path = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
-model_save_path = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
+# dataset_path = crops_path() # this should be the standard, but for now...
+dataset_path = resources_path("hands_bounding_dataset", "network_test")
+tensorboard_path = tensorboard_path("heat_maps")
+model_ck_path = cropper_ckp_path("cropper_v5")
+model_save_path = cropper_h5_path("cropper_v5")
 
-TBManager.set_path("heat_maps")
-tb_manager_train = TBManager()
-tb_manager_test = TBManager()
 train = True
 
 dataset = load_dataset(train_samples=2,
@@ -28,12 +25,11 @@ dataset = load_dataset(train_samples=2,
                        use_depth=False,
                        verbose=True)
 
-model = high_fov_model(input_shape=np.shape(dataset[TRAIN_IN])[1:],
-                       weight_decay=kr.l2(1e-5))
-model.summary()
+model_generator = lambda: high_fov_model(channels=3,
+                                         weight_decay=kr.l2(1e-5))
 
 if train:
-    model = train_model(model=model,
+    model = train_model(model_generator=model_generator,
                         dataset=dataset,
                         tb_path=tensorboard_path,
                         checkpoint_path=model_ck_path,
