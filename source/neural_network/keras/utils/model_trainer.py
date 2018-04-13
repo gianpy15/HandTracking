@@ -95,7 +95,9 @@ def train_model(model_generator, dataset,
     if h5model_path is not None:
         if verbose:
             print("Saving H5 model...")
+        model.load_weights(checkpoint_path)
         model.save(h5model_path)
+        os.remove(checkpoint_path)
 
     if verbose:
         print("Training completed!")

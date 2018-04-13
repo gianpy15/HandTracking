@@ -8,12 +8,12 @@ import hands_bounding_utils.utils as u
 from image_loader.image_loader import load
 from neural_network.keras.utils.naming import *
 
-dataset_path = resources_path("samples_for_heatmaps")
+dataset_path = resources_path("hands_bounding_dataset", "network_test")
 png_path = resources_path("gui", "hands.png")
 model_ck_path = models_path('hand_cropper', 'cropper_v3.ckp')
 model_save_path = models_path('hand_cropper', 'cropper_v3.h5')
 
-read_from_png = False
+read_from_png = True
 
 if read_from_png:
     # images = load_from_png(png_path)[:, :, 0:3]
