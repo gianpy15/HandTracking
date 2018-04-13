@@ -1,57 +1,60 @@
-from hands_bounding_utils.hands_locator_from_rgbd import read_dataset_random
-import numpy as np
-import keras.models as km
-from neural_network.keras.custom_layers.heatmap_loss import my_loss
+from keras.models import Model
+from skimage.transform import rescale
 from skimage.transform import resize
-import os
+from neural_network.keras.utils.data_loader import load_dataset
 import hands_bounding_utils.utils as u
 from image_loader.image_loader import load
+from neural_network.keras.models.heatmap import *
 from neural_network.keras.utils.naming import *
 
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
 png_path = resources_path("gui", "hands.png")
-model_ck_path = models_path('hand_cropper', 'cropper_v3.ckp')
-model_save_path = models_path('hand_cropper', 'cropper_v3.h5')
+model1_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m1.h5')
+model2_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m2.h5')
+model3_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m3.h5')
 
 read_from_png = True
+images_ = None
 
 if read_from_png:
-    # images = load_from_png(png_path)[:, :, 0:3]
-    # images = imresize(images, (120, 160))
-    # images = np.reshape(images, newshape=(1,) + np.shape(images))
-    images = load(png_path, force_format=(120, 160, 3), affine_transform=[255, 0])
-
+    images = load(png_path, force_format=(240, 320, 3))
 else:
-    images = read_dataset_random(path=dataset_path, number=10)[0]
-    np.random.shuffle(images)
+    images = load_dataset(train_samples=2,
+                          valid_samples=0,
+                          dataset_path=dataset_path,
+                          random_dataset=True)[TRAIN_IN]
 
-images = images / 255
-
-
-def rgb2gray(rgb):
-    gray = np.dot(rgb[:, :, :3], [0.2989, 0.5870, 0.1140])
-    return np.reshape(gray, newshape=np.shape(gray) + (1,))
+images_ = np.concatenate((images, np.zeros(shape=np.shape(images)[0:-1] + (1,))), axis=-1)
+print(np.shape(images_))
 
 
-def gray2rgb(gray):
-    r = (1 / 0.2989) * gray
-    g = (1 / 0.5870) * gray
-    b = (1 / 0.1140) * gray
-    return np.concatenate((r, g, b), axis=-1)
+def attach_heat_map(inputs, fitted_model: Model):
+    _inputs = inputs[:, :, :, 0:3]
+    outputs = fitted_model.predict(inputs)
+    rescaled = []
+    for img in outputs:
+        rescaled.append(rescale(img, 4.0))
+    outputs = np.array(rescaled)
+    inputs_ = np.concatenate((_inputs, outputs), axis=-1)
+    return inputs_
 
 
 # Build up the model
-model = km.load_model(model_save_path, custom_objects={'my_loss': my_loss})
-model.load_weights(model_ck_path)
-model.summary()
+model1 = km.load_model(model1_save_path)
+
+images_ = attach_heat_map(images_, model1)
+model2 = km.load_model(model2_save_path)
+
+images_ = attach_heat_map(images_, model2)
+model = km.load_model(model3_save_path)
 
 # Testing the model getting some outputs
-net_out = model.predict(images)[0]
+net_out = model.predict(images_)[0]
 net_out = net_out.clip(max=1)
 first_out = resize(net_out, output_shape=(120, 160, 1))
 total_sum = np.sum(first_out[0])
 
 u.showimage(images[0])
 u.showimage(u.heatmap_to_rgb(net_out))
-u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=1,
+u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=0.5,
                                       accept_crop_minimum_dimension_pixels=100))
