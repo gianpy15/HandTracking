@@ -71,7 +71,7 @@ def train_model(model_generator, dataset,
                                      name='train_output'))
         callbacks.append(ImageWriter(data=(dataset[VALID_IN],
                                            dataset[VALID_TARGET]),
-                                     name='test_output'))
+                                     name='valid_output'))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
 
