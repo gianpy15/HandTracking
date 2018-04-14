@@ -9,5 +9,15 @@ def send_message(message=""):
     bot.sendMessage(CHAT_ID, message)
 
 
+def send_photo_from_file(image_path):
+    send_photo(open(image_path, 'rb'))
+
+
+def send_photo(image):
+    bot = telepot.Bot(BOT_TOKEN)
+    bot.sendPhoto(CHAT_ID, image)
+
+
 if __name__ == "__main__":
     send_message("TEST")
+    send_photo_from_file("../../resources/gui/hand.jpg")
