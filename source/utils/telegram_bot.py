@@ -61,15 +61,28 @@ def send_image_from_file(image_path, caption=None):
 
 
 def send_image_from_array(image: np.ndarray, caption=None):
-    imagefile = io.BytesIO()
-    Image.fromarray(np.array(image, dtype=np.uint8)).save(imagefile, format='PNG')
-    imagefile.read = imagefile.getvalue
-    send_image(imagefile, caption=caption)
+    """
+    Sends to telegram an image or a batch of images
+    :param image: is the image batch (or single image)
+    :param caption: is the message attached to the image
+    :return: None
+    """
+    if len(np.shape(image)) == 4:  # If image is a batch of images
+        for im in image:
+            imagefile = io.BytesIO()
+            Image.fromarray(np.array(im, dtype=np.uint8)).save(imagefile, format='PNG')
+            imagefile.read = imagefile.getvalue
+            send_image(imagefile, caption=caption)
+
+    elif len(np.shape(image)) == 3:  # If image is a single image
+        imagefile = io.BytesIO()
+        Image.fromarray(np.array(image, dtype=np.uint8)).save(imagefile, format='PNG')
+        imagefile.read = imagefile.getvalue
+        send_image(imagefile, caption=caption)
 
 
 def send_image(image, caption=None):
     bot = telepot.Bot(BOT_TOKEN)
-    print(type(image))
     bot.sendPhoto(CHAT_ID, image, caption=caption)
 
 

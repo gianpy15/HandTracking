@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
+
 from keras.models import Model
 from skimage.transform import rescale
 from skimage.transform import resize
@@ -6,9 +11,10 @@ import hands_bounding_utils.utils as u
 from image_loader.image_loader import load
 from neural_network.keras.models.heatmap import *
 from neural_network.keras.utils.naming import *
+from source.utils.telegram_bot import *
 
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
-png_path = resources_path("gui", "2.jpg")
+png_path = resources_path("gui", "hands.png")
 model1_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m1.h5')
 model2_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m2.h5')
 model3_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m3.h5')
@@ -62,3 +68,9 @@ u.showimage(u.heatmap_to_rgb(net_out))
 u.showimage(images[0]*first_out)
 u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=0.5,
                                       accept_crop_minimum_dimension_pixels=100))
+
+send_to_telegram = True
+if send_to_telegram:
+    k = 0.15
+    send_message("Sending some samples...")
+    send_image_from_array((k + ((1 - k) * resize(net_out, [200, 200]))) * images[0])
