@@ -9,9 +9,9 @@ BOT_TOKEN = "561223507:AAGvadvBfQcRb3hhTXQN1FN7c2xtn6B9vm0"
 CHAT_ID = -307476339
 
 
-def send_message(message=""):
+def send_message(message="", disable_notification=False):
     bot = telepot.Bot(BOT_TOKEN)
-    bot.sendMessage(CHAT_ID, message)
+    bot.sendMessage(CHAT_ID, message, disable_notification=disable_notification)
 
 
 def notify_training_starting(model_name=None, **kwargs):
