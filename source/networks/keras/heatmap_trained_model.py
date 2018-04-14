@@ -8,7 +8,7 @@ from neural_network.keras.models.heatmap import *
 from neural_network.keras.utils.naming import *
 
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
-png_path = resources_path("gui", "hands.png")
+png_path = resources_path("gui", "2.jpg")
 model1_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m1.h5')
 model2_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m2.h5')
 model3_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m3.h5')
