@@ -1,9 +1,18 @@
+from tqdm import tqdm
+from skimage import io as sio
+from scipy.misc import imresize
 import source.hands_bounding_utils.utils as u
 import os
 from data_manager.path_manager import resources_path
 import random
 import math
 import numpy as np
+from scipy import io as scio
+import hands_regularizer.regularizer as reg
+
+
+
+# ######### SQUARES ############
 
 
 def __list_objects_in_path(path):
@@ -133,22 +142,108 @@ def get_random_batch(images, heatmaps, batch_size):
     return ims, heats
 
 
-def default_train_images_path():
-    return resources_path("hands_bounding_dataset", "egohands", "images")
-
-
 def default_train_annotations_path():
-    return resources_path("hands_bounding_dataset", "egohands", "annotations")
+    return resources_path(os.path.join("hands_bounding_dataset", "egohands_squares", "annotations"))
+
+
+# ############### POLYGONS ######################à
+
+
+def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
+                   im_reg=reg.Regularizer(), heat_reg=reg.Regularizer()):
+    """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
+    the frame, the corresponding heatmap indicating the position of the hand(s)
+    THE PROCESS:
+        - image is resized
+        - heatmap is produced with dimensions resized w.r.t. the resized image
+        - regularizers are applied (BE CAREFUL WITH REGULARIZERS, YOU MAY ALTER DIMENSION RATIOS BETWEEN IMAGES AND
+            HEATMAPS)
+    :param width_shrink_rate: shrink rate of heatmaps width wrt the resized image
+    :param heigth_shrink_rate: shrink rate of heatmaps height wrt the resized image
+    :param resize_rate: resize rate of the images (1 (default) is the original image)
+    :param savepath: path of the folder where the produces .mat files will be saved. If left to the default value None,
+    the /resources/hands_bounding_dataset/egohands_transformed folder will be used
+    :param videos_list: list of videos you need the .mat files of. If left to the default value None, all videos will
+    be exploited
+    :param im_reg: object used to regularize the images
+    :param heat_reg: object used to regularize the heatmaps"""
+    if savepath is None:
+        basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
+    else:
+        basedir = savepath
+    if not os.path.exists(basedir):
+        os.makedirs(basedir)
+    framesdir = resources_path(os.path.join("hands_bounding_dataset", "egohands"))
+    if videos_list is None:
+        vids = os.listdir(framesdir)
+        vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
+    else:
+        vids = videos_list
+    for vid in tqdm(vids):
+        frames, labels = __load_egohand_video(os.path.join(framesdir, vid))
+        fr_num = len(frames)
+        for i in tqdm(range(0, fr_num)):
+            try:
+                fr_to_save = {}
+                frame = frames[i]
+                frame = imresize(frame, resize_rate)
+                label = labels[i]
+                label *= resize_rate
+                label = np.array(label, dtype=np.int32)
+                frame = __add_padding(frame, frame.shape[1] - (frame.shape[1]//width_shrink_rate)*width_shrink_rate,
+                                      frame.shape[0] - (frame.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+                heat = __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate)
+                frame = im_reg.apply(frame)
+                heat = heat_reg.apply(heat)
+                fr_to_save['frame'] = frame
+                fr_to_save['heatmap'] = __heatmap_to_uint8(heat)
+                path = os.path.join(basedir, vid + "_" + str(i))
+                scio.savemat(path, fr_to_save)
+            except ValueError as e:
+                print(vid + str(i) + " => " + e)
+
+
+def __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate):
+    pass
+
+
+def __load_egohand_video(dir):
+    images = os.listdir(dir)
+    images.remove('polygons.mat')
+    labels = __load_egohand_mat(os.path.join(dir, 'polygons.mat'))
+    frames = []
+    n = len(images)
+    for i in range(n):
+        frames.append(sio.imread(os.path.join(dir, images[i])))
+    return np.array(frames), labels
+
+
+def __load_egohand_mat(filepath):
+    mat_cont = scio.loadmat(filepath)
+    labels = []
+    n = len(mat_cont['polygons']['myleft'][0])
+    for i in range(n):
+        single_lab = []
+        single_lab.append(mat_cont['polygons']['myleft'][0][i])
+        single_lab.append(mat_cont['polygons']['myright'][0][i])
+        single_lab.append(mat_cont['polygons']['yourleft'][0][i])
+        single_lab.append(mat_cont['polygons']['yourright'][0][i])
+        labels.append(single_lab)
+    return labels
+
+
+def __heatmap_to_uint8(heat):
+    heat = heat * 255
+    heat.astype(np.uint8, copy=False)
+    return heat
+
+
+def __heatmap_uint8_to_float32(heat):
+    heat.astype(np.float32, copy=False)
+    heat = heat / 255
+    return heat
 
 
 if __name__ == '__main__':
-    im_f = default_train_images_path()
-    an_f = default_train_annotations_path()
-    images1, heatmaps1 = get_random_samples_from_dataset(im_f, an_f, 100)
-    # images1, heatmaps1 = get_ordered_batch(images1, heatmaps1, 1, 1)
-    images1, heatmaps1 = get_random_batch(images1, heatmaps1, 2)
-    u.showimages(images1)
-    for heat1 in heatmaps1:
-        u.showimage(u.heatmap_to_rgb(heat1))
-
-    # u.showimages(u.get_crops_from_heatmap(images1[0], heatmaps1[0]))
+    __load_egohand_mat(resources_path(os.path.join("hands_bounding_dataset", "egohands", "CARDS_COURTYARD_B_T"
+                                                      , "polygons.mat")))
