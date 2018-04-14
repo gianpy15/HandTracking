@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as mplt
-from numba import jit
+from numba import jit, prange
 from timeit import timeit
 
 
@@ -19,8 +19,8 @@ def compute_angle(p1, p2, p3):
     return np.arcsin(anglesin)
 
 
-
 # ##################### ARCSIN TABLE #######################
+
 
 @jit
 def make_arcsin_table(resolution):
@@ -28,29 +28,35 @@ def make_arcsin_table(resolution):
     y = np.arcsin(x)
     return np.array(y)
 
-@jit
+
+@jit(nopython=True, cache=True)
 def table_asin(value, table):
-    return table[int((value + 1.) * len(table)/2.)]
+    return table[int((value + 1.) * (len(table)//2))]
 
 # #################### FASTER VERSION ####################
 
 
+@jit(nopython=True, cache=True)
 def fast_is_inside(point, polygon):
     return contains_origin(polygon - point)
 
-@jit
+
+@jit(nopython=True, cache=True)
 def contains_origin(polygon):
     # normalizing once for all times
     norm_poly = np.empty(shape=(len(polygon), 2), dtype=np.float32)
-    for idx in range(len(polygon)):
+    for idx in prange(len(polygon)):
         norm_poly[idx] = polygon[idx] / np.linalg.norm(polygon[idx])
 
     # computing angles WRT origin
     angle = 0.
-    for idx in range(len(norm_poly)-1):
+    for idx in prange(len(norm_poly)-1):
         angle += fast_compute_angle(norm_poly[idx], norm_poly[idx+1])
     angle += fast_compute_angle(norm_poly[len(norm_poly)-1], norm_poly[0])
     return angle > np.pi or angle < -np.pi
+
+
+# asintable = make_arcsin_table(5000)
 
 @jit
 def fast_compute_angle(p1, p2):
@@ -78,16 +84,16 @@ def rotate(point, angle):
 if __name__ == '__main__':
     low = -5
     high = 5
-    npoints = 10000
+    npoints = 200
     plist = np.random.uniform(low=low, high=high, size=(npoints, 2))
-    poly = make_circle(resol=700,
+    poly = make_circle(resol=200,
                        center=[2, 0],
                        radius=2,
                        startdelta=0.3)
     if True:
         def speedtest():
-            for p in plist:
-                fast_is_inside(p, poly)
+            for idx in range(len(plist)):
+                fast_is_inside(plist[idx], poly)
 
         print(timeit(speedtest, number=1))
         for p in plist:
@@ -100,7 +106,7 @@ if __name__ == '__main__':
     else:
         resol = 5000
         table = make_arcsin_table(resol)
-        x = np.arange(-1, 1, 0.001)
+        x = np.arange(-1, 1, 0.000001)
 
         def asin_speed_test():
             for s in x:
