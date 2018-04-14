@@ -9,8 +9,9 @@ import math
 import numpy as np
 from scipy import io as scio
 import hands_regularizer.regularizer as reg
-
-
+from geometry import polygon_utils as poly
+from numba import jit
+from time import time as t
 
 # ######### SQUARES ############
 
@@ -150,7 +151,7 @@ def default_train_annotations_path():
 
 
 def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
-                   im_reg=reg.Regularizer(), heat_reg=reg.Regularizer()):
+                   im_reg=reg.Regularizer(), heat_reg=reg.Regularizer(), approximation_ratio=0.1):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand(s)
     THE PROCESS:
@@ -180,37 +181,140 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
     else:
         vids = videos_list
     for vid in tqdm(vids):
-        frames, labels = __load_egohand_video(os.path.join(framesdir, vid))
+        frames, labels = __load_egohand_video(os.path.join(framesdir, vid),
+                                              one_out_of=int(min(width_shrink_rate, heigth_shrink_rate))/resize_rate)
         fr_num = len(frames)
         for i in tqdm(range(0, fr_num)):
-            try:
                 fr_to_save = {}
                 frame = frames[i]
                 frame = imresize(frame, resize_rate)
-                label = labels[i]
-                label *= resize_rate
-                label = np.array(label, dtype=np.int32)
                 frame = __add_padding(frame, frame.shape[1] - (frame.shape[1]//width_shrink_rate)*width_shrink_rate,
                                       frame.shape[0] - (frame.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
-                heat = __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate)
+                heat = __create_ego_heatmap(frame, labels[i], heigth_shrink_rate, width_shrink_rate,
+                                            resize_rate, approximation_ratio)
                 frame = im_reg.apply(frame)
                 heat = heat_reg.apply(heat)
                 fr_to_save['frame'] = frame
                 fr_to_save['heatmap'] = __heatmap_to_uint8(heat)
                 path = os.path.join(basedir, vid + "_" + str(i))
                 scio.savemat(path, fr_to_save)
-            except ValueError as e:
-                print(vid + str(i) + " => " + e)
 
 
-def __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate):
-    pass
+def read_dataset(path=None, verbosity=0, leave_out=None):
+    """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
+    the create_dataset method
+    :param verbosity: setting this parameter to True will make the method print the number of .mat files read
+    every time it reads one
+    :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
+    /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param leave_out: list of videos whose elements will be put in the test set. Note that is this parameter is not
+    provided, only 3 arrays will be returned (cuts, heatmaps, vis). If this is provided, 6 arrays are returned
+    (cuts, heatmaps, vis, test_cuts, test_heatmaps, test_vis)
+    """
+    if path is None:
+        basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
+    else:
+        basedir = path
+    samples = os.listdir(basedir)
+    i = 0
+    tot = len(samples)
+    frames = []
+    heatmaps = []
+    t_frames = []
+    t_heatmaps = []
+    for name in samples:
+        if verbosity == 1:
+            print("Reading image: ", i, " of ", tot)
+            i += 1
+        realpath = os.path.join(basedir, name)
+        readframes, readheats = __read_frame(realpath)
+        if leave_out is None or not __matches(name, leave_out):
+            frames.append(readframes)
+            heatmaps.append(readheats)
+        else:
+            t_frames.append(readframes)
+            t_heatmaps.append(readheats)
+    if leave_out is None:
+        return frames, heatmaps
+    return frames, heatmaps, t_frames, t_heatmaps
 
 
-def __load_egohand_video(dir):
+def __matches(s, leave_out):
+    for stri in leave_out:
+        if s.startswith(stri + "_"):
+            return True
+    return False
+
+
+def __read_frame(path):
+    matcontent = scio.loadmat(path)
+    return matcontent['frame'], __heatmap_uint8_to_float32(matcontent['heatmap'])
+
+
+def __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate, resize_rate, approx):
+    newlab = [[[p[1] * resize_rate, p[0] * resize_rate] for p in l] for l in label]
+    newlab = [[[p[0] // heigth_shrink_rate, p[1] // width_shrink_rate] for p in l] for l in newlab]
+    newlab = [np.array(lab, dtype=np.int32) for lab in newlab]
+    heat = np.zeros([int(frame.shape[0] / heigth_shrink_rate), int(frame.shape[1] / width_shrink_rate)])
+    squares = __squares_from_labels(newlab)
+    for i in range(len(squares)):
+        square = squares[i]
+        up, down, left, right = __get_bounds(square)
+        h = up
+
+        h_incr = int(1 + (down - up) * approx)
+        j_incr = int(1 + (right - left) * approx)
+        while up <= h <= down-1:
+            j = left
+            while left <= j <= right-1:
+                if poly.fast_is_inside([h, j], newlab[i]):
+                    end_h = h + h_incr
+                    end_j = j + j_incr
+                    if end_h > heat.shape[0]:
+                        end_h = heat.shape[0]
+                    if end_j > heat.shape[1]:
+                        end_j = heat.shape[1]
+                    heat[h:end_h, j:end_j] = 1
+                j += j_incr
+            h += h_incr
+    return heat
+
+
+def __get_bounds(coord):
+    """given an array of 4 coordinates (x,y), simply computes and
+    returns the highest and lowest vertical and horizontal points"""
+    if len(coord) != 4:
+        raise AttributeError("coord must be a set of 4 coordinates")
+    x = [c[0] for c in coord]
+    y = [c[1] for c in coord]
+    up = np.min(x)
+    down = np.max(x)
+    left = np.min(y)
+    right = np.max(y)
+    return up, down, left, right
+
+
+def __get_coord_from_labels(lista):
+    list_x = [p[0] for p in lista]
+    list_y = [p[1] for p in lista]
+    min_x = np.min(list_x)
+    max_x = np.max(list_x)
+    min_y = np.min(list_y)
+    max_y = np.max(list_y)
+    return [[min_x, min_y], [min_x, max_y], [max_x, min_y], [max_x, max_y]]
+
+
+def __squares_from_labels(label):
+    squares = []
+    for l in label:
+        squares.append(__get_coord_from_labels(l))
+    return squares
+
+
+def __load_egohand_video(dir, one_out_of=10):
     images = os.listdir(dir)
     images.remove('polygons.mat')
-    labels = __load_egohand_mat(os.path.join(dir, 'polygons.mat'))
+    labels = __load_egohand_mat(os.path.join(dir, 'polygons.mat'), one_out_of)
     frames = []
     n = len(images)
     for i in range(n):
@@ -218,17 +322,36 @@ def __load_egohand_video(dir):
     return np.array(frames), labels
 
 
-def __load_egohand_mat(filepath):
+def __load_egohand_mat(filepath, one_out_of=10):
     mat_cont = scio.loadmat(filepath)
     labels = []
     n = len(mat_cont['polygons']['myleft'][0])
     for i in range(n):
         single_lab = []
-        single_lab.append(mat_cont['polygons']['myleft'][0][i])
-        single_lab.append(mat_cont['polygons']['myright'][0][i])
-        single_lab.append(mat_cont['polygons']['yourleft'][0][i])
-        single_lab.append(mat_cont['polygons']['yourright'][0][i])
+        single_lab.append(mat_cont['polygons']['myleft'][0][i].tolist())
+        single_lab.append(mat_cont['polygons']['myright'][0][i].tolist())
+        single_lab.append(mat_cont['polygons']['yourleft'][0][i].tolist())
+        single_lab.append(mat_cont['polygons']['yourright'][0][i].tolist())
+        for lab in single_lab:
+            n = len(lab)
+            j = 0
+            while j < n:
+                if j % one_out_of != 0:
+                    lab.pop(j)
+                    n -= 1
+                j += 1
         labels.append(single_lab)
+    for l in labels:
+        try:
+            while True:
+                l.remove([[]])
+        except ValueError:
+            pass
+        try:
+            while True:
+                l.remove([])
+        except ValueError:
+            pass
     return labels
 
 
@@ -245,5 +368,7 @@ def __heatmap_uint8_to_float32(heat):
 
 
 if __name__ == '__main__':
-    __load_egohand_mat(resources_path(os.path.join("hands_bounding_dataset", "egohands", "CARDS_COURTYARD_B_T"
-                                                      , "polygons.mat")))
+    create_dataset(['CARDS_COURTYARD_B_T'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
+    f, h = read_dataset()
+    u.showimage(f[0])
+    u.showimage(h[0])
