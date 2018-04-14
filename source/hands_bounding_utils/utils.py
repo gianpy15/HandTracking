@@ -5,8 +5,7 @@ from os import path as os_p
 from skimage import io as sio
 import matplotlib.pyplot as mplt
 import math
-from data_manager import path_manager
-pm = path_manager.PathManager()
+from data_manager.path_manager import resources_path
 
 
 # ################### READING FILES ###########################
@@ -364,8 +363,8 @@ def showimage(image):
 
 
 if __name__ == '__main__':
-    imagep = pm.resources_path("hands_bounding_dataset/hands_dataset/train/images/Poselet_186.jpg")
-    matp = pm.resources_path("hands_bounding_dataset/hands_dataset/train/annotations/Poselet_186.mat")
+    imagep = resources_path("hands_bounding_dataset", "hands_dataset", "train", "images", "Poselet_186.jpg")
+    matp = resources_path("hands_bounding_dataset", "hands_dataset", "train", "annotations", "Poselet_186.mat")
     image1 = read_image(imagep)
     showimage(image1)
     # showimages(cropimage(imagep, matp))

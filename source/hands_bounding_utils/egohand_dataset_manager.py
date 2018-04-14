@@ -3,14 +3,13 @@ from skimage import io as sio
 from scipy.misc import imresize
 import source.hands_bounding_utils.utils as u
 import os
-from data_manager import path_manager
+from data_manager.path_manager import resources_path
 import random
 import math
 import numpy as np
 from scipy import io as scio
 import hands_regularizer.regularizer as reg
 
-pm = path_manager.PathManager()
 
 
 # ######### SQUARES ############
@@ -143,12 +142,8 @@ def get_random_batch(images, heatmaps, batch_size):
     return ims, heats
 
 
-def default_train_images_path():
-    return pm.resources_path(os.path.join("hands_bounding_dataset", "egohands_squares", "images"))
-
-
 def default_train_annotations_path():
-    return pm.resources_path(os.path.join("hands_bounding_dataset", "egohands_squares", "annotations"))
+    return resources_path(os.path.join("hands_bounding_dataset", "egohands_squares", "annotations"))
 
 
 # ############### POLYGONS ######################à
@@ -173,12 +168,12 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
     :param im_reg: object used to regularize the images
     :param heat_reg: object used to regularize the heatmaps"""
     if savepath is None:
-        basedir = pm.resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
+        basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
     else:
         basedir = savepath
     if not os.path.exists(basedir):
         os.makedirs(basedir)
-    framesdir = pm.resources_path(os.path.join("hands_bounding_dataset", "egohands"))
+    framesdir = resources_path(os.path.join("hands_bounding_dataset", "egohands"))
     if videos_list is None:
         vids = os.listdir(framesdir)
         vids = [x for x in vids if os.path.isdir(os.path.join(framesdir, x))]
@@ -250,5 +245,5 @@ def __heatmap_uint8_to_float32(heat):
 
 
 if __name__ == '__main__':
-    __load_egohand_mat(pm.resources_path(os.path.join("hands_bounding_dataset", "egohands", "CARDS_COURTYARD_B_T"
+    __load_egohand_mat(resources_path(os.path.join("hands_bounding_dataset", "egohands", "CARDS_COURTYARD_B_T"
                                                       , "polygons.mat")))

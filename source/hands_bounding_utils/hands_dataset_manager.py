@@ -1,10 +1,9 @@
 import source.hands_bounding_utils.utils as u
 import os
-from data_manager import path_manager
+from data_manager.path_manager import resources_path
 import random
 import math
 import numpy as np
-pm = path_manager.PathManager()
 
 
 def __list_objects_in_path(path):
@@ -122,19 +121,19 @@ def get_random_batch(images, heatmaps, batch_size):
 
 
 def default_train_images_path():
-    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "train", "images"))
+    return resources_path("hands_bounding_dataset", "hands_dataset", "train", "images")
 
 
 def default_train_annotations_path():
-    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "train", "annotations"))
+    return resources_path("hands_bounding_dataset", "hands_dataset", "train", "annotations")
 
 
 def default_test_images_path():
-    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "test", "images"))
+    return resources_path("hands_bounding_dataset", "hands_dataset", "test", "images")
 
 
 def default_test_annotations_path():
-    return pm.resources_path(os.path.join("hands_bounding_dataset", "hands_dataset", "test", "annotations"))
+    return resources_path("hands_bounding_dataset", "hands_dataset", "test", "annotations")
 
 
 if __name__ == '__main__':

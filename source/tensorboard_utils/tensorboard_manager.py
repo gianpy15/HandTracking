@@ -31,14 +31,14 @@ class TensorBoardManager:
     def add_histogram(self, obj, name, scope=None):
         self.add_summary(obj, name, scope, tf.summary.histogram)
 
-    def add_images(self, imgs, name, scope=None, max_out=3, collections=None, family=None):
+    def add_images(self, imgs, name, scope=None, max_out=3, collections=None):
         if scope is None:
             scope = self.current_scope
         if scope is not None:
             with tf.name_scope(scope):
-                self.__summ_list__ += [tf.summary.image(name, imgs, max_out, collections, family)]
+                self.__summ_list__ += [tf.summary.image(name, imgs, max_out, collections)]
         else:
-            self.__summ_list__ += [tf.summary.image(name, imgs, max_out, collections, family)]
+            self.__summ_list__ += [tf.summary.image(name, imgs, max_out, collections)]
 
     def add_embedding(self, emb_var, sprite=None, sprite_window=None):
         """
