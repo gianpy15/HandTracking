@@ -2,9 +2,8 @@ import telepot
 import datetime
 import socket
 import numpy as np
-import shutil
-from data_manager import path_manager as pm
-from image_loader.image_loader import save_image_from_matrix
+import io
+from PIL import Image
 
 BOT_TOKEN = "561223507:AAGvadvBfQcRb3hhTXQN1FN7c2xtn6B9vm0"
 CHAT_ID = -307476339
@@ -62,28 +61,10 @@ def send_image_from_file(image_path, caption=None):
 
 
 def send_image_from_array(image: np.ndarray, caption=None):
-    # path = pm.resources_path("tmp", "tmp.png")
-    # save_image_from_matrix(image, path)
-    # send_image_from_file(path, caption=caption)
-    # shutil.rmtree(pm.resources_path("tmp"))
-    import io
-    from PIL import Image
-
     imagefile = io.BytesIO()
-    print("###############")
-    print(imagefile.getvalue())
     Image.fromarray(np.array(image, dtype=np.uint8)).save(imagefile, format='PNG')
-    print("################")
-    print(imagefile.read())
-
-    class Test():
-        def __init__(self, bytes):
-            self.data = bytes
-
-        def read(self):
-            return self.data
-
-    send_image(Test(imagefile.getvalue()), caption=caption)
+    imagefile.read = imagefile.getvalue
+    send_image(imagefile, caption=caption)
 
 
 def send_image(image, caption=None):
@@ -102,4 +83,4 @@ if __name__ == "__main__":
             img[i, j, 1] = ((h-i+w-j)//(h+w))**2 * 255
             img[i, j, 2] = 255*np.sin(i/h * np.pi * 5)
     send_image_from_array(img,
-                          caption="Image sent without creating any file!")
+                          caption="Image sent without creating any file! In a slightly cleaner way")
