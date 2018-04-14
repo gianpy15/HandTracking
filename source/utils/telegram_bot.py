@@ -1,8 +1,10 @@
 import telepot
 import datetime
 import socket
-from PIL import Image
 import numpy as np
+import shutil
+from data_manager import path_manager as pm
+from image_loader.image_loader import save_image_from_matrix
 
 BOT_TOKEN = "561223507:AAGvadvBfQcRb3hhTXQN1FN7c2xtn6B9vm0"
 CHAT_ID = -307476339
@@ -56,14 +58,21 @@ def notify_training_end(model_name=None, **kwargs):
 
 
 def send_image_from_file(image_path):
-    send_image(np.array(open(image_path, 'rb')))
+    send_image(open(image_path, 'rb'))
 
 
-def send_image(image: np.core.ndarray):
+def send_image_from_array(image: np.ndarray):
+    path = pm.resources_path("tmp", "tmp.png")
+    save_image_from_matrix(image, path)
+    send_image_from_file(path)
+    shutil.rmtree(pm.resources_path("tmp"))
+
+
+def send_image(image):
     bot = telepot.Bot(BOT_TOKEN)
-    bot.sendPhoto(CHAT_ID, Image.fromarray(image))
+    print(type(image))
+    bot.sendPhoto(CHAT_ID, image)
 
 
 if __name__ == "__main__":
-    send_message("TEST")
-    send_image_from_file("../../resources/gui/hand.jpg")
+    send_image_from_array(np.zeros(shape=[200, 200, 3]))
