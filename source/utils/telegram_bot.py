@@ -57,22 +57,49 @@ def notify_training_end(model_name=None, **kwargs):
     send_message(string)
 
 
-def send_image_from_file(image_path):
-    send_image(open(image_path, 'rb'))
+def send_image_from_file(image_path, caption=None):
+    send_image(open(image_path, 'rb'), caption=caption)
 
 
-def send_image_from_array(image: np.ndarray):
-    path = pm.resources_path("tmp", "tmp.png")
-    save_image_from_matrix(image, path)
-    send_image_from_file(path)
-    shutil.rmtree(pm.resources_path("tmp"))
+def send_image_from_array(image: np.ndarray, caption=None):
+    # path = pm.resources_path("tmp", "tmp.png")
+    # save_image_from_matrix(image, path)
+    # send_image_from_file(path, caption=caption)
+    # shutil.rmtree(pm.resources_path("tmp"))
+    import io
+    from PIL import Image
+
+    imagefile = io.BytesIO()
+    print("###############")
+    print(imagefile.getvalue())
+    Image.fromarray(np.array(image, dtype=np.uint8)).save(imagefile, format='PNG')
+    print("################")
+    print(imagefile.read())
+
+    class Test():
+        def __init__(self, bytes):
+            self.data = bytes
+
+        def read(self):
+            return self.data
+
+    send_image(Test(imagefile.getvalue()), caption=caption)
 
 
-def send_image(image):
+def send_image(image, caption=None):
     bot = telepot.Bot(BOT_TOKEN)
     print(type(image))
-    bot.sendPhoto(CHAT_ID, image)
+    bot.sendPhoto(CHAT_ID, image, caption=caption)
 
 
 if __name__ == "__main__":
-    send_image_from_array(np.zeros(shape=[200, 200, 3]))
+    h = 200
+    w = 200
+    img = np.empty(shape=(h, w, 3), dtype=np.uint8)
+    for i in range(h):
+        for j in range(w):
+            img[i, j, 0] = (i+j)*255//(h+w)
+            img[i, j, 1] = ((h-i+w-j)//(h+w))**2 * 255
+            img[i, j, 2] = 255*np.sin(i/h * np.pi * 5)
+    send_image_from_array(img,
+                          caption="Image sent without creating any file!")
