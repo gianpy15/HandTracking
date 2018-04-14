@@ -4,6 +4,7 @@ from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from neural_network.keras.utils.naming import *
 import keras as K
+from source.utils.telegram_bot import notify_training_end, notify_training_starting
 import os
 
 DEFAULT_CHECKPOINT_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
@@ -86,11 +87,27 @@ def train_model(model_generator, dataset,
                   metrics=['accuracy'])
     if verbose:
         print('Fitting model...')
-    model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
-              batch_size=batch_size, callbacks=callbacks, verbose=1,
-              validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
+        # Notification for telegram
+        notify_training_starting(model_name=model_type + "_" + model_name,
+                                 training_samples=len(dataset[TRAIN_IN]),
+                                 validation_samples=len(dataset[VALID_IN]),
+                                 tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+
+    history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
+                        batch_size=batch_size, callbacks=callbacks, verbose=1,
+                        validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
     if verbose:
         print('Fitting completed!')
+        loss = "{:.5f}".format(history.history['loss'][-1])
+        valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
+        accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
+        valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
+        notify_training_end(model_name=model_type + "_" + model_name,
+                            final_loss=loss,
+                            final_validation_loss=valid_loss,
+                            final_accuracy=accuracy,
+                            final_validation_accuracy=valid_accuracy,
+                            tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
 
     if h5model_path is not None:
         if verbose:

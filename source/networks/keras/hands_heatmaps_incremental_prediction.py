@@ -54,7 +54,7 @@ model1 = train_model(dataset=dataset,
                      model_name="cropper_v5_m1",
                      model_type=CROPPER,
                      batch_size=1,
-                     epochs=1,
+                     epochs=2,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model1)
@@ -68,7 +68,7 @@ model2 = train_model(dataset=dataset,
                      model_name="cropper_v5_m2",
                      model_type=CROPPER,
                      batch_size=1,
-                     epochs=1,
+                     epochs=2,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model2)
@@ -82,5 +82,5 @@ model3 = train_model(dataset=dataset,
                      model_name="cropper_v5_m3",
                      model_type=CROPPER,
                      batch_size=1,
-                     epochs=1,
+                     epochs=2,
                      verbose=True)
