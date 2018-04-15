@@ -1,8 +1,8 @@
-from keras import backend as k
+from keras import backend as K
 
 
 def reshape_image(batch, width, height):
-    if k.image_data_format() == 'channels_first':
+    if K.image_data_format() == 'channels_first':
         x = batch.reshape(batch.shape[0], 1, width, height)
     else:
         x = batch.reshape(batch.shape[0], width, height, 1)

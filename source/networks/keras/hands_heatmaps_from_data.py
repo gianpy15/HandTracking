@@ -10,8 +10,6 @@ from neural_network.keras.utils.model_trainer import train_model
 import keras.regularizers as kr
 
 tensorboard_path = tensorboard_path("heat_maps")
-model_ck_path = cropper_ckp_path("cropper_v5")
-model_save_path = cropper_h5_path("cropper_v5")
 
 train = True
 
@@ -29,7 +27,7 @@ if train:
     model = train_model(model_generator=model_generator,
                         dataset=dataset,
                         tb_path=tensorboard_path,
-                        model_name='cropper_v5',
+                        model_name='cropper_v6',
                         model_type=CROPPER,
                         epochs=1,
                         batch_size=1,

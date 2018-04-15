@@ -12,6 +12,7 @@ from image_loader.image_loader import load
 from neural_network.keras.models.heatmap import *
 from neural_network.keras.utils.naming import *
 from source.utils.telegram_bot import *
+from image_manipulation.visualization_utils import get_image_with_mask
 
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
 png_path = resources_path("gui", "hands.png")
@@ -63,14 +64,11 @@ net_out = net_out.clip(max=1)
 first_out = resize(net_out, output_shape=(height, width, 1))
 total_sum = np.sum(first_out[0])
 
-u.showimage(images[0])
-u.showimage(u.heatmap_to_rgb(net_out))
-u.showimage(images[0]*first_out)
+k = 0.15
+u.showimage(get_image_with_mask(images[0], net_out))
 u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=0.5,
                                       accept_crop_minimum_dimension_pixels=100))
 
 send_to_telegram = True
 if send_to_telegram:
-    k = 0.15
-    send_message("Sending some samples...")
-    send_image_from_array((k + ((1 - k) * resize(net_out, [200, 200]))) * images[0])
+    send_image_from_array(get_image_with_mask(images[0], net_out))

@@ -12,8 +12,6 @@ class Augmenter:
     def __init__(self):
         self.ops = []
 
-
-
     def apply(self, frame: np.ndarray):
         for op in self.ops:
             pass
