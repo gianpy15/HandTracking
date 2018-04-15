@@ -42,8 +42,7 @@ class Regularizer:
         self.pars[OPS].append(HEATMAPS_TH)
         self.pars[HEATMAPS_TH] = thresh
 
-    def apply(self, frame):
-        frame = np.array(frame)
+    def apply(self, frame: np.ndarray):
         for op in self.pars[OPS]:
             if op == PADDING:
                 params = self.pars[PADDING]
