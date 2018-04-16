@@ -32,7 +32,7 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
 
 
 def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regularizer(),
-                   fillgaps=False, enlarge=0.5):
+                   fillgaps=False, enlarge=0.5, data_augment=False):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
     :param fillgaps: set to True to also get interpolated frames
@@ -70,8 +70,10 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     cut = u.crop_from_coords(frame, coords, enlarge)
                     cut = im_regularizer.apply(cut)
                     path = os.path.join(basedir, vid + "_" + str(i))
-
                     __persist_frame(path, cut, result)
+                    if data_augment:
+                        path = os.path.join(basedir, vid + "_t" + str(i))
+                        __persist_frame(path, cut.transpose(), 1 - result)
                 except ValueError as e:
                     print("Error " + str(e) + " on vid " + vid + str(i))
 
@@ -230,8 +232,9 @@ if __name__ == '__main__':
     im_r = reg.Regularizer()
     im_r.fixresize(200, 200)
     im_r.rgb2gray()
-    create_dataset(im_regularizer=im_r)
+    #create_dataset(im_regularizer=im_r)
     c, b = read_dataset_random()
     print(b[0])
     u.showimage(c[0].squeeze())
+    u.showimage(c[0].squeeze().transpose())
 
