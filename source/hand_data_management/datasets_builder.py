@@ -8,14 +8,14 @@ from hands_regularizer import regularizer
 from junctions_locator_utils.junction_locator_ds_management import create_dataset as jointscreate
 from data_manager.path_manager import *
 
-
+# egohands by default have dimension 720x1280
 def build_default_egohands():
     egocreate(savepath=crops_path(),
-              resize_rate=0.5,
+              resize_rate=440*0.5/720,
               width_shrink_rate=4,
               heigth_shrink_rate=4)
 
-
+# our hands by default have dimension 480x640
 def build_default_crops():
     cropscreate(savepath=crops_path(), fillgaps=True,
                 resize_rate=0.5,

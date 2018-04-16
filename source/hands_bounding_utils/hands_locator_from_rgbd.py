@@ -12,6 +12,7 @@ from scipy.signal import convolve
 import hands_bounding_utils.utils as u
 from neural_network.keras.utils.naming import *
 from timeit import timeit as tm
+import hands_regularizer.regularizer as reg
 
 
 
@@ -107,7 +108,8 @@ def create_dataset(videos_list=None, savepath=crops_path(), resize_rate=1.0, hei
 
 
 def create_dataset_shaded_heatmaps(videos_list=None, savepath=crops_path(), resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
-                   overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500, enlarge_heat=0.3):
+                   overlapping_penalty=0.9, fillgaps=False, toofar=1500, tooclose=500, enlarge_heat=0.3,
+                                   im_reg=reg.Regularizer(), he_r=reg.Regularizer()):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
     :param tooclose: threshold value used to eliminate too close objects/values in the depth
@@ -159,6 +161,7 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=crops_path(), resi
 
                     depth = depth.squeeze()
                     depth = np.uint8(depth)
+                    frame = im_reg.apply(frame)
                     fr_to_save['frame'] = frame
                     coords = [__get_coord_from_labels(label)]
                     heat = u.get_heatmap_from_coords(frame, heigth_shrink_rate, width_shrink_rate,
@@ -168,8 +171,10 @@ def create_dataset_shaded_heatmaps(videos_list=None, savepath=crops_path(), resi
                     res_coords = __enlarge_coords(res_coords, enlarge_heat, np.shape(heat))
                     res_labels = [[l[0] // heigth_shrink_rate, l[1]//width_shrink_rate] for l in label]
                     heat = __shade_heatmap(heat, res_coords, res_labels)
+                    heat = he_r.apply(heat)
                     heat = __heatmap_to_uint8(heat)
                     fr_to_save['heatmap'] = heat
+                    depth = he_r.apply(depth)
                     fr_to_save['depth'] = depth
                     path = os.path.join(basedir, vid + "_" + str(i))
                     scio.savemat(path, fr_to_save)
@@ -646,14 +651,16 @@ if __name__ == '__main__':
     # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
     # timetest() , 'handsMatteo'
-    #create_dataset_shaded_heatmaps(videos_list=['HandsEverton', 'handsMattia'], resize_rate=0.5, heigth_shrink_rate=2, width_shrink_rate=2)
+    create_dataset_shaded_heatmaps(videos_list=['HandsEverton', 'handsMattia'], resize_rate=0.5,
+                                   heigth_shrink_rate=4, width_shrink_rate=4)
     f, h, d = read_dataset_random(number=1)
     f = np.array(f)
     h = np.array(h)
     d = np.array(d)
 
     print(f.shape, h.shape, d.shape)
-    #u.showimage(f[0])
+    u.showimage(f[0])
     u.showimage(h[0])
     #u.showimage(d[0])
-    u.showimages(u.get_crops_from_heatmap(f[0], h[0], height_shrink_rate=2, width_shrink_rate=2, accept_crop_minimum_dimension_pixels=200))
+    u.showimages(u.get_crops_from_heatmap(f[0], h[0], height_shrink_rate=4, width_shrink_rate=4,
+                                          accept_crop_minimum_dimension_pixels=200))
