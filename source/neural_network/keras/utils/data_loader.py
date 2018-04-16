@@ -3,6 +3,7 @@ import hands_regularizer.regularizer as regularizer
 from hands_regularizer.regularizer import Regularizer
 from neural_network.keras.utils.naming import *
 from junctions_locator_utils import junction_locator_ds_management as jlocutils
+from hands_bounding_utils import egohand_dataset_manager as egoutils
 import numpy as np
 import random as rnd
 import sys
@@ -53,7 +54,7 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
     independent_frame_data = __load_indepdendent_videos(train_samples=int(train_samples * independent_frames_ratio),
                                                         valid_samples=int(valid_samples * independent_frames_ratio),
                                                         verbose=verbose,
-                                                        random_read_f=read_dataset_random,
+                                                        random_read_f=egoutils.read_dataset_random,
                                                         path=dataset_path,
                                                         dataset_info=dataset_info)
 
@@ -284,6 +285,7 @@ def __exclude_videos(dataset_info, videos):
         if vid in dataset_info.keys():
             dataset_info[vid] = None
     return dataset_info
+
 
 def load_joint_dataset(train_samples, valid_samples,
                        random_dataset=False,
