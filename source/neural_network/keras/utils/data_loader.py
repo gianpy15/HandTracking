@@ -272,7 +272,7 @@ def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path
     imgs, maps = random_read_f(path=path,
                                number=train_samples + valid_samples,
                                vid_list=INDEPENDENT_FRAME_VIDEOS)
-    trd = np.zeros(shape=np.shape(imgs)[:-1] + (1,), dtype=np.uint8)
+    trd = np.zeros(shape=np.shape(imgs)[:-1], dtype=np.uint8)
     return {'TRAIN': (imgs[:train_samples], maps[:train_samples], trd[:train_samples]),
             'VALID': (imgs[train_samples:], maps[train_samples:], trd[train_samples:])}
 
