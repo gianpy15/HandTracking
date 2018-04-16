@@ -209,7 +209,7 @@ def _get_available_dataset_stats(dataset_dir):
     stats = {}
     for frame in framelist:
         name = frame.split(sep='_')[0]
-        if os.path.splitext(name)[1] != '.mat':
+        if os.path.splitext(frame)[1] != '.mat':
             continue
         if name in stats.keys():
             stats[name] += 1
