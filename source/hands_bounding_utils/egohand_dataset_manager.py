@@ -187,6 +187,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
         for i in tqdm(range(0, fr_num)):
                 fr_to_save = {}
                 frame = frames[i]
+                frame = imresize(frame, [480, 640])
                 frame = imresize(frame, resize_rate)
                 frame = __add_padding(frame, frame.shape[1] - (frame.shape[1]//width_shrink_rate)*width_shrink_rate,
                                       frame.shape[0] - (frame.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
@@ -288,7 +289,7 @@ def __read_frame(path):
 
 
 def __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate, resize_rate, approx):
-    newlab = [[[p[1] * resize_rate, p[0] * resize_rate] for p in l] for l in label]
+    newlab = [[[p[1] * resize_rate * 480/720, p[0] * resize_rate * 640/1280] for p in l] for l in label]
     newlab = [[[p[0] // heigth_shrink_rate, p[1] // width_shrink_rate] for p in l] for l in newlab]
     newlab = [np.array(lab, dtype=np.int32) for lab in newlab]
     heat = np.zeros([int(frame.shape[0] / heigth_shrink_rate), int(frame.shape[1] / width_shrink_rate)])
@@ -404,7 +405,13 @@ def __heatmap_uint8_to_float32(heat):
 
 
 if __name__ == '__main__':
-    create_dataset(['CARDS_COURTYARD_B_T'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
+    #create_dataset(['CARDS_COURTYARD_B_T'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
     f, h = read_dataset_random()
+    print(np.shape(f), np.shape(h))
+    print(np.shape(f[0]), np.shape(h[0]))
     u.showimage(f[0])
     u.showimage(h[0])
+    u.showimages(u.get_crops_from_heatmap(f[0], h[0],
+                                                width_shrink_rate=4,
+                                                height_shrink_rate=4,
+                                                accept_crop_minimum_dimension_pixels=200))

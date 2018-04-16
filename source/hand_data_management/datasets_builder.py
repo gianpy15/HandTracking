@@ -12,7 +12,7 @@ from data_manager.path_manager import *
 # egohands by default have dimension 720x1280
 def build_default_egohands(res_rate=0.5):
     egocreate(savepath=crops_path(),
-              resize_rate=480*res_rate/720,
+              resize_rate=res_rate,
               width_shrink_rate=4,
               heigth_shrink_rate=4)
 

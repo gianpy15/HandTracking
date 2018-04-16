@@ -215,7 +215,7 @@ def get_crops_from_heatmap_batch(image, heatmap, height_shrink_rate=10, width_sh
     :type image: the images to crop
     :type heatmap: a list of matrixes containing all values in the range [0,1] that represents where hands are most likely
     present in the given images.
-    :type enlarge: must be non-negative, crops are enlarged by the given percentage. Default is 0,3 (30%)
+    :type enlarge: must be non-negative, crops are enlarged by the given percentage. Default is 0,5 (50%)
     :type precision: represents which values of the heatmap will be taken into account for the crops
     :type height_shrink_rate: the ratio used to rescale from the image height to heatmap height
     :type width_shrink_rate: the ratio used to rescale from the image width to heatmap width
