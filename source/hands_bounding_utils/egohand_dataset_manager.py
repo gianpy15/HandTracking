@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from skimage import io as sio
 from scipy.misc import imresize
-import source.hands_bounding_utils.utils as u
+import hands_bounding_utils.utils as u
 import os
 from data_manager.path_manager import resources_path
 import random

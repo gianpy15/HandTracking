@@ -29,19 +29,19 @@ def make_arcsin_table(resolution):
     return np.array(y)
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=False, cache=True)
 def table_asin(value, table):
     return table[int((value + 1.) * (len(table)//2))]
 
 # #################### FASTER VERSION ####################
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=False, cache=True)
 def fast_is_inside(point, polygon):
     return contains_origin(polygon - point)
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=False, cache=True)
 def contains_origin(polygon):
     # normalizing once for all times
     norm_poly = np.empty(shape=(len(polygon), 2), dtype=np.float32)
