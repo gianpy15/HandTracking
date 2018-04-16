@@ -96,8 +96,7 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                 print("Reading data...")
             imgs, maps, trd = read_dataset_random(path=dataset_path,
                                                   number=train_samples + valid_samples,
-                                                  vid_list=train_vids + valid_vids,
-                                                  verbosity=1 if verbose else 0)
+                                                  vid_list=train_vids + valid_vids)
             imgs, trd, maps = croputils.shuffle_rgb_depth_heatmap(imgs, trd, maps)
             train_imgs = imgs[:train_samples]
             train_maps = maps[:train_samples]
@@ -110,21 +109,18 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                 print("Reading training data...")
             train_imgs, train_maps, train_trd = read_dataset_random(path=dataset_path,
                                                                     number=train_samples,
-                                                                    vid_list=train_vids,
-                                                                    verbosity=1 if verbose else 0)
+                                                                    vid_list=train_vids)
             if verbose:
                 print("Reading validation data...")
             valid_imgs, valid_maps, valid_trd = read_dataset_random(path=dataset_path,
                                                                     number=valid_samples,
-                                                                    vid_list=valid_vids,
-                                                                    verbosity=1 if verbose else 0)
+                                                                    vid_list=valid_vids)
 
     else:
         if verbose:
             print("Reading data...")
         if merge_vids:
-            imgs, maps, trd = read_dataset(path=dataset_path,
-                                           verbosity=1 if verbose else 0)
+            imgs, maps, trd = read_dataset(path=dataset_path)
             imgs, trd, maps = croputils.shuffle_rgb_depth_heatmap(imgs, trd, maps)
             train_imgs = imgs[:train_samples]
             train_maps = maps[:train_samples]
@@ -135,8 +131,7 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
         else:
             train_imgs, train_maps, train_trd, \
             valid_imgs, valid_maps, valid_trd = read_dataset(path=dataset_path,
-                                                             test_vids=valid_vids,
-                                                             verbosity=1 if verbose else 0)
+                                                             test_vids=valid_vids)
 
             train_imgs, train_maps, train_trd = train_imgs[0:train_samples], \
                                                 train_maps[0:train_samples], \
@@ -275,10 +270,9 @@ def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path
             train_samples = int(resize * train_samples)
             valid_samples = int(resize * valid_samples)
     imgs, maps = random_read_f(path=path,
-                                    number=train_samples + valid_samples,
-                                    vid_list=INDEPENDENT_FRAME_VIDEOS,
-                                    verbosity=1 if verbose else 0)
-    trd = np.zeros(shape=np.shape(imgs)[:-1]+(1,), dtype=np.uint8)
+                               number=train_samples + valid_samples,
+                               vid_list=INDEPENDENT_FRAME_VIDEOS)
+    trd = np.zeros(shape=np.shape(imgs)[:-1] + (1,), dtype=np.uint8)
     return {'TRAIN': (imgs[:train_samples], maps[:train_samples], trd[:train_samples]),
             'VALID': (imgs[train_samples:], maps[train_samples:], trd[train_samples:])}
 
@@ -337,6 +331,7 @@ if __name__ == '__main__':
                            use_depth=False,
                            verbose=True)
     import matplotlib.pyplot as plot
+
     for img in dataset[TRAIN_IN]:
         plot.imshow(img)
         plot.show()
