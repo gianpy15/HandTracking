@@ -115,6 +115,42 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     return frames, label, t_frames, t_label
 
 
+def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
+    """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
+    the create_dataset method
+    :param verbosity: setting this parameter to 1 will make the method print the number of .mat files read
+    every time it reads one
+    :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
+    /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
+    :param number: number of elements to read
+    :param leave_out: list of videos from which samples will NOT be taken
+    """
+    if path is None:
+        basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
+    else:
+        basedir = path
+    samples = os.listdir(basedir)
+    if leave_out is not None:
+        samples = [s for s in samples if not __matches(s, leave_out)]
+    tot = len(samples)
+    if number > tot:
+        raise ValueError("number must be smaller than the number of samples")
+    frames = []
+    labels = []
+    for i in range(number):
+        if verbosity == 1:
+            print("Reading image: ", i, " of ", tot)
+            i += 1
+        which = int(np.math.floor(random.uniform(0, tot - 0.01)))
+        realpath = os.path.join(basedir, samples[which])
+        samples.pop(which)
+        tot -= 1
+        readcuts, readlabels = __read_frame(realpath)
+        frames.append(readcuts)
+        labels.append(readlabels)
+    return frames, labels
+
+
 def __read_frame(path):
     matcontent = scio.loadmat(path)
     return matcontent['cut'], matcontent['rl'][0][0]
