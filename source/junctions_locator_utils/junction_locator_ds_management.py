@@ -2,7 +2,7 @@ import random
 
 import hands_bounding_utils.utils as u
 import numpy as np
-import source.hand_data_management.video_loader as vl
+import hand_data_management.video_loader as vl
 import hands_regularizer.regularizer as reg
 import tqdm
 import scipy.io as scio
