@@ -1,7 +1,7 @@
 import image_loader.image_loader as il
 import numpy as np
 import matplotlib.image as img
-import utils as utils
+import general_utils as utils
 from data_manager.path_manager import resources_path
 
 # Here you should write some scripts that are intended to be run once to prepare and reformat data
@@ -32,7 +32,7 @@ def make_sprite(data_path='train/train_red_reformatted.mat', img_path='train/svh
                   9: (1.0, .5, 1.0)}
     data = il.load(datapath, field_name='^X.*$', force_format=[32, 32, 3])[:, :, :, :]
     labels = il.matrix_loader(datapath, field_name='^Y.*$')[:, :]
-    sprite = utils.make_sprite(utils.mark_images(data, labels, label_to_rgb_dict=digit_dict), force_square=True)
+    sprite = general_utils.make_sprite(general_utils.mark_images(data, labels, label_to_rgb_dict=digit_dict), force_square=True)
 
     img.imsave(resources_path(img_path), sprite)
 

@@ -8,7 +8,7 @@ lsb_release -a
 echo -e "\e[4m\nKernel Version:\e[0m\n"
 uname -mrs
 
-#The patch requires v4l-utils installed
+#The patch requires v4l-general_utils installed
 if [ $(dpkg-query -W -f='${Status}' v4l-utils 2>/dev/null | grep -c "ok installed") -eq 0 ];
 then
   apt-get install v4l-utils;

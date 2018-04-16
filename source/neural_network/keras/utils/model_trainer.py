@@ -4,7 +4,7 @@ from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from neural_network.keras.utils.naming import *
 import keras as K
-from source.utils.telegram_bot import notify_training_end, notify_training_starting, send_image_from_array, send_message
+from general_utils.telegram_bot import notify_training_end, notify_training_starting, send_image_from_array, send_message
 from image_manipulation.visualization_utils import get_image_with_mask
 import os
 

@@ -11,7 +11,7 @@ import hands_bounding_utils.utils as u
 from image_loader.image_loader import load
 from neural_network.keras.models.heatmap import *
 from neural_network.keras.utils.naming import *
-from source.utils.telegram_bot import *
+from source.general_utils.telegram_bot import *
 from image_manipulation.visualization_utils import get_image_with_mask
 
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
