@@ -385,14 +385,14 @@ def __dist(p1, p2):
     return math.sqrt(math.pow(p1[0]-p2[0], 2) + math.pow(p1[1]-p2[1], 2))
 
 
-def read_dataset(path=crops_path(), verbosity=0, leave_out=None):
+def read_dataset(path=crops_path(), verbosity=0, test_vids=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
     every time it reads one
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
-    :param leave_out: list of videos whose elements will be put in the test set. Note that is this parameter is not
+    :param test_vids: list of videos whose elements will be put in the test set. Note that is this parameter is not
     provided, only 3 arrays will be returned (frames, heatmaps, depths). If this is provided, 6 arrays are returned
     (frames, heatmaps, depths, test_frames, test_heatmaps, test_depths)
     """
@@ -411,7 +411,7 @@ def read_dataset(path=crops_path(), verbosity=0, leave_out=None):
     for name in iterator:
         realpath = os.path.join(basedir, name)
         matcontent = scio.loadmat(realpath)
-        if leave_out is None or not __matches(name, leave_out):
+        if test_vids is None or not __matches(name, test_vids):
             frames.append(matcontent['frame'])
             heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
             depths.append(matcontent['depth'])
@@ -419,12 +419,12 @@ def read_dataset(path=crops_path(), verbosity=0, leave_out=None):
             t_frames.append(matcontent['frame'])
             t_heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
             t_depths.append(matcontent['depth'])
-    if leave_out is None:
+    if test_vids is None:
         return frames, heatmaps, depths
     return frames, heatmaps, depths, t_frames, t_heatmaps, t_depths
 
 
-def read_dataset_random(path=crops_path(), number=1, verbosity=0, leave_out=None):
+def read_dataset_random(path=crops_path(), number=1, verbosity=0, vid_list=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -432,15 +432,15 @@ def read_dataset_random(path=crops_path(), number=1, verbosity=0, leave_out=None
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
     :param number: number of elements to read
-    :param leave_out: list of videos from which samples will NOT be taken
+    :param vid_list: list of videos from which samples will be taken
     """
     if path is None:
         basedir = crops_path()
     else:
         basedir = path
     samples = os.listdir(basedir)
-    if leave_out is not None:
-        samples = [s for s in samples if not __matches(s, leave_out)]
+    if vid_list is not None:
+        samples = [s for s in samples if __matches(s, vid_list)]
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
