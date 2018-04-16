@@ -8,18 +8,48 @@ VAL = 2
 
 class Augmenter:
     def __init__(self):
-        self.ops = []
+        self.prob = [0.0, 0.0, 0.0]
+        self.var = [1, 1, 1]
+        self.append = False
 
     def apply(self, frame: np.ndarray):
-        for op in self.ops:
-            pass
-        return frame
+        flag = False
+        for comp in [HUE, SAT, VAL]:
+            if self.prob[comp] > 0:
+                rand = np.random.random()
+                if rand < self.prob[comp]:
+                    component_shift(frame, truncated_gauss_random(self.var[comp]), comp)
+                    flag = True
+        return flag
 
     def apply_on_batch(self, batch: np.ndarray):
-        ris = []
+        if not self.append:
+            for idx in range(len(batch)):
+                self.apply(batch[idx])
+            return batch
+
+        ris = list(batch)
         for elem in batch:
-            ris.append(self.apply(elem))
+            new_elem = np.array(elem)
+            if self.apply(new_elem):
+                ris.append(new_elem)
         return np.array(ris)
+
+    def append(self, flag=True):
+        self.append = flag
+
+    def __shift(self, comp, prob=1.0, var=1):
+        self.prob[comp] = prob
+        self.var[comp] = var
+
+    def shift_hue(self, prob=1.0, var=1):
+        self.__shift(HUE, prob, var)
+
+    def shift_sat(self, prob=1.0, var=1):
+        self.__shift(SAT, prob, var)
+
+    def shift_val(self, prob=1.0, var=1):
+        self.__shift(VAL, prob, var)
 
 
 def truncated_gauss_random(var):
@@ -43,23 +73,29 @@ if __name__ == '__main__':
     from image_loader.image_loader import load
     from data_manager.path_manager import resources_path
     from matplotlib import pyplot as mplt
+    from neural_network.keras.utils.data_loader import load_crop_dataset
+    from neural_network.keras.utils.naming import *
 
     def showimg(img):
         mplt.imshow(img)
         mplt.show()
-    img = load(resources_path("gui", "hands.png"))[0]
-    showimg(img)
-    rgb2hsv(img)
-    for shamt in np.arange(-1, 1, 0.4):
-        cp = np.array(img)
-        out = component_shift(cp, shamt=shamt, comp=HUE)
-        showimg(hsv2rgb(out))
-    img = np.array(img, dtype=np.float32)
+
+
+    dataset = load_crop_dataset(10, 10)
+    augmenter = Augmenter()
+    augmenter.shift_hue(0.5, 2)
+    augmenter.shift_sat(0.2, 4)
+    augmenter.shift_val(0.3, 1)
+    dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
+
 
     def speedtest():
         hsv2rgb(img)
         # component_shift(img, shamt=0.2)
 
-    import timeit
-    print(img.shape)
-    print(timeit.timeit(speedtest, number=100))
+
+    # import timeit
+
+    for img in dataset[TRAIN_IN]:
+        showimg(img)
+    # print(timeit.timeit(speedtest, number=100))
