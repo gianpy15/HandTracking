@@ -32,7 +32,7 @@ def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, 
 
 
 def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regularizer(),
-                   fillgaps=False, enlarge=0.2):
+                   fillgaps=False, enlarge=0.5):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand and the modified depth.
     :param fillgaps: set to True to also get interpolated frames
@@ -126,7 +126,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     :param leave_out: list of videos from which samples will NOT be taken
     """
     if path is None:
-        basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
+        basedir = resources_path("left_right_classification_dataset")
     else:
         basedir = path
     samples = os.listdir(basedir)
@@ -149,6 +149,21 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
         frames.append(readcuts)
         labels.append(readlabels)
     return frames, labels
+
+
+def shuffle_cut_label(ri, di):
+    n = np.shape(ri)[0]
+    pos = list(range(0, n))
+    n -= 0.01
+    r1 = []
+    d1 = []
+    while n > 0:
+        rand = int(np.math.floor(random.uniform(0, n)))
+        r1.append(ri[pos[rand]])
+        d1.append(di[pos[rand]])
+        pos.pop(rand)
+        n -= 1
+    return np.array(r1), np.array(d1)
 
 
 def __read_frame(path):
@@ -186,7 +201,8 @@ def __persist_frame(path, cut, rl):
 if __name__ == '__main__':
     im_r = reg.Regularizer()
     im_r.fixresize(200, 200)
-    create_dataset(im_regularizer=im_r)
-    c, b = read_dataset()
+    im_r.rgb2gray()
+    #create_dataset(im_regularizer=im_r)
+    c, b = read_dataset_random()
     print(b[0])
-    u.showimage(c[0])
+    u.showimage(c[0].squeeze())
