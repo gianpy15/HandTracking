@@ -18,8 +18,12 @@ class Augmenter:
             if self.prob[comp] > 0:
                 rand = np.random.random()
                 if rand < self.prob[comp]:
+                    if not flag:
+                        rgb2hsv(frame)
                     component_shift(frame, truncated_gauss_random(self.var[comp]), comp)
                     flag = True
+        if flag:
+            hsv2rgb(frame)
         return flag
 
     def apply_on_batch(self, batch: np.ndarray):
@@ -54,10 +58,10 @@ class Augmenter:
 
 def truncated_gauss_random(var):
     r = np.random.normal(scale=var)
-    return np.modf(r)[0]
+    return np.modf(r, dtype=np.float32)[0]
 
 
-def component_shift(img: np.ndarray, shamt: float, comp=HUE):
+def component_shift(img: np.ndarray, shamt: np.float32, comp=HUE):
     rotate = (comp == HUE)
     img[:, :, comp] += shamt
     if rotate:
@@ -87,7 +91,7 @@ if __name__ == '__main__':
     augmenter.shift_sat(0.2, 4)
     augmenter.shift_val(0.3, 1)
     dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
-
+    print(np.shape(dataset[TRAIN_IN]))
 
     def speedtest():
         hsv2rgb(img)

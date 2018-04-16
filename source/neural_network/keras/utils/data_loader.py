@@ -167,10 +167,8 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
             train_trd = np.expand_dims(train_trd, axis=np.ndim(train_trd))
             valid_trd = np.expand_dims(valid_trd, axis=np.ndim(valid_trd))
 
-    if not isinstance(train_imgs, np.ndarray):
-        train_imgs = np.array(train_imgs)
-    if not isinstance(valid_imgs, np.ndarray):
-        valid_imgs = np.array(valid_imgs)
+    train_imgs = np.divide(train_imgs, 255.0, dtype=np.float32)
+    valid_imgs = np.divide(valid_imgs, 255.0, dtype=np.float32)
 
     if use_depth:
         if verbose:
