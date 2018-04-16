@@ -7,10 +7,9 @@ from neural_network.keras.models.heatmap import *
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from keras.engine import training as kt
 from skimage.transform import rescale
-from neural_network.keras.utils.data_loader import load_dataset
+from neural_network.keras.utils.data_loader import load_crop_dataset
 from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
-
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 
@@ -21,14 +20,15 @@ train = True
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
-dataset = load_dataset(train_samples=1,
-                       valid_samples=1,
-                       dataset_path=dataset_path,
-                       random_dataset=True,
-                       shuffle=True,
-                       use_depth=False,
-                       verbose=True,
-                       separate_valid=False)
+
+dataset = load_crop_dataset(train_samples=1,
+                            valid_samples=1,
+                            dataset_path=dataset_path,
+                            random_dataset=True,
+                            shuffle=True,
+                            use_depth=False,
+                            verbose=True,
+                            separate_valid=False)
 
 
 def attach_heat_map(inputs, fitted_model: kt.Model):
@@ -44,14 +44,16 @@ def attach_heat_map(inputs, fitted_model: kt.Model):
 
 # Build up the model
 # First model part
-dataset[TRAIN_IN] = np.concatenate((dataset[TRAIN_IN], np.zeros(shape=np.shape(dataset[TRAIN_IN])[0:-1] + (1,))), axis=-1)
-dataset[VALID_IN] = np.concatenate((dataset[VALID_IN], np.zeros(shape=np.shape(dataset[VALID_IN])[0:-1] + (1,))), axis=-1)
+dataset[TRAIN_IN] = np.concatenate((dataset[TRAIN_IN], np.zeros(shape=np.shape(dataset[TRAIN_IN])[0:-1] + (1,))),
+                                   axis=-1)
+dataset[VALID_IN] = np.concatenate((dataset[VALID_IN], np.zeros(shape=np.shape(dataset[VALID_IN])[0:-1] + (1,))),
+                                   axis=-1)
 model1 = train_model(dataset=dataset,
                      model_generator=lambda: incremental_predictor_1(weight_decay=weight_decay),
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/m1",
-                     model_name="cropper_v5_m1",
+                     model_name="cropper_v6_m1",
                      model_type=CROPPER,
                      batch_size=1,
                      epochs=2,
@@ -65,7 +67,7 @@ model2 = train_model(dataset=dataset,
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/m2",
-                     model_name="cropper_v5_m2",
+                     model_name="cropper_v6_m2",
                      model_type=CROPPER,
                      batch_size=1,
                      epochs=2,
@@ -79,7 +81,7 @@ model3 = train_model(dataset=dataset,
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/m3",
-                     model_name="cropper_v5_m3",
+                     model_name="cropper_v6_m3",
                      model_type=CROPPER,
                      batch_size=1,
                      epochs=2,
