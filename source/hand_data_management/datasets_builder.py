@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
+
 from hands_bounding_utils.egohand_dataset_manager import create_dataset as egocreate
 from hands_bounding_utils.hands_locator_from_rgbd import create_dataset_shaded_heatmaps as cropscreate
 from hands_regularizer import regularizer
