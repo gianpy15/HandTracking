@@ -17,6 +17,7 @@ source/**/.DS_Store
 .DS_Store
 
 resources/hands_bounding_dataset/**/**
+resources/left_right_classification_dataset/**/**
 resources/hands_locator_dataset/**/**
 resources/framedata/**/**
 resources/rawcam/
