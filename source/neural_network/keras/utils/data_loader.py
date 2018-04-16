@@ -8,7 +8,7 @@ import numpy as np
 import random as rnd
 import sys
 
-INDEPENDENT_FRAME_VIDEOS = ['egohands']
+INDEPENDENT_FRAME_VIDEOS = ['CARDS', 'CHESS', 'JENGA', 'PUZZLE']
 
 
 def load_dataset(train_samples, valid_samples, data_format=CROPPER,
@@ -209,6 +209,8 @@ def _get_available_dataset_stats(dataset_dir):
     stats = {}
     for frame in framelist:
         name = frame.split(sep='_')[0]
+        if os.path.splitext(name)[1] != '.mat':
+            continue
         if name in stats.keys():
             stats[name] += 1
         else:
