@@ -8,9 +8,9 @@ VAL = 2
 
 class Augmenter:
     def __init__(self):
-        self.prob = [0.0, 0.0, 0.0]
-        self.var = [1, 1, 1]
-        self.append = False
+        self.prob = [.0, .0, .0]
+        self.var = [.15, .15, .15]
+        self.in_place = True
 
     def apply(self, frame: np.ndarray):
         flag = False
@@ -27,7 +27,7 @@ class Augmenter:
         return flag
 
     def apply_on_batch(self, batch: np.ndarray):
-        if not self.append:
+        if self.in_place:
             for idx in range(len(batch)):
                 self.apply(batch[idx])
             return batch
@@ -39,20 +39,17 @@ class Augmenter:
                 ris.append(new_elem)
         return np.array(ris)
 
-    def append(self, flag=True):
-        self.append = flag
-
-    def __shift(self, comp, prob=1.0, var=1):
+    def __shift(self, comp, prob=1.0, var=.15):
         self.prob[comp] = prob
         self.var[comp] = var
 
-    def shift_hue(self, prob=1.0, var=1):
+    def shift_hue(self, prob=1.0, var=.15):
         self.__shift(HUE, prob, var)
 
-    def shift_sat(self, prob=1.0, var=1):
+    def shift_sat(self, prob=1.0, var=.15):
         self.__shift(SAT, prob, var)
 
-    def shift_val(self, prob=1.0, var=1):
+    def shift_val(self, prob=1.0, var=.15):
         self.__shift(VAL, prob, var)
 
 
@@ -79,27 +76,26 @@ if __name__ == '__main__':
     from matplotlib import pyplot as mplt
     from neural_network.keras.utils.data_loader import load_crop_dataset
     from neural_network.keras.utils.naming import *
+    import timeit
 
     def showimg(img):
         mplt.imshow(img)
         mplt.show()
 
 
-    dataset = load_crop_dataset(10, 10)
+    dataset = load_crop_dataset(10, 0)
     augmenter = Augmenter()
-    augmenter.shift_hue(0.5, 2)
-    augmenter.shift_sat(0.2, 4)
-    augmenter.shift_val(0.3, 1)
-    dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
-    print(np.shape(dataset[TRAIN_IN]))
-
-    def speedtest():
-        hsv2rgb(img)
-        # component_shift(img, shamt=0.2)
-
-
-    # import timeit
+    augmenter.shift_hue(0.5, .15)
+    augmenter.shift_sat(1.0, .15)
+    augmenter.shift_val(0.5, .15)
+    augmenter.in_place = True
+    augmenter.apply_on_batch(dataset[TRAIN_IN])
 
     for img in dataset[TRAIN_IN]:
         showimg(img)
-    # print(timeit.timeit(speedtest, number=100))
+
+    def speedtest():
+        augmenter.apply_on_batch(dataset[TRAIN_IN])
+
+    print(timeit.timeit(speedtest, number=100))
+
