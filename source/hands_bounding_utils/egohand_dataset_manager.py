@@ -240,7 +240,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     return frames, heatmaps, t_frames, t_heatmaps
 
 
-def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
+def read_dataset_random(path=None, number=1, verbosity=0, vid_list=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to 1 will make the method print the number of .mat files read
@@ -248,15 +248,15 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
     :param number: number of elements to read
-    :param leave_out: list of videos from which samples will NOT be taken
+    :param vid_list: list of videos from which samples will be taken
     """
     if path is None:
         basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
     else:
         basedir = path
     samples = os.listdir(basedir)
-    if leave_out is not None:
-        samples = [s for s in samples if not __matches(s, leave_out)]
+    if vid_list is not None:
+        samples = [s for s in samples if __matches(s, vid_list)]
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
