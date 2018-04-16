@@ -304,7 +304,7 @@ def __create_ego_heatmap(frame, label, heigth_shrink_rate, width_shrink_rate, re
         while up <= h <= down-1:
             j = left
             while left <= j <= right-1:
-                if poly.fast_is_inside([h, j], newlab[i]):
+                if poly.fast_is_inside(np.array([h, j]), np.array(newlab[i])):
                     end_h = h + h_incr
                     end_j = j + j_incr
                     if end_h > heat.shape[0]:
@@ -405,7 +405,7 @@ def __heatmap_uint8_to_float32(heat):
 
 
 if __name__ == '__main__':
-    #create_dataset(['CARDS_COURTYARD_B_T'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
+    create_dataset(['CARDS_COURTYARD_B_T'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
     f, h = read_dataset_random()
     print(np.shape(f), np.shape(h))
     print(np.shape(f[0]), np.shape(h[0]))
