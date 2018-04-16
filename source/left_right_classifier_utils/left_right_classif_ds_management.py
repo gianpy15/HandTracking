@@ -7,11 +7,11 @@ import hands_regularizer.regularizer as reg
 import tqdm
 import scipy.io as scio
 from neural_network.keras.utils.naming import *
-
+import pandas as pd
 
 RIGHT = 1
 LEFT = 0
-
+csv_path = resources_path(os.path.join("csv", "left_right.csv"))
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):
     """given a video name, returns some information on its frames and their labels, basing on the parameters
@@ -57,12 +57,12 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
     for vid in tqdm.tqdm(vids):
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
         fr_num = frames.shape[0]
+        result = get_right_left(vid)
         for i in tqdm.tqdm(range(0, fr_num)):
             if labels[i] is not None:
                 try:
                     frame = frames[i]
                     label = labels[i][:, 0:2]
-                    visible = labels[i][:, 2:3]
                     label *= [frame.shape[1], frame.shape[0]]
                     label = np.array(label, dtype=np.int32).tolist()
                     label = [[p[1], p[0]] for p in label]
@@ -70,7 +70,7 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     cut = u.crop_from_coords(frame, coords, enlarge)
                     cut = im_regularizer.apply(cut)
                     path = os.path.join(basedir, vid + "_" + str(i))
-                    result = __get_right_left(vid)
+
                     __persist_frame(path, cut, result)
                 except ValueError as e:
                     print("Error " + str(e) + " on vid " + vid + str(i))
@@ -171,8 +171,15 @@ def __read_frame(path):
     return matcontent['cut'], matcontent['rl'][0][0]
 
 
-def __get_right_left(vid):
+def get_right_left(vid):
+    csv_data = pd.read_csv(csv_path)
+    num = len(csv_data.index)
+    for i in range(num):
+        row = csv_data.iloc[i]
+        if row['vidname'] == vid:
+            return row['lab']
     return RIGHT
+
 
 
 def __matches(s, leave_out):
@@ -198,11 +205,33 @@ def __persist_frame(path, cut, rl):
     scio.savemat(path, fr_to_save)
 
 
+def count_ones_zeros(y_train, y_test):
+    right = 0
+    left = 0
+    for i in range(len(y_train)):
+        if y_train[i] == 1:
+            right += 1
+        else:
+            left += 1
+    print("TRAIN R: ", right)
+    print("TRAIN L: ", left)
+    right = 0
+    left = 0
+    for i in range(len(y_test)):
+        if y_test[i] == 1:
+            right += 1
+        else:
+            left += 1
+    print("TEST R: ", right)
+    print("TEST L: ", left)
+
+
 if __name__ == '__main__':
     im_r = reg.Regularizer()
     im_r.fixresize(200, 200)
     im_r.rgb2gray()
-    #create_dataset(im_regularizer=im_r)
+    create_dataset(im_regularizer=im_r)
     c, b = read_dataset_random()
     print(b[0])
     u.showimage(c[0].squeeze())
+
