@@ -1,7 +1,5 @@
 import numpy as np
-import random as rand
 from image_manipulation.hsv import rgb2hsv, hsv2rgb
-from numba import jit, prange
 
 HUE = 0
 SAT = 1
@@ -29,7 +27,8 @@ def truncated_gauss_random(var):
     return np.modf(r)[0]
 
 
-def component_shift(img: np.ndarray, shamt: float, comp=0, rotate=True):
+def component_shift(img: np.ndarray, shamt: float, comp=HUE):
+    rotate = (comp == HUE)
     img[:, :, comp] += shamt
     if rotate:
         np.modf(img[:, :, comp], out=img[:, :, comp])
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     rgb2hsv(img)
     for shamt in np.arange(-1, 1, 0.4):
         cp = np.array(img)
-        out = component_shift(cp, shamt=shamt, comp=1, rotate=False)
+        out = component_shift(cp, shamt=shamt, comp=HUE)
         showimg(hsv2rgb(out))
     img = np.array(img, dtype=np.float32)
 
