@@ -4,7 +4,8 @@ from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
 from neural_network.keras.utils.naming import *
 import keras as K
-from source.utils.telegram_bot import notify_training_end, notify_training_starting
+from source.utils.telegram_bot import notify_training_end, notify_training_starting, send_image_from_array, send_message
+from image_manipulation.visualization_utils import get_image_with_mask
 import os
 
 DEFAULT_CHECKPOINT_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
@@ -108,6 +109,17 @@ def train_model(model_generator, dataset,
                             final_accuracy=accuracy,
                             final_validation_accuracy=valid_accuracy,
                             tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        if model_name == CROPPER:
+            send_message("Training sample...")
+            img = dataset[TRAIN_IN][0]
+            map_ = model.predict(img)
+            send_image_from_array(get_image_with_mask(img, map_))
+            send_image_from_array(get_image_with_mask(img, map_))
+            send_message("Validation sample...")
+            img = dataset[VALID_IN][0]
+            map_ = model.predict(img)
+            send_image_from_array(get_image_with_mask(img, map_))
+            send_image_from_array(get_image_with_mask(img, map_))
 
     if h5model_path is not None:
         if verbose:

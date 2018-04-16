@@ -26,7 +26,7 @@ dataset = load_dataset(train_samples=2,
 # Augment data
 print("Augmenting data...")
 augmenter = Augmenter()
-augmenter.shift_hue().shift_sat().shift_val()
+augmenter.shift_hue(prob=0.25).shift_sat(prob=0.25).shift_val(prob=0.25)
 dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
 dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
 print("Augmentation end")
