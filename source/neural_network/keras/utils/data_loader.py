@@ -7,6 +7,8 @@ import numpy as np
 import random as rnd
 import sys
 
+INDEPENDENT_FRAME_VIDEOS = ['egohands']
+
 
 def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                  random_dataset=False,
@@ -15,7 +17,8 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                  build_videos=None,
                  dataset_path=None,
                  verbose=False,
-                 separate_valid=True):
+                 separate_valid=True,
+                 independent_frames_ratio=0.3):
     merge_vids = False
 
     if data_format == CROPPER:
@@ -45,8 +48,19 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
         create_dataset(videos_list=videos_list,
                        dataset_path=dataset_path)
 
-
     dataset_info = _get_available_dataset_stats(dataset_path)
+
+    independent_frame_data = __load_indepdendent_videos(train_samples=int(train_samples * independent_frames_ratio),
+                                                        valid_samples=int(valid_samples * independent_frames_ratio),
+                                                        verbose=verbose,
+                                                        random_read_f=read_dataset_random,
+                                                        path=dataset_path,
+                                                        dataset_info=dataset_info)
+
+    dataset_info = __exclude_videos(dataset_info, INDEPENDENT_FRAME_VIDEOS)
+
+    train_samples -= len(independent_frame_data['TRAIN'][0])
+    valid_samples -= len(independent_frame_data['VALID'][0])
 
     train_vids, valid_vids = choose_train_valid_videos(dataset_info, train_samples, valid_samples)
     traincount = available_frames(dataset_info, train_vids)
@@ -81,6 +95,7 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                 print("Reading data...")
             imgs, maps, trd = read_dataset_random(path=dataset_path,
                                                   number=train_samples + valid_samples,
+                                                  vid_list=train_vids + valid_vids,
                                                   verbosity=1 if verbose else 0)
             imgs, trd, maps = croputils.shuffle_rgb_depth_heatmap(imgs, trd, maps)
             train_imgs = imgs[:train_samples]
@@ -94,13 +109,13 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                 print("Reading training data...")
             train_imgs, train_maps, train_trd = read_dataset_random(path=dataset_path,
                                                                     number=train_samples,
-                                                                    leave_out=valid_vids,
+                                                                    vid_list=train_vids,
                                                                     verbosity=1 if verbose else 0)
             if verbose:
                 print("Reading validation data...")
             valid_imgs, valid_maps, valid_trd = read_dataset_random(path=dataset_path,
                                                                     number=valid_samples,
-                                                                    leave_out=train_vids,
+                                                                    vid_list=valid_vids,
                                                                     verbosity=1 if verbose else 0)
 
     else:
@@ -119,7 +134,7 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
         else:
             train_imgs, train_maps, train_trd, \
             valid_imgs, valid_maps, valid_trd = read_dataset(path=dataset_path,
-                                                             leave_out=valid_vids,
+                                                             test_vids=valid_vids,
                                                              verbosity=1 if verbose else 0)
 
             train_imgs, train_maps, train_trd = train_imgs[0:train_samples], \
@@ -128,6 +143,15 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
             valid_imgs, valid_maps, valid_trd = valid_imgs[0:valid_samples], \
                                                 valid_maps[0:valid_samples], \
                                                 valid_trd[0:valid_samples]
+
+    if len(independent_frame_data['TRAIN'][0]) != 0:
+        train_imgs = np.concatenate((train_imgs, independent_frame_data['TRAIN'][0]))
+        train_maps = np.concatenate((train_maps, independent_frame_data['TRAIN'][1]))
+        train_trd = np.concatenate((train_trd, independent_frame_data['TRAIN'][2]))
+    if len(independent_frame_data['VALID'][0]) != 0:
+        valid_imgs = np.concatenate((valid_imgs, independent_frame_data['VALID'][0]))
+        valid_maps = np.concatenate((valid_maps, independent_frame_data['VALID'][1]))
+        valid_trd = np.concatenate((valid_trd, independent_frame_data['VALID'][2]))
 
     if shuffle:
         if verbose:
@@ -143,13 +167,10 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
             train_trd = np.expand_dims(train_trd, axis=np.ndim(train_trd))
             valid_trd = np.expand_dims(valid_trd, axis=np.ndim(valid_trd))
 
-    reg = Regularizer()
-    reg.normalize()
-
-    if verbose:
-        print("Normalizing images...")
-    train_imgs = reg.apply_on_batch(np.array(train_imgs))
-    valid_imgs = reg.apply_on_batch(np.array(valid_imgs))
+    if not isinstance(train_imgs, np.ndarray):
+        train_imgs = np.array(train_imgs)
+    if not isinstance(valid_imgs, np.ndarray):
+        valid_imgs = np.array(valid_imgs)
 
     if use_depth:
         if verbose:
@@ -221,8 +242,10 @@ def choose_train_valid_videos(dataset_info, train_samples, valid_samples=-1):
 
 def available_frames(dataset_info, vidlist):
     count = 0
+    availablevids = dataset_info.keys()
     for vid in vidlist:
-        count += dataset_info[vid]
+        if vid in availablevids:
+            count += dataset_info[vid]
     return count
 
 
@@ -242,6 +265,27 @@ def create_joint_dataset(videos_list, dataset_path):
                              heat_regularizer=hm_reg, enlarge=.5, cross_radius=5,
                              videos_list=videos_list)
 
+
+def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path, verbose=False, dataset_info=None):
+    if dataset_info is not None:
+        totframes = available_frames(dataset_info, INDEPENDENT_FRAME_VIDEOS)
+        if train_samples + valid_samples > totframes:
+            resize = totframes / (train_samples + valid_samples)
+            train_samples = int(resize * train_samples)
+            valid_samples = int(resize * valid_samples)
+    imgs, maps, trd = random_read_f(path=path,
+                                    number=train_samples + valid_samples,
+                                    vid_list=INDEPENDENT_FRAME_VIDEOS,
+                                    verbosity=1 if verbose else 0)
+    return {'TRAIN': (imgs[:train_samples], maps[:train_samples], trd[:train_samples]),
+            'VALID': (imgs[train_samples:], maps[train_samples:], trd[train_samples:])}
+
+
+def __exclude_videos(dataset_info, videos):
+    for vid in videos:
+        if vid in dataset_info.keys():
+            dataset_info[vid] = None
+    return dataset_info
 
 def load_joint_dataset(train_samples, valid_samples,
                        random_dataset=False,
@@ -280,3 +324,20 @@ def load_crop_dataset(train_samples, valid_samples,
                         dataset_path=dataset_path,
                         verbose=verbose,
                         separate_valid=separate_valid)
+
+
+if __name__ == '__main__':
+    dataset = load_dataset(train_samples=10,
+                           valid_samples=10,
+                           random_dataset=True,
+                           shuffle=True,
+                           use_depth=False,
+                           verbose=True)
+    import matplotlib.pyplot as plot
+    for img in dataset[TRAIN_IN]:
+        plot.imshow(img)
+        plot.show()
+
+    for img in dataset[VALID_IN]:
+        plot.imshow(img)
+        plot.show()

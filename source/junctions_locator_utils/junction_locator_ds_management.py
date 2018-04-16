@@ -89,14 +89,14 @@ def __heatmaps_dim_reducer(heatmaps):
     return heatris
 
 
-def read_dataset(path=joints_path(), verbosity=0, leave_out=None):
+def read_dataset(path=joints_path(), verbosity=0, test_vids=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
     every time it reads one
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
-    :param leave_out: list of videos whose elements will be put in the test set. Note that is this parameter is not
+    :param test_vids: list of videos whose elements will be put in the test set. Note that is this parameter is not
     provided, only 3 arrays will be returned (cuts, heatmaps, vis). If this is provided, 6 arrays are returned
     (cuts, heatmaps, vis, test_cuts, test_heatmaps, test_vis)
     """
@@ -119,7 +119,7 @@ def read_dataset(path=joints_path(), verbosity=0, leave_out=None):
             i += 1
         realpath = os.path.join(basedir, name)
         readcuts, readheats, readvis = __read_frame(realpath)
-        if leave_out is None or not __matches(name, leave_out):
+        if test_vids is None or not __matches(name, test_vids):
             cuts.append(readcuts)
             heatmaps.append(readheats)
             visible.append(readvis)
@@ -127,12 +127,12 @@ def read_dataset(path=joints_path(), verbosity=0, leave_out=None):
             t_cuts.append(readcuts)
             t_heatmaps.append(readheats)
             t_visible.append(readvis)
-    if leave_out is None:
+    if test_vids is None:
         return cuts, heatmaps, visible
     return cuts, heatmaps, visible, t_cuts, t_heatmaps, t_visible
 
 
-def read_dataset_random(path=joints_path(), number=1, verbosity=0, leave_out=None):
+def read_dataset_random(path=joints_path(), number=1, verbosity=0, vid_list=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to 1 will make the method print the number of .mat files read
@@ -140,15 +140,15 @@ def read_dataset_random(path=joints_path(), number=1, verbosity=0, leave_out=Non
     :param path: path where the .mat files will be looked for. If left to its default value of None, the default path
     /resources/hands_bounding_dataset/hands_rgbd_transformed folder will be used
     :param number: number of elements to read
-    :param leave_out: list of videos from which samples will NOT be taken
+    :param vid_list: list of videos from which samples will be taken
     """
     if path is None:
         basedir = joints_path()
     else:
         basedir = path
     samples = os.listdir(basedir)
-    if leave_out is not None:
-        samples = [s for s in samples if not __matches(s, leave_out)]
+    if vid_list is not None:
+        samples = [s for s in samples if not __matches(s, vid_list)]
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
