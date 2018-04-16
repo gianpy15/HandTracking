@@ -45,12 +45,15 @@ class Augmenter:
 
     def shift_hue(self, prob=1.0, var=.15):
         self.__shift(HUE, prob, var)
+        return self
 
     def shift_sat(self, prob=1.0, var=.15):
         self.__shift(SAT, prob, var)
+        return self
 
     def shift_val(self, prob=1.0, var=.15):
         self.__shift(VAL, prob, var)
+        return self
 
 
 def truncated_gauss_random(var):

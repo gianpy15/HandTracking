@@ -8,11 +8,14 @@ from neural_network.keras.utils.data_loader import load_dataset
 from neural_network.keras.utils.naming import *
 from neural_network.keras.utils.model_trainer import train_model
 import keras.regularizers as kr
+from neural_network.keras.utils.data_augmenter import Augmenter
+from hands_regularizer.regularizer import Regularizer
 
 tensorboard_path = tensorboard_path("heat_maps")
 
 train = True
 
+# Load data
 dataset = load_dataset(train_samples=2,
                        valid_samples=1,
                        random_dataset=True,
@@ -20,6 +23,23 @@ dataset = load_dataset(train_samples=2,
                        use_depth=False,
                        verbose=True)
 
+# Augment data
+print("Augmenting data...")
+augmenter = Augmenter()
+augmenter.shift_hue().shift_sat().shift_val()
+dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
+dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
+print("Augmentation end")
+
+# Regularize data
+print("Regularizing data...")
+regularizer = Regularizer()
+regularizer.normalize()
+dataset[TRAIN_IN] = regularizer.apply_on_batch(dataset[TRAIN_IN])
+dataset[VALID_IN] = regularizer.apply_on_batch(dataset[VALID_IN])
+print("Regularization end")
+
+# train the model
 model_generator = lambda: high_fov_model(channels=3,
                                          weight_decay=kr.l2(1e-5))
 

@@ -12,4 +12,5 @@ vids
 hands_bounding_dataset
 tbdata
 tmp
+datasets
 *.zip

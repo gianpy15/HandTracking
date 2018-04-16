@@ -23,6 +23,7 @@ resources/framedata/**/**
 resources/rawcam/
 resources/vids/
 resources/hands_bounding_dataset/
+resources/datasets
 
 !resources/framedata/*.sh
 !resources/framedata/contributors.txt
