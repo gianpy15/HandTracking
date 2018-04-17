@@ -35,25 +35,25 @@ def drawpnts(ptd, cal, canvas, fill=None):
 # testing with some fancy animations!
 if __name__ == '__main__':
     import tkinter as tk
-    import image_loader.hand_io as hio
-    import gui.pinpointer_canvas as ppc
+    import data.datasets.io.hand_io as hio
+    import library.gui.pinpointer_canvas as ppc
     import time
     import threading
-    import geometry.transforms as tr
-    from geometry.calibration import *
-    from gui.model_drawer import ModelDrawer
+    import library.geometry.transforms as tr
+    from library.geometry.calibration import *
+    from library.gui.model_drawer import ModelDrawer
     from timeit import timeit
     from concurrent.futures import ThreadPoolExecutor
-    from geometry.hand_prototype.build_prototype import extract_prototype
-    import geometry.label_depth_mesh as ldm
+    from library.geometry.hand_prototype.build_prototype import extract_prototype
+    import library.geometry.label_depth_mesh as ldm
     import numpy as np
-
-    REPETITIONS = 100
+    from data.naming import *
+    REPETITIONS = 1
     EXTRATHREADS = 0
     PRESLEEP = 1
     PROTOTYPE_FILE = "calibration_test.mat"
     INFILE = "calibration_apply_test.mat"
-
+    INFILE = resources_path("framedata", "handsBorgo2", "handsBorgo20224.mat")
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()

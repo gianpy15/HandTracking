@@ -3,9 +3,8 @@ import skvideo.io as skio
 import re
 import numpy as np
 from data.datasets.io.hand_io import *
-# import framedata_management.grey_to_redblue_codec as gtrbc
 
-VIDDIR = pm.resources_path("vids")
+VIDDIR = resources_path("vids")
 
 
 def z16_std_naming_frameno(filename):

@@ -1,5 +1,6 @@
 import re
-
+from library.geometry.formatting import *
+from library.geometry.calibration import *
 
 class ModelDrawer:
     """
@@ -256,11 +257,11 @@ class ModelDrawer:
 # testing with some fancy animations!
 if __name__ == '__main__':
     import tkinter as tk
-    import image_loader.hand_io as hio
-    import gui.pinpointer_canvas as ppc
+    import data.datasets.io.hand_io as hio
+    import library.gui.pinpointer_canvas as ppc
     import time
     import threading
-    import geometry as tr
+    import library.geometry.transforms as tr
     import numpy as np
 
     root = tk.Tk()

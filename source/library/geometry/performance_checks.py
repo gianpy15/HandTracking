@@ -2,6 +2,7 @@ import timeit
 
 from library.geometry.calibration import *
 from library.geometry.transforms import *
+from library.geometry.numerical.palm_threepts_inference import get_points_projection_to_lines_pair
 
 
 def inner_angle(v1, v2):
