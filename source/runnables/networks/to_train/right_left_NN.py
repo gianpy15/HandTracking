@@ -1,7 +1,12 @@
-from neural_network.keras.models.right_left_classifier import *
-from left_right_classifier_utils.left_right_classif_ds_management import *
+import sys
+import os
+
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
+
+from library.neural_network.keras.models.right_left_classifier import *
+from data.datasets.lr_classifier.left_right_classif_ds_management import *
 from keras.models import load_model
-import hands_regularizer.regularizer as reg
+import data.regularization.regularizer as reg
 import numpy as np
 import keras
 

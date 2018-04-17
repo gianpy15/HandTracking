@@ -1,18 +1,19 @@
 import os
 import sys
 
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
-from neural_network.keras.models.heatmap import *
-from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
+from library.neural_network.keras.models.heatmap import *
+from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from keras.engine import training as kt
 from skimage.transform import rescale
-from neural_network.keras.utils.data_loader import load_dataset
-from neural_network.keras.utils.naming import *
-from neural_network.keras.utils.model_trainer import train_model
+from data.datasets.data_loader import load_dataset
+from data.naming import *
+from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
-from neural_network.keras.utils.data_augmenter import Augmenter
-from hands_regularizer.regularizer import Regularizer
+from data.augmentation.data_augmenter import Augmenter
+from data.regularization.regularizer import Regularizer
+import numpy as np
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 

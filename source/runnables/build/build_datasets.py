@@ -1,12 +1,12 @@
 import sys
 import os
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
 
-from hands_bounding_utils.egohand_dataset_manager import create_dataset as egocreate
-from hands_bounding_utils.hands_locator_from_rgbd import create_dataset_shaded_heatmaps as cropscreate
-from hands_regularizer import regularizer
-from junctions_locator_utils.junction_locator_ds_management import create_dataset as jointscreate
-from data_manager.path_manager import *
+from data.datasets.crop.egohand_dataset_manager import create_dataset as egocreate
+from data.datasets.crop.hands_locator_from_rgbd import create_dataset_shaded_heatmaps as cropscreate
+from data.regularization import regularizer
+from data.datasets.jlocator.junction_locator_ds_management import create_dataset as jointscreate
+from data.naming import *
 
 
 # egohands by default have dimension 720x1280

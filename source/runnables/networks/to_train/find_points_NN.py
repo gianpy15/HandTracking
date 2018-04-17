@@ -1,6 +1,11 @@
-from neural_network.keras.models.joints import high_fov_model
-from neural_network.keras.utils.model_trainer import train_model
-from neural_network.keras.utils.data_loader import load_joint_dataset
+import sys
+import os
+
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
+
+from library.neural_network.keras.models.joints import high_fov_model
+from library.neural_network.keras.training.model_trainer import train_model
+from data.datasets.data_loader import load_joint_dataset
 import keras as K
 
 if __name__ == '__main__':

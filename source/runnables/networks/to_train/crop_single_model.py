@@ -1,15 +1,15 @@
 import sys
 import os
 
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
-from neural_network.keras.models.heatmap import high_fov_model
-from neural_network.keras.utils.data_loader import load_dataset
-from neural_network.keras.utils.naming import *
-from neural_network.keras.utils.model_trainer import train_model
+from library.neural_network.keras.models.heatmap import high_fov_model
+from data.datasets.data_loader import load_dataset
+from data.naming import *
+from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
-from neural_network.keras.utils.data_augmenter import Augmenter
-from hands_regularizer.regularizer import Regularizer
+from data.augmentation.data_augmenter import Augmenter
+from data.regularization.regularizer import Regularizer
 
 tensorboard_path = tensorboard_path("heat_maps")
 

@@ -1,18 +1,18 @@
 import os
 import sys
 
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "../..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
 from keras.models import Model
 from skimage.transform import rescale
 from skimage.transform import resize
-from neural_network.keras.utils.data_loader import load_dataset
-import hands_bounding_utils.utils as u
-from image_loader.image_loader import load
-from neural_network.keras.models.heatmap import *
-from neural_network.keras.utils.naming import *
-from source.general_utils.telegram_bot import *
-from image_manipulation.visualization_utils import get_image_with_mask
+from data.datasets.data_loader import load_dataset
+import data.datasets.crop.utils as u
+from data.datasets.io.image_loader import load
+from library.neural_network.keras.models.heatmap import *
+from data.naming import *
+from library.telegram.telegram_bot import *
+from library.utils.visualization_utils import get_image_with_mask
 
 dataset_path = resources_path("hands_bounding_dataset", "network_test")
 png_path = resources_path("gui", "hands.png")

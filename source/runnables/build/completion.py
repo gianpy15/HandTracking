@@ -1,8 +1,8 @@
 import sys
 import os
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
 
-from hand_data_management.utils import *
+from data.datasets.framedata_management.utils import *
 
 if __name__ == '__main__':
     videos = os.listdir(framebase)

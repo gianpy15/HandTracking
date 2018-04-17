@@ -1,15 +1,15 @@
 import sys                                                                                                                                                               
 import os
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
 
 from tkinter import *
-from gui.player_thread import PlayerThread
-from gui.model_drawer import *
-from hand_data_management.video_loader import load_labeled_video
-from hand_data_management.camera_data_conversion import *
+from library.gui.player_thread import PlayerThread
+from library.gui.model_drawer import *
+from data.datasets.framedata_management.video_loader import load_labeled_video
+from data.datasets.framedata_management.camera_data_conversion import *
 import threading
 import skvideo.io as skio
-from image_loader.hand_io import pm
+from data.naming import *
 from tkinter.simpledialog import askstring
 import os.path as path
 
@@ -51,12 +51,12 @@ if __name__ == '__main__':
             isdepth = False
             try:
                 if split[1] == ".rgb":
-                    videopath = path.join(pm.resources_path("rawcam"), split[0])
+                    videopath = path.join(resources_path("rawcam"), split[0])
                 elif split[1] == ".z16":
-                    videopath = path.join(pm.resources_path("rawcam"), split[0])
+                    videopath = path.join(resources_path("rawcam"), split[0])
                     isdepth = True
                 else:
-                    videopath = path.join(pm.resources_path("rawcam"), vidname)
+                    videopath = path.join(resources_path("rawcam"), vidname)
 
                 if isdepth:
                     frames = read_frame_data(**default_read_z16_args(framesdir=videopath))
@@ -67,7 +67,7 @@ if __name__ == '__main__':
             except FileNotFoundError:
                 isdepth = False
                 try:
-                    videopath = path.join(pm.resources_path("vids"), vidname)
+                    videopath = path.join(resources_path("vids"), vidname)
                     frames = skio.vread(videopath)
                     labels = None
                     indexes = None

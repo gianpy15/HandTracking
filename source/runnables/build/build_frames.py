@@ -1,10 +1,10 @@
 import sys
 import os
 import grp
-sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
+sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..")))
 
-import hand_data_management.utils as ut
-from image_loader.hand_io import pm
+import data.datasets.framedata_management.utils as ut
+from data.datasets.io.hand_io import pm
 import re
 
 def is_vid_condition(vname):
