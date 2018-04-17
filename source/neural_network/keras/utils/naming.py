@@ -10,6 +10,8 @@ VALID_TARGET2 = 'VALID_TARGET2'
 
 CROPPER = 'cropper'
 JLOCATOR = 'jlocator'
+RAND = 'RAND'
+SEQUENTIAL = 'SEQ'
 
 
 def cropper_h5_path(name):
