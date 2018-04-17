@@ -3,7 +3,6 @@ import os
 import keras as K
 import keras.callbacks as kc
 import keras.optimizers as ko
-from library.neural_network.keras.utils.naming import *
 
 from data.naming import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter

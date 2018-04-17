@@ -24,14 +24,13 @@ train = True
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 
+
+
 # Load data
-dataset = load_dataset(train_samples=4000,
-                       valid_samples=1000,
-                       random_dataset=True,
-                       shuffle=True,
+dataset = load_dataset(train_samples=3000,
+                       valid_samples=100,
                        use_depth=False,
                        verbose=True)
-
 # Augment data
 print("Augmenting data...")
 augmenter = Augmenter()
@@ -73,8 +72,9 @@ model1 = train_model(dataset=dataset,
                      tb_path="heat_maps/m1",
                      model_name="cropper_v6_m1",
                      model_type=CROPPER,
-                     batch_size=30,
+                     batch_size=20,
                      epochs=50,
+                     loss_white_prio=-1.0,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model1)
@@ -87,8 +87,9 @@ model2 = train_model(dataset=dataset,
                      tb_path="heat_maps/m2",
                      model_name="cropper_v6_m2",
                      model_type=CROPPER,
-                     batch_size=30,
+                     batch_size=20,
                      epochs=50,
+                     loss_white_prio=-1.25,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model2)
@@ -101,6 +102,6 @@ model3 = train_model(dataset=dataset,
                      tb_path="heat_maps/m3",
                      model_name="cropper_v6_m3",
                      model_type=CROPPER,
-                     batch_size=30,
+                     batch_size=20,
                      epochs=50,
-                     verbose=True)
+                     verbose=False)
