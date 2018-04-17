@@ -46,6 +46,9 @@ def contains_origin(polygon):
     # normalizing once for all times
     norm_poly = np.empty(shape=(len(polygon), 2), dtype=np.float32)
     for idx in prange(len(polygon)):
+        norm = np.linalg.norm(polygon[idx])
+        if norm == 0:
+            return True
         norm_poly[idx] = polygon[idx] / np.linalg.norm(polygon[idx])
 
     # computing angles WRT origin
