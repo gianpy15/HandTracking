@@ -1,6 +1,6 @@
-from hand_data_management.naming import *
-from image_loader.image_loader import save_image_from_matrix
-import image_loader.hand_io as hio
+from data.datasets.framedata_management.naming import *
+from data.datasets.io.image_loader import save_image_from_matrix
+import data.datasets.io.hand_io as hio
 import os
 
 

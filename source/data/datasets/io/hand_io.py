@@ -1,4 +1,4 @@
-from data_manager import path_manager as pm
+from data.naming import *
 import scipy.io as scio
 
 
@@ -17,7 +17,7 @@ def load(respath, format=(RGB_DATA, LABEL_DATA)):
     :return: a tuple of numpy arrays in the order specified by param format,
             fields are None if not present
     """
-    matdict = scio.loadmat(pm.resources_path(respath))
+    matdict = scio.loadmat(resources_path(respath))
 
     def retrieve_content(tag):
         if tag in matdict.keys():
@@ -48,5 +48,5 @@ def store(respath, data=None, labels=None, depth=None):
     if len(outdict.keys()) == 0:
         return
 
-    respath = pm.resources_path(respath)
+    respath = resources_path(respath)
     scio.savemat(respath, outdict)

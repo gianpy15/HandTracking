@@ -1,6 +1,6 @@
-import source.hands_bounding_utils.utils as u
+import data.datasets.crop.utils as u
 import os
-from data_manager.path_manager import resources_path
+from data.naming import resources_path
 import random
 import math
 import numpy as np

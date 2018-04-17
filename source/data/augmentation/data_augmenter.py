@@ -1,5 +1,5 @@
 import numpy as np
-from image_manipulation.hsv import rgb2hsv, hsv2rgb
+from library.utils.hsv import rgb2hsv, hsv2rgb
 
 HUE = 0
 SAT = 1
@@ -74,10 +74,10 @@ def component_shift(img: np.ndarray, shamt: np.float32, comp=HUE):
 
 
 if __name__ == '__main__':
-    from image_loader.image_loader import load
+    from data.datasets.io.image_loader import load
     from matplotlib import pyplot as mplt
-    from neural_network.keras.utils.data_loader import load_crop_dataset
-    from neural_network.keras.utils.naming import *
+    from data.datasets.data_loader import load_crop_dataset
+    from data.naming import *
     import timeit
 
     def showimg(img):

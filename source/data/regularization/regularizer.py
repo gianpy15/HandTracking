@@ -3,7 +3,7 @@ from scipy.misc import imresize
 from skimage.transform import rescale
 from skimage.transform import resize
 import scipy
-import hands_bounding_utils.utils as u
+import data.datasets.crop.utils as u
 
 PARAMS = 'PARAMS'
 NORMALIZE_AVG_VARIANCE = 'NORM_A_V'

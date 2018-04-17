@@ -1,15 +1,15 @@
 from tqdm import tqdm
 from skimage import io as sio
 from scipy.misc import imresize
-import hands_bounding_utils.utils as u
+import data.datasets.crop.utils as u
 import os
-from data_manager.path_manager import resources_path
+from data.naming import resources_path
 import random
 import math
 import numpy as np
 from scipy import io as scio
-import hands_regularizer.regularizer as reg
-from geometry import polygon_utils as poly
+import data.regularization.regularizer as reg
+from library.geometry import polygon_utils as poly
 
 
 # ######### SQUARES ############

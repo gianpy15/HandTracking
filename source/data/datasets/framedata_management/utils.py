@@ -1,27 +1,29 @@
 import skvideo.io as skio
 from tqdm import tqdm
 
-from hand_data_management.index import *
-from image_loader.hand_io import *
-from hand_data_management.frame_caching import *
-from hand_data_management.camera_data_conversion import read_frame_data, default_read_z16_args, default_read_rgb_args
+from data.datasets.framedata_management.index import *
+from data.datasets.io.hand_io import *
+from data.datasets.framedata_management.frame_caching import *
+from data.datasets.framedata_management.camera_data_conversion import read_frame_data, \
+    default_read_z16_args, \
+    default_read_rgb_args
 
 
 def build_frame_root_from_vid(videopath, post_process=lambda f: None):
-    videopath = pm.resources_path(videopath)
+    videopath = resources_path(videopath)
     videoname = os.path.splitext(os.path.split(videopath)[1])[0]
     framesdir = get_vid_dir_from_vidname(videoname)
     if os.path.exists(framesdir):
         return False
 
-    videodata = skio.vread(pm.resources_path(videopath))
+    videodata = skio.vread(resources_path(videopath))
     return build_frame_root_from_arrays(videoname=videoname,
                                         imgdata=videodata,
                                         post_process=post_process)
 
 
 def build_frame_root_from_rawcam(videopath, post_process=lambda f: None):
-    videopath = pm.resources_path(videopath)
+    videopath = resources_path(videopath)
     videoname = os.path.splitext(os.path.split(videopath)[1])[0]
     framesdir = get_vid_dir_from_vidname(videoname)
     if os.path.exists(framesdir):

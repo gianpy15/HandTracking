@@ -1,6 +1,6 @@
-import hand_data_management.camera_data_conversion as cdc
-import hand_data_management.video_loader as vl
-import hand_data_management.grey_to_redblue_codec as gtrbc
+import data.datasets.framedata_management.camera_data_conversion as cdc
+import data.datasets.framedata_management.video_loader as vl
+import data.datasets.framedata_management.grey_to_redblue_codec as gtrbc
 import numpy as np
 import tqdm
 import math
@@ -9,10 +9,10 @@ from scipy import io as scio
 import random
 from scipy.misc import imresize
 from scipy.signal import convolve
-import hands_bounding_utils.utils as u
-from neural_network.keras.utils.naming import *
+import data.datasets.crop.utils as u
+from data.naming import *
 from timeit import timeit as tm
-import hands_regularizer.regularizer as reg
+import data.regularization.regularizer as reg
 
 
 

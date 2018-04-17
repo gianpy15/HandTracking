@@ -1,12 +1,11 @@
 import random
-
-import hands_bounding_utils.utils as u
+import data.datasets.crop.utils as u
 import numpy as np
-import hand_data_management.video_loader as vl
-import hands_regularizer.regularizer as reg
+import data.datasets.framedata_management.video_loader as vl
+import data.regularization.regularizer as reg
 import tqdm
 import scipy.io as scio
-from neural_network.keras.utils.naming import *
+from data.naming import *
 
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):

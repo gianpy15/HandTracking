@@ -1,5 +1,5 @@
-from hand_data_management.naming import *
-from image_loader.hand_io import *
+from data.datasets.framedata_management.naming import *
+from data.datasets.io.hand_io import *
 import numpy as np
 import os
 

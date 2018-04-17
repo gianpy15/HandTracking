@@ -5,7 +5,7 @@ from os import path as os_p
 from skimage import io as sio
 import matplotlib.pyplot as mplt
 import math
-from data_manager.path_manager import resources_path
+from data.naming import resources_path
 
 
 # ################### READING FILES ###########################
@@ -343,8 +343,6 @@ def get_heatmap_from_coords(image, heigth_shrink_rate, width_shrink_rate, coords
     if maxvalue != 0:
         heatmap = heatmap / np.max(heatmap)
     return heatmap
-
-
 
 
 # ############# UTILS ##########################

@@ -1,8 +1,8 @@
-from hands_bounding_utils import hands_locator_from_rgbd as croputils
-import hands_regularizer.regularizer as regularizer
-from neural_network.keras.utils.naming import *
-from junctions_locator_utils import junction_locator_ds_management as jlocutils
-from hands_bounding_utils import egohand_dataset_manager as egoutils
+from data.datasets.crop import hands_locator_from_rgbd as croputils
+from data.regularization import regularizer
+from data.naming import *
+from data.datasets.jlocator import junction_locator_ds_management as jlocutils
+from data.datasets.crop import egohand_dataset_manager as egoutils
 import numpy as np
 import random as rnd
 import sys

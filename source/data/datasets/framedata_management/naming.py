@@ -1,8 +1,8 @@
-from data_manager import path_manager as pm
+from data.naming import *
 import os
 
 
-framebase = pm.resources_path("framedata")
+framebase = resources_path("framedata")
 contributors = os.path.join(framebase, "contributors.txt")
 TEMPDIR = "tmp"
 NUMDIGITS = 4
