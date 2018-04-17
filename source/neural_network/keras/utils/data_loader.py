@@ -280,7 +280,7 @@ def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path
 def __exclude_videos(dataset_info, videos):
     for vid in videos:
         if vid in dataset_info.keys():
-            dataset_info[vid] = None
+            del dataset_info[vid]
     return dataset_info
 
 
