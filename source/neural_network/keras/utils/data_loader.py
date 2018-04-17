@@ -1,6 +1,5 @@
 from hands_bounding_utils import hands_locator_from_rgbd as croputils
 import hands_regularizer.regularizer as regularizer
-from hands_regularizer.regularizer import Regularizer
 from neural_network.keras.utils.naming import *
 from junctions_locator_utils import junction_locator_ds_management as jlocutils
 from hands_bounding_utils import egohand_dataset_manager as egoutils
@@ -8,7 +7,30 @@ import numpy as np
 import random as rnd
 import sys
 
-INDEPENDENT_FRAME_VIDEOS = ['CARDS', 'CHESS', 'JENGA', 'PUZZLE']
+NO_DEPTH_VIDEOS = ['CARDS', 'CHESS', 'JENGA', 'PUZZLE']
+
+READ_FUNCTIONS = {
+    CROPPER: {
+        RAND: {
+            'DEPTH': croputils.read_dataset_random,
+            'NODEPTH': egoutils.read_dataset_random
+        },
+        SEQUENTIAL: {
+            'DEPTH': croputils.read_dataset,
+            'NODEPTH': egoutils.read_dataset
+        }
+    },
+    JLOCATOR: {
+        RAND: {
+            'DEPTH': None,
+            'NODEPTH': jlocutils.read_dataset_random
+        },
+        SEQUENTIAL: {
+            'DEPTH': None,
+            'NODEPTH': jlocutils.read_dataset
+        }
+    }
+}
 
 
 def load_dataset(train_samples, valid_samples, data_format=CROPPER,
@@ -58,7 +80,7 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                                                         path=dataset_path,
                                                         dataset_info=dataset_info)
 
-    dataset_info = __exclude_videos(dataset_info, INDEPENDENT_FRAME_VIDEOS)
+    dataset_info = __exclude_videos(dataset_info, NO_DEPTH_VIDEOS)
 
     train_samples -= len(independent_frame_data['TRAIN'][0])
     valid_samples -= len(independent_frame_data['VALID'][0])
@@ -220,16 +242,22 @@ def create_joint_dataset(videos_list, dataset_path):
 # #################################### LOADING UTILITIES ##########################################
 
 
+# def __load_samples(videos_list, path, load_depth=False, verbose=False, in_sequence=False, data_type=CROPPER):
+#     depthtoken = 'DEPTH' is load_depth else 'NODEPTH'
+#     mode = SEQUENTIAL if in_sequence else RAND
+#    dtype = data_type
+
+
 def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path, verbose=False, dataset_info=None):
     if dataset_info is not None:
-        totframes = available_frames(dataset_info, INDEPENDENT_FRAME_VIDEOS)
+        totframes = available_frames(dataset_info, NO_DEPTH_VIDEOS)
         if train_samples + valid_samples > totframes:
             resize = totframes / (train_samples + valid_samples)
             train_samples = int(resize * train_samples)
             valid_samples = int(resize * valid_samples)
     imgs, maps = random_read_f(path=path,
                                number=train_samples + valid_samples,
-                               vid_list=INDEPENDENT_FRAME_VIDEOS)
+                               vid_list=NO_DEPTH_VIDEOS)
     trd = np.zeros(shape=np.shape(imgs)[:-1], dtype=np.uint8)
     return {'TRAIN': (imgs[:train_samples], maps[:train_samples], trd[:train_samples]),
             'VALID': (imgs[train_samples:], maps[train_samples:], trd[train_samples:])}
