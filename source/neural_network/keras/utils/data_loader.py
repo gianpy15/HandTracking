@@ -12,7 +12,7 @@ INDEPENDENT_FRAME_VIDEOS = ['CARDS', 'CHESS', 'JENGA', 'PUZZLE']
 
 
 def load_dataset(train_samples, valid_samples, data_format=CROPPER,
-                 random_dataset=False,
+                 random_dataset=True,
                  shuffle=True,
                  use_depth=False,
                  build_videos=None,
@@ -199,6 +199,51 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
     return ret
 
 
+# ####################################### CREATION UTILITIES ############################################
+
+def create_crop_dataset(videos_list, dataset_path):
+    croputils.create_dataset_shaded_heatmaps(savepath=dataset_path, fillgaps=True,
+                                             resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4,
+                                             videos_list=videos_list)
+
+
+def create_joint_dataset(videos_list, dataset_path):
+    img_reg = regularizer.Regularizer()
+    img_reg.fixresize(200, 200)
+    hm_reg = regularizer.Regularizer()
+    hm_reg.fixresize(100, 100)
+    hm_reg.heatmaps_threshold(.5)
+    jlocutils.create_dataset(savepath=dataset_path, fillgaps=True, im_regularizer=img_reg,
+                             heat_regularizer=hm_reg, enlarge=.5, cross_radius=5,
+                             videos_list=videos_list)
+
+# #################################### LOADING UTILITIES ##########################################
+
+
+def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path, verbose=False, dataset_info=None):
+    if dataset_info is not None:
+        totframes = available_frames(dataset_info, INDEPENDENT_FRAME_VIDEOS)
+        if train_samples + valid_samples > totframes:
+            resize = totframes / (train_samples + valid_samples)
+            train_samples = int(resize * train_samples)
+            valid_samples = int(resize * valid_samples)
+    imgs, maps = random_read_f(path=path,
+                               number=train_samples + valid_samples,
+                               vid_list=INDEPENDENT_FRAME_VIDEOS)
+    trd = np.zeros(shape=np.shape(imgs)[:-1], dtype=np.uint8)
+    return {'TRAIN': (imgs[:train_samples], maps[:train_samples], trd[:train_samples]),
+            'VALID': (imgs[train_samples:], maps[train_samples:], trd[train_samples:])}
+
+# ########################### DATASET STATS #####################################
+
+
+def __exclude_videos(dataset_info, videos):
+    for vid in videos:
+        if vid in dataset_info.keys():
+            del dataset_info[vid]
+    return dataset_info
+
+
 def _get_available_dataset_stats(dataset_dir):
     framelist = os.listdir(dataset_dir)
     stats = {}
@@ -211,6 +256,18 @@ def _get_available_dataset_stats(dataset_dir):
         else:
             stats[name] = 1
     return stats
+
+
+def available_frames(dataset_info, vidlist):
+    count = 0
+    availablevids = dataset_info.keys()
+    for vid in vidlist:
+        if vid in availablevids:
+            count += dataset_info[vid]
+    return count
+
+
+# ################################### TRAIN-VALID SEPARATION ################################
 
 
 def choose_train_valid_videos(dataset_info, train_samples, valid_samples=-1):
@@ -236,56 +293,11 @@ def choose_train_valid_videos(dataset_info, train_samples, valid_samples=-1):
     return replenish_with_vids(train_samples), replenish_with_vids(valid_samples)
 
 
-def available_frames(dataset_info, vidlist):
-    count = 0
-    availablevids = dataset_info.keys()
-    for vid in vidlist:
-        if vid in availablevids:
-            count += dataset_info[vid]
-    return count
-
-
-def create_crop_dataset(videos_list, dataset_path):
-    croputils.create_dataset_shaded_heatmaps(savepath=dataset_path, fillgaps=True,
-                                             resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4,
-                                             videos_list=videos_list)
-
-
-def create_joint_dataset(videos_list, dataset_path):
-    img_reg = regularizer.Regularizer()
-    img_reg.fixresize(200, 200)
-    hm_reg = regularizer.Regularizer()
-    hm_reg.fixresize(100, 100)
-    hm_reg.heatmaps_threshold(.5)
-    jlocutils.create_dataset(savepath=dataset_path, fillgaps=True, im_regularizer=img_reg,
-                             heat_regularizer=hm_reg, enlarge=.5, cross_radius=5,
-                             videos_list=videos_list)
-
-
-def __load_indepdendent_videos(train_samples, valid_samples, random_read_f, path, verbose=False, dataset_info=None):
-    if dataset_info is not None:
-        totframes = available_frames(dataset_info, INDEPENDENT_FRAME_VIDEOS)
-        if train_samples + valid_samples > totframes:
-            resize = totframes / (train_samples + valid_samples)
-            train_samples = int(resize * train_samples)
-            valid_samples = int(resize * valid_samples)
-    imgs, maps = random_read_f(path=path,
-                               number=train_samples + valid_samples,
-                               vid_list=INDEPENDENT_FRAME_VIDEOS)
-    trd = np.zeros(shape=np.shape(imgs)[:-1], dtype=np.uint8)
-    return {'TRAIN': (imgs[:train_samples], maps[:train_samples], trd[:train_samples]),
-            'VALID': (imgs[train_samples:], maps[train_samples:], trd[train_samples:])}
-
-
-def __exclude_videos(dataset_info, videos):
-    for vid in videos:
-        if vid in dataset_info.keys():
-            del dataset_info[vid]
-    return dataset_info
+# ################################## WRAPPERS ###############################################
 
 
 def load_joint_dataset(train_samples, valid_samples,
-                       random_dataset=False,
+                       random_dataset=True,
                        shuffle=True,
                        build_videos=None,
                        dataset_path=None,
@@ -294,7 +306,7 @@ def load_joint_dataset(train_samples, valid_samples,
     return load_dataset(train_samples=train_samples,
                         valid_samples=valid_samples,
                         data_format=JLOCATOR,
-                        random_dataset=random_dataset,
+                        random_dataset=True, # BUGGED TODO FIX
                         shuffle=shuffle,
                         use_depth=False,
                         build_videos=build_videos,
@@ -304,7 +316,7 @@ def load_joint_dataset(train_samples, valid_samples,
 
 
 def load_crop_dataset(train_samples, valid_samples,
-                      random_dataset=False,
+                      random_dataset=True,
                       shuffle=True,
                       use_depth=False,
                       build_videos=None,
@@ -314,7 +326,7 @@ def load_crop_dataset(train_samples, valid_samples,
     return load_dataset(train_samples=train_samples,
                         valid_samples=valid_samples,
                         data_format=CROPPER,
-                        random_dataset=random_dataset,
+                        random_dataset=True, # BUGGED TODO FIX
                         shuffle=shuffle,
                         use_depth=use_depth,
                         build_videos=build_videos,
