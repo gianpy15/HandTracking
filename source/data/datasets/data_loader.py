@@ -1,5 +1,4 @@
 from data.datasets.crop import hands_locator_from_rgbd as croputils
-from data.regularization import regularizer
 from data.naming import *
 from data.datasets.jlocator import junction_locator_ds_management as jlocutils
 from data.datasets.crop import egohand_dataset_manager as egoutils
@@ -9,6 +8,7 @@ import re
 # List of video first names not including depth
 NO_DEPTH_VIDEOS = ['CARDS', 'CHESS', 'JENGA', 'PUZZLE']
 
+# Defines to organize components during reading
 OUTPUT_STD_FORMAT_LEN = 4
 IMG_ORD = 0
 TARG1_ORD = 1
@@ -51,9 +51,9 @@ def read_function(data_type, mode, depth):
         return unavailable_functionality
     read_f, swaps = READ_FUNCTIONS[data_type][mode][depth]
     return lambda path, vid_list, number: swap_elements(read_f(path=path,
-                                                                  vid_list=vid_list,
-                                                                  number=number),
-                                                           swaps=swaps)
+                                                               vid_list=vid_list,
+                                                               number=number),
+                                                        swaps=swaps)
 
 
 def swap_elements(elem, swaps):
@@ -66,9 +66,7 @@ def swap_elements(elem, swaps):
 def load_dataset(train_samples, valid_samples, data_format=CROPPER,
                  use_depth=False,
                  dataset_path=None,
-                 verbose=False,
                  exclude=None):
-
     if exclude is None:
         exclude = []
 
@@ -81,76 +79,72 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
     dataset_info = __exclude_videos(_get_available_dataset_stats(dataset_path), exclude)
 
     if len(dataset_info.keys()) == 0:
-        print("No eligible videos have been found.")
+        log("No eligible videos have been found.", level=ERRORS)
 
     train_vids, valid_vids, shared_vids = choose_train_valid_shared_videos(dataset_info, train_samples, valid_samples)
 
-    if verbose:
-        print("Loading training data...")
+    log("Loading training data...", level=COMMENTARY)
     train_reads = min(train_samples, available_frames(dataset_info, train_vids))
-    train_imgs, train_t1, train_t2 = __load_samples(videos_list=train_vids,
-                                                    path=dataset_path,
-                                                    number=train_reads,
-                                                    use_depth=use_depth,
-                                                    verbose=verbose,
-                                                    in_sequence=False,
-                                                    data_type=data_format)
-    if verbose:
-        print("Loading validation data...")
+    train_dataset = __load_samples(videos_list=train_vids,
+                                   path=dataset_path,
+                                   number=train_reads,
+                                   use_depth=use_depth,
+                                   in_sequence=False,
+                                   data_type=data_format)
+
+    log("Loading validation data...", level=COMMENTARY)
     valid_reads = min(valid_samples, available_frames(dataset_info, valid_vids))
-    valid_imgs, valid_t1, valid_t2 = __load_samples(videos_list=valid_vids,
-                                                    path=dataset_path,
-                                                    number=valid_reads,
-                                                    use_depth=use_depth,
-                                                    verbose=verbose,
-                                                    in_sequence=False,
-                                                    data_type=data_format)
+    valid_dataset = __load_samples(videos_list=valid_vids,
+                                   path=dataset_path,
+                                   number=valid_reads,
+                                   use_depth=use_depth,
+                                   in_sequence=False,
+                                   data_type=data_format)
 
     if len(shared_vids) > 0:
         train_missing = max(train_samples - train_reads, 0)
         valid_missing = max(valid_samples - valid_reads, 0)
         reading = min(train_missing + valid_missing, available_frames(dataset_info, shared_vids))
-        if verbose:
-            print("Loading shared data...")
-        shared_imgs, shared_t1, shared_t2 = __load_samples(videos_list=shared_vids,
-                                                           path=dataset_path,
-                                                           number=reading,
-                                                           use_depth=use_depth,
-                                                           verbose=verbose,
-                                                           in_sequence=False,
-                                                           data_type=data_format)
+        log("WARNING: Not enough eligible videos to balance train and validation separately", level=WARNINGS)
+        log("One video will be shared to grant balance", level=WARNINGS)
+        log("Loading shared data...", level=COMMENTARY)
+        shared_dataset = __load_samples(videos_list=shared_vids,
+                                        path=dataset_path,
+                                        number=reading,
+                                        use_depth=use_depth,
+                                        in_sequence=False,
+                                        data_type=data_format)
 
         if reading < train_missing + valid_missing:
-            train_missing = int(train_missing * reading / (train_missing + valid_missing))
+            train_missing = int(round(train_missing * reading / (train_missing + valid_missing)))
             valid_missing = reading - train_missing
         idx1 = train_missing
         idx2 = train_missing + valid_missing
-        if train_reads > 0:
-            train_imgs = np.concatenate((train_imgs, shared_imgs[0:idx1]))
-            train_t1 = np.concatenate((train_t1, shared_t1[0:idx1]))
-            train_t2 = np.concatenate((train_t2, shared_t2[0:idx1]))
-        else:
-            train_imgs = shared_imgs[0:idx1]
-            train_t1 = shared_t1[0:idx1]
-            train_t2 = shared_t2[0:idx1]
-        if valid_reads > 0:
-            valid_imgs = np.concatenate((valid_imgs, shared_imgs[idx1:idx2]))
-            valid_t1 = np.concatenate((valid_t1, shared_t1[idx1:idx2]))
-            valid_t2 = np.concatenate((valid_t2, shared_t2[idx1:idx2]))
-        else:
-            valid_imgs = shared_imgs[idx1:idx2]
-            valid_t1 = shared_t1[idx1:idx2]
-            valid_t2 = shared_t2[idx1:idx2]
+        # Attach available shared data to current datasets
+        for (ds, reads, start, stop) in ((train_dataset, train_reads, 0, idx1),
+                                         (valid_dataset, valid_reads, idx1, idx2)):
+            for comp in (GENERIC_IN, GENERIC_TARGET, GENERIC_TARGET2):
+                if reads > 0:
+                    ds[comp] = np.concatenate((ds[comp],
+                                               shared_dataset[comp][start:stop]))
+                else:
+                    ds[comp] = shared_dataset[comp][start:stop]
+        train_reads += train_missing
+        valid_reads += valid_missing
 
-    if verbose:
-        print("Dataset ready!")
+    if train_reads < train_samples or valid_reads < valid_samples:
+        log("WARNING: Unable to load the requested number of frames", level=IMPORTANT_WARNINGS)
+        log("Loaded train samples: %d / %d" % (train_reads, train_samples), level=IMPORTANT_WARNINGS)
+        log("Loaded valid samples: %d / %d" % (valid_reads, valid_samples), level=IMPORTANT_WARNINGS)
 
-    ret = {TRAIN_IN: train_imgs,
-           TRAIN_TARGET: train_t1,
-           TRAIN_TARGET2: train_t2,
-           VALID_IN: valid_imgs,
-           VALID_TARGET: valid_t1,
-           VALID_TARGET2: valid_t2}
+    log("Dataset ready!", level=COMMENTARY)
+
+    ret = {TRAIN_IN: train_dataset[GENERIC_IN],
+           TRAIN_TARGET: train_dataset[GENERIC_TARGET],
+           TRAIN_TARGET2: train_dataset[GENERIC_TARGET2],
+           VALID_IN: valid_dataset[GENERIC_IN],
+           VALID_TARGET: valid_dataset[GENERIC_TARGET],
+           VALID_TARGET2: valid_dataset[GENERIC_TARGET2]}
 
     for k in ret.keys():
         if not isinstance(ret[k], np.ndarray):
@@ -162,12 +156,11 @@ def load_dataset(train_samples, valid_samples, data_format=CROPPER,
 # #################################### LOADING UTILITIES ##########################################
 
 
-def __load_samples(videos_list, path, number=1, use_depth=False, verbose=False, in_sequence=False, data_type=CROPPER):
+def __load_samples(videos_list, path, number=1, use_depth=False, in_sequence=False, data_type=CROPPER):
     depthtoken = 'DEPTH' if use_depth else 'NODEPTH'
     mode = SEQUENTIAL if in_sequence else RAND
     dtype = data_type
-    if verbose:
-        print("Loading data from %s" % videos_list)
+    log("Loading data from %s" % videos_list, level=COMMENTARY)
     out = read_function(data_type=dtype,
                         mode=mode,
                         depth=depthtoken)(path=path,
@@ -189,7 +182,9 @@ def __load_samples(videos_list, path, number=1, use_depth=False, verbose=False, 
         if out[idx] is None:
             out[idx] = []
 
-    return out[0:DEPTH_ORD]
+    return {GENERIC_IN: out[IMG_ORD],
+            GENERIC_TARGET: out[TARG1_ORD],
+            GENERIC_TARGET2: out[TARG2_ORD]}
 
 
 # ########################### DATASET STATS #####################################
@@ -280,39 +275,36 @@ def choose_train_valid_shared_videos(dataset_info, train, valid):
 
 def load_joint_dataset(train_samples, valid_samples,
                        dataset_path=None,
-                       verbose=False,
                        exclude=None):
     return load_dataset(train_samples=train_samples,
                         valid_samples=valid_samples,
                         data_format=JLOCATOR,
                         use_depth=False,
                         dataset_path=dataset_path,
-                        verbose=verbose,
                         exclude=exclude)
 
 
 def load_crop_dataset(train_samples, valid_samples,
                       use_depth=False,
                       dataset_path=None,
-                      verbose=False,
                       exclude=None):
     return load_dataset(train_samples=train_samples,
                         valid_samples=valid_samples,
                         data_format=CROPPER,
                         use_depth=use_depth,
                         dataset_path=dataset_path,
-                        verbose=verbose,
                         exclude=exclude)
 
 
 if __name__ == '__main__':
-    ds = load_crop_dataset(train_samples=4,
-                           valid_samples=4,
-                           verbose=True,
-                           exclude=['CARDS'])
+    set_verbosity(DEBUG)
+    import sys
+    set_log_file(sys.stderr)
+    ds = load_crop_dataset(train_samples=11,
+                           valid_samples=10,
+                           exclude=['handsD'])
     import matplotlib.pyplot as pplot
+
     for img in np.concatenate((ds[TRAIN_IN], ds[VALID_IN])):
         pplot.imshow(img)
         pplot.show()
-
-

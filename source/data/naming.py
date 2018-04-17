@@ -1,6 +1,6 @@
 # THIS CLASS EXISTS BECAUSE PATH RESOLUTION IS A MESS
 import os
-
+import sys
 
 def __robust_respath_search():
     curpath = os.path.realpath(__file__)
@@ -41,6 +41,37 @@ CROPPER = 'cropper'
 JLOCATOR = 'jlocator'
 RAND = 'RAND'
 SEQUENTIAL = 'SEQ'
+
+
+# ############################# VERBOSITY LEVELS ############################À
+
+DEBUG = 0
+COMMENTARY = 1
+WARNINGS = 2
+IMPORTANT_WARNINGS = 3
+ERRORS = 4
+SILENT = 5
+
+
+VERBOSITY = WARNINGS
+LOGFILE = sys.stdout
+
+
+def set_verbosity(verb):
+    global VERBOSITY
+    VERBOSITY = verb
+
+
+def set_log_file(logfile):
+    global LOGFILE
+    LOGFILE = logfile
+
+
+def log(message, level=DEBUG):
+    if level >= VERBOSITY:
+        LOGFILE.write(message + '\n')
+        if level >= IMPORTANT_WARNINGS:
+            LOGFILE.flush()
 
 
 def resources_path(*paths):
