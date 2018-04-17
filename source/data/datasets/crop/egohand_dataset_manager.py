@@ -150,7 +150,7 @@ def default_train_annotations_path():
 
 
 def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shrink_rate=10, width_shrink_rate=10,
-                   im_reg=reg.Regularizer(), heat_reg=reg.Regularizer(), approximation_ratio=0.1):
+                   im_reg=reg.Regularizer(), heat_reg=reg.Regularizer()):
     """reads the videos specified as parameter and for each frame produces and saves a .mat file containing
     the frame, the corresponding heatmap indicating the position of the hand(s)
     THE PROCESS:
@@ -167,6 +167,8 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
     be exploited
     :param im_reg: object used to regularize the images
     :param heat_reg: object used to regularize the heatmaps"""
+    approximation_ratio = resize_rate / max(heigth_shrink_rate, width_shrink_rate)
+    # approximation_ratio = 0.1
     if savepath is None:
         basedir = resources_path(os.path.join("hands_bounding_dataset", "egohands_tranformed"))
     else:
@@ -352,6 +354,8 @@ def __load_egohand_video(dir, one_out_of=10):
     images.remove('polygons.mat')
     labels = __load_egohand_mat(os.path.join(dir, 'polygons.mat'), one_out_of)
     frames = []
+    images.sort()
+    print(images)
     n = len(images)
     for i in range(n):
         frames.append(sio.imread(os.path.join(dir, images[i])))
@@ -404,13 +408,13 @@ def __heatmap_uint8_to_float32(heat):
 
 
 if __name__ == '__main__':
-    create_dataset(['CARDS_COURTYARD_B_T'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
+    #create_dataset(['CARDS_OFFICE_B_S'], resize_rate=0.5, width_shrink_rate=4, heigth_shrink_rate=4)
     f, h = read_dataset_random()
-    print(np.shape(f), np.shape(h))
-    print(np.shape(f[0]), np.shape(h[0]))
+    #print(np.shape(f), np.shape(h))
+    #print(np.shape(f[0]), np.shape(h[0]))
     u.showimage(f[0])
     u.showimage(h[0])
     u.showimages(u.get_crops_from_heatmap(f[0], h[0],
                                                 width_shrink_rate=4,
                                                 height_shrink_rate=4,
-                                                accept_crop_minimum_dimension_pixels=200))
+                                                accept_crop_minimum_dimension_pixels=50))
