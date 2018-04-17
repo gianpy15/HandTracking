@@ -24,6 +24,8 @@ def train_model(model_generator, dataset,
         checkpoint_path = None
         h5model_path = None
     else:
+        if tb_path is not None:
+            os.path.join(tb_path, model_name)
         if model_type == CROPPER:
             checkpoint_path = cropper_ckp_path(model_name)
             h5model_path = cropper_h5_path(model_name)
