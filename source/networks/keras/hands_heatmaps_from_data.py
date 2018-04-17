@@ -16,8 +16,8 @@ tensorboard_path = tensorboard_path("heat_maps")
 train = True
 
 # Load data
-dataset = load_dataset(train_samples=2,
-                       valid_samples=1,
+dataset = load_dataset(train_samples=4000,
+                       valid_samples=1000,
                        random_dataset=True,
                        shuffle=True,
                        use_depth=False,
@@ -49,7 +49,7 @@ if train:
                         tb_path=tensorboard_path,
                         model_name='cropper_v6',
                         model_type=CROPPER,
-                        epochs=1,
-                        batch_size=1,
+                        epochs=50,
+                        batch_size=40,
                         patience=5,
                         verbose=True)
