@@ -355,7 +355,6 @@ def __load_egohand_video(dir, one_out_of=10):
     labels = __load_egohand_mat(os.path.join(dir, 'polygons.mat'), one_out_of)
     frames = []
     images.sort()
-    print(images)
     n = len(images)
     for i in range(n):
         frames.append(sio.imread(os.path.join(dir, images[i])))
