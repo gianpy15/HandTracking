@@ -72,8 +72,10 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     path = os.path.join(basedir, vid + "_" + str(i))
                     __persist_frame(path, cut, result)
                     if data_augment:
-                        path = os.path.join(basedir, vid + "_t" + str(i))
-                        __persist_frame(path, cut.transpose(), 1 - result)
+                        path = os.path.join(basedir, vid + "_t_" + str(i))
+                        transp = cut.squeeze().transpose()
+                        transp = transp.reshape([transp.shape[0], transp.shape[1], 1])
+                        __persist_frame(path, transp, 1 - result)
                 except ValueError as e:
                     print("Error " + str(e) + " on vid " + vid + str(i))
 
@@ -236,5 +238,4 @@ if __name__ == '__main__':
     c, b = read_dataset_random()
     print(b[0])
     u.showimage(c[0].squeeze())
-    u.showimage(c[0].squeeze().transpose())
 
