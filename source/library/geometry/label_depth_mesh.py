@@ -1,4 +1,4 @@
-from geometry.calibration import ImagePoint
+from library.geometry.calibration import ImagePoint
 import numpy as np
 
 

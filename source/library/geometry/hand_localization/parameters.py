@@ -1,4 +1,4 @@
-from geometry.formatting import *
+from library.geometry.formatting import *
 
 
 # Definitions for the configuration of the finger-building process:

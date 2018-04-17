@@ -1,4 +1,4 @@
-from neural_network.tensorflow_interface.abstract_layer import AbsLayer
+from library.neural_network.tensorflow_interface.abstract_layer import AbsLayer
 import tensorflow as tf
 
 

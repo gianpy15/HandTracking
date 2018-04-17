@@ -1,10 +1,5 @@
 import keras.models as km
 import keras.layers as kl
-import keras.callbacks as kc
-import keras.optimizers as ko
-import keras.regularizers as kr
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 def simple_model(channels=3, weight_decay=None):

@@ -1,13 +1,13 @@
+import os
+import time
+from random import randint
 from tkinter import *
 
-import os
-
-from gui.model_drawer import *
+import numpy as np
 from PIL import ImageTk, Image
-from random import randint
-import time
-from hand_data_management.naming import framebase
-from hand_data_management.video_loader import linear_fill
+
+from data.datasets.framedata_management.naming import framebase
+from data.datasets.framedata_management.video_loader import linear_fill
 
 
 class PlayerThread:

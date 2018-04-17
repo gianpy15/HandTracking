@@ -1,5 +1,5 @@
 from scipy.optimize import minimize
-from geometry.transforms import *
+from library.geometry.transforms import *
 from numpy.linalg import norm
 
 # CONSTRAINED FINGER INFERENCE

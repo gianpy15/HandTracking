@@ -1,7 +1,7 @@
-from geometry.formatting import *
+from library.geometry.formatting import *
 import tensorflow as tf
-from geometry.calibration import *
-from geometry.hand_prototype.default_model_loading import build_default_hand_model
+from library.geometry.calibration import *
+from library.geometry.hand_prototype.default_model_loading import build_default_hand_model
 
 
 def code_name(finger, joint=0, append=''):

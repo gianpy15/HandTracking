@@ -1,4 +1,4 @@
-from hand_data_management.utils import *
+from data.datasets.framedata_management.utils import *
 
 SERVER_SYMLINK = "/framedata"
 

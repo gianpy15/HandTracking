@@ -1,9 +1,9 @@
-from geometry.hand_localization.fingers import *
-from geometry.hand_localization.parameters import *
-from geometry.calibration import *
-from geometry.hand_localization.depth_suggestion import extract_model_info, depth_info_compare
-from geometry.numerical.palm_threepts_inference import get_points_projection_to_lines_pair
-from geometry.transforms import get_rotation_matrix, get_mapping_rot, normalize, get_rotation_angle_around_axis
+from library.geometry.hand_localization.fingers import *
+from library.geometry.hand_localization.parameters import *
+from library.geometry.calibration import *
+from library.geometry.hand_localization.depth_suggestion import extract_model_info, depth_info_compare
+from library.geometry.numerical.palm_threepts_inference import get_points_projection_to_lines_pair
+from library.geometry.transforms import get_rotation_matrix, get_mapping_rot, normalize, get_rotation_angle_around_axis
 from numpy.linalg import norm
 
 

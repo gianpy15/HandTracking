@@ -1,7 +1,7 @@
-from geometry.hand_localization.parameters import *
-from geometry.numerical.finger_cone_sectors import *
-from geometry.transforms import get_rotation_matrix, get_mapping_rot, get_rotation_angle_around_axis
-from geometry.hand_localization.depth_suggestion import depth_info_compare
+from library.geometry.hand_localization.parameters import *
+from library.geometry.numerical.finger_cone_sectors import *
+from library.geometry.transforms import get_rotation_matrix, get_mapping_rot, get_rotation_angle_around_axis
+from library.geometry.hand_localization.depth_suggestion import depth_info_compare
 
 
 # ################################## LOW LEVEL UTILS ############################

@@ -1,8 +1,8 @@
-import numpy as np
 import keras.backend as K
-from hands_bounding_utils.hands_locator_from_rgbd import *
-from neural_network.keras.models.heatmap import *
-import hands_bounding_utils.utils as u
+from data.datasets.crop.hands_locator_from_rgbd import *
+from library.neural_network.keras.models.heatmap import *
+import data.datasets.crop.utils as u
+from data.naming import *
 
 
 def heatmap_loss_2(y_true, y_pred, white_weight=1, black_weight=0.1):

@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..")))
 
-from hand_data_management.naming import contributors
+from data.datasets.framedata_management.naming import contributors
 
 rank_width = 16
 

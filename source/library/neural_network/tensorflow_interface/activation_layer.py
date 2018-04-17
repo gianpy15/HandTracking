@@ -1,5 +1,5 @@
 import tensorflow as tf
-from neural_network.tensorflow_interface.abstract_layer import AbsLayer
+from library.neural_network.tensorflow_interface.abstract_layer import AbsLayer
 
 
 class ActivationLayer(AbsLayer):

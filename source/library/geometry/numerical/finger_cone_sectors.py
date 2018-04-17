@@ -1,7 +1,7 @@
 from scipy.optimize import minimize
-from geometry.transforms import *
+from library.geometry.transforms import *
 from numpy.linalg import norm
-from geometry.numerical import finger_cone_sectors_red as red
+from library.geometry.numerical import finger_cone_sectors_red as red
 
 # CONSTRAINED FINGER INFERENCE
 

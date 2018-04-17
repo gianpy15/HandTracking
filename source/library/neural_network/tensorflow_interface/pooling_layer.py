@@ -1,4 +1,4 @@
-from neural_network.tensorflow_interface.activation_layer import ActivationLayer
+from library.neural_network.tensorflow_interface.activation_layer import ActivationLayer
 import tensorflow as tf
 
 

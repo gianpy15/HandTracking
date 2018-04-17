@@ -1,9 +1,9 @@
 import tkinter as tk
-import data_manager.path_manager as pm
-import gui.pinpointer_canvas as pc
-import gui.hand_helper_canvas as hh
+from data.naming import *
+import library.gui.pinpointer_canvas as pc
+import library.gui.hand_helper_canvas as hh
 import scipy.io as scio
-import image_loader.hand_io as hio
+import data.datasets.io.hand_io as hio
 
 helper_ref = None
 helptext = "Click on the image on the left to set the position of the joints of the hand.\nLeft click for visible " \
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # load the helper data into a dictionary
     # helper_hand['data'] is the image
     # helper_hand['labels'] are the points
-    helper_hand = scio.loadmat(pm.resources_path("gui/sample_hand.mat"))
+    helper_hand = scio.loadmat(resources_path("gui/sample_hand.mat"))
 
     # Setup the helper
     helper = hh.HelperCanvas(side_frame)

@@ -1,12 +1,16 @@
-from neural_network.keras.models.heatmap import *
-from neural_network.keras.callbacks.image_writer import ImageWriter
-from neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
-from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
-from neural_network.keras.utils.naming import *
-import keras as K
-from general_utils.telegram_bot import notify_training_end, notify_training_starting, send_image_from_array, send_message
-from image_manipulation.visualization_utils import get_image_with_mask
 import os
+
+import keras as K
+import keras.callbacks as kc
+import keras.optimizers as ko
+from library.neural_network.keras.utils.naming import *
+
+from data.naming import *
+from library.neural_network.keras.callbacks.image_writer import ImageWriter
+from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
+from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
+from library.telegram.telegram_bot import *
+from library.utils.visualization_utils import get_image_with_mask
 
 DEFAULT_CHECKPOINT_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
 DEFAULT_H5MODEL_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
@@ -91,10 +95,13 @@ def train_model(model_generator, dataset,
     if verbose:
         print('Fitting model...')
         # Notification for telegram
-        notify_training_starting(model_name=model_type + "_" + model_name,
-                                 training_samples=len(dataset[TRAIN_IN]),
-                                 validation_samples=len(dataset[VALID_IN]),
-                                 tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        try:
+            notify_training_starting(model_name=model_type + "_" + model_name,
+                                     training_samples=len(dataset[TRAIN_IN]),
+                                     validation_samples=len(dataset[VALID_IN]),
+                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        except Exception:
+            pass
 
     history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
                         batch_size=batch_size, callbacks=callbacks, verbose=1,
@@ -105,23 +112,30 @@ def train_model(model_generator, dataset,
         valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
-        notify_training_end(model_name=model_type + "_" + model_name,
-                            final_loss=loss,
-                            final_validation_loss=valid_loss,
-                            final_accuracy=accuracy,
-                            final_validation_accuracy=valid_accuracy,
-                            tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        try:
+            notify_training_end(model_name=model_type + "_" + model_name,
+                                final_loss=loss,
+                                final_validation_loss=valid_loss,
+                                final_accuracy=accuracy,
+                                final_validation_accuracy=valid_accuracy,
+                                tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        except Exception:
+            pass
+
         if model_name == CROPPER:
-            send_message("Training sample...")
-            img = dataset[TRAIN_IN][0]
-            map_ = model.predict(img)
-            send_image_from_array(get_image_with_mask(img, map_))
-            send_image_from_array(get_image_with_mask(img, map_))
-            send_message("Validation sample...")
-            img = dataset[VALID_IN][0]
-            map_ = model.predict(img)
-            send_image_from_array(get_image_with_mask(img, map_))
-            send_image_from_array(get_image_with_mask(img, map_))
+            try:
+                send_message("Training sample...")
+                img = dataset[TRAIN_IN][0]
+                map_ = model.predict(img)
+                send_image_from_array(get_image_with_mask(img, map_))
+                send_image_from_array(get_image_with_mask(img, map_))
+                send_message("Validation sample...")
+                img = dataset[VALID_IN][0]
+                map_ = model.predict(img)
+                send_image_from_array(get_image_with_mask(img, map_))
+                send_image_from_array(get_image_with_mask(img, map_))
+            except Exception:
+                pass
 
     if h5model_path is not None:
         if verbose:

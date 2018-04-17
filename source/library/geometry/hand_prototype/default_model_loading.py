@@ -1,6 +1,6 @@
-from geometry.calibration import *
-from image_loader.hand_io import *
-from geometry.formatting import *
+from library.geometry.calibration import *
+from data.datasets.io.hand_io import *
+from library.geometry.formatting import *
 
 
 def build_default_hand_model():

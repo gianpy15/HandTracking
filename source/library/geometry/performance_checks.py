@@ -1,8 +1,7 @@
-import numpy as np
-from geometry.transforms import *
-from geometry.numerical import *
-from geometry.calibration import *
 import timeit
+
+from library.geometry.calibration import *
+from library.geometry.transforms import *
 
 
 def inner_angle(v1, v2):

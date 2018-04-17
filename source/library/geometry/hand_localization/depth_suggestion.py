@@ -1,6 +1,6 @@
-from geometry.formatting import *
-from geometry.calibration import *
-from geometry.transforms import normalize
+from library.geometry.formatting import *
+from library.geometry.calibration import *
+from library.geometry.transforms import normalize
 from numpy.linalg import norm
 
 

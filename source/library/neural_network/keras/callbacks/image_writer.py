@@ -1,5 +1,5 @@
 from keras.callbacks import Callback
-from tensorboard_utils.tensorboard_manager import TensorBoardManager as TBManager
+from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 import tensorflow as tf
 import numpy as np
 

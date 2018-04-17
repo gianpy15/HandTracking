@@ -2,7 +2,7 @@ import shutil as sh
 import os
 from tensorflow.contrib.tensorboard.plugins import projector
 import tensorflow as tf
-from data_manager import path_manager as pm
+from data.naming import *
 
 
 class TensorBoardManager:
@@ -53,7 +53,7 @@ class TensorBoardManager:
         embedding = self.__proj_config.embeddings.add()
         embedding.tensor_name = emb_var.name
         if sprite is not None:
-            embedding.sprite.image_path = pm.resources_path(sprite)
+            embedding.sprite.image_path = resources_path(sprite)
             embedding.sprite.single_image_dim.extend(sprite_window)
 
         self.__emb_list__.append((emb_var, tf.variables_initializer([emb_var])))
@@ -124,6 +124,6 @@ class TensorBoardManager:
         return TensorBoardManager.__def_save_path
 
     __projector_ckpt_name = 'emb_ckpt'
-    __def_save_path = pm.resources_path('tbdata')
+    __def_save_path = resources_path('tbdata')
     __save_path = __def_save_path
     __writer = tf.summary.FileWriter(__save_path)

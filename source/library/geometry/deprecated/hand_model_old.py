@@ -1,4 +1,4 @@
-from geometry.formatting import *
+from library.geometry.formatting import *
 import tensorflow as tf
 
 

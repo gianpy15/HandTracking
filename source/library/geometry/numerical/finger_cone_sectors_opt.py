@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import norm
-from geometry.transforms import normalize
+from library.geometry.transforms import normalize
 from scipy.optimize import brentq
 
 

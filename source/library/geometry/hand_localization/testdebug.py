@@ -1,6 +1,6 @@
-from geometry.formatting import *
+from library.geometry.formatting import *
 from numpy.linalg import norm
-from geometry.hand_localization.hand_localization_num import compute_hand_world_joints
+from library.geometry.hand_localization.hand_localization_num import compute_hand_world_joints
 
 
 def end_check(model1, model2):
