@@ -15,10 +15,12 @@ def get_image_with_mask(image, mask, k=0.15):
     """
     if len(np.shape(image)) == 4:
         images = []
+
         for i in range(len(image)):
+            tmp_mask = mask[i]
             if np.shape(image[i])[:-1] != np.shape(mask[i])[:-1]:
-                mask = resize(mask[i], output_shape=np.shape(image[i])[:-1])
-            images.append((k + ((1 - k) * mask[i])) * image[i])
+                tmp_mask = resize(mask[i], output_shape=np.shape(image[i])[:-1])
+            images.append((k + ((1 - k) * tmp_mask)) * image[i])
         return np.array(images)
 
     if np.shape(image)[:-1] != np.shape(mask)[:-1]:

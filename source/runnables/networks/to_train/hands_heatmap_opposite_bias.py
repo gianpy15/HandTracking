@@ -70,7 +70,6 @@ def attach_heat_map(inputs, fitted_model_positive_path, fitted_model_negative_pa
     outputs_positive = np.array(rescaled_positive)
     outputs_negative = np.array(rescaled_negative)
     inputs_ = np.concatenate((_inputs, outputs_positive, outputs_negative), axis=-1)
-    print(np.shape(inputs_))
     return inputs_
 
 

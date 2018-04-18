@@ -34,7 +34,7 @@ class ImageWriter(Callback):
                                                 shape=np.shape(self.target_images),
                                                 name=self.name + "_T")
             self.mask_tensor = tf.placeholder(dtype=tf.float32,
-                                              shape=np.shape(self.target_images),
+                                              shape=np.shape(self.input_images_3d),
                                               name=self.name + "_Mask")
             self.tb_manager.add_images(self.image_tensor, name=self.name + "_X", max_out=self.max_imgs)
             self.tb_manager.add_images(self.output_tensor, name=self.name + "_Y", max_out=self.max_imgs)
