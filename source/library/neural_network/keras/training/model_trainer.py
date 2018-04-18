@@ -12,10 +12,10 @@ from library.telegram.telegram_bot import *
 from library.utils.visualization_utils import get_image_with_mask
 
 
-def train_model(model_generator, dataset,
+def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                 tb_path='', model_name=None, model_type=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
-                additional_callbacks=None, loss_white_prio=-1.5, verbose=False):
+                additional_callbacks=None, verbose=False):
     K.backend.clear_session()
 
     model = model_generator()
@@ -86,7 +86,7 @@ def train_model(model_generator, dataset,
         print("Compiling model...")
 
     model.compile(optimizer=optimizer,
-                  loss=lambda hgr, hpr: prop_heatmap_loss(hgr, hpr, white_priority=loss_white_prio),
+                  loss=loss,
                   metrics=['accuracy'])
     if verbose:
         print('Fitting model...')
