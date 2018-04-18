@@ -14,7 +14,7 @@ def my_loss(heat_ground, heat_pred):
     return prop_heatmap_loss(heat_ground, heat_pred, white_priority=-1.5)
 
 
-def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0.0):
+def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0.0, diff_mapper=K.square):
     """
     Loss function for heatmaps to give priority weight to pixels that are
     far from the mean of the ground truth. This mean can be altered in order
@@ -45,7 +45,7 @@ def prop_heatmap_loss(heat_ground, heat_pred, white_priority=0.0):
     weight_map = K.square(heat_ground-shifted_mean)/norm_factor
 
     # now apply the weights with component-by-component product
-    weighted_loss = K.mean(K.square(heat_pred-heat_ground)*weight_map)
+    weighted_loss = K.mean(diff_mapper(heat_pred-heat_ground)*weight_map)
 
     return weighted_loss
 
@@ -87,6 +87,20 @@ def prop_heatmap_loss_fast(heat_ground, heat_pred, mean_par, norm_factor):
     weighted_loss = K.mean(K.square(heat_pred - heat_ground) * weight_map)
 
     return weighted_loss
+
+
+def prop_heatmap_penalized_fp_loss(heat_ground, heat_pred, white_priority=0.0, delta=0.0):
+    diff_mapper = lambda x: delta/2 * K.pow(x, 3) + (1 + delta/2) * K.square(x)
+    return prop_heatmap_loss(heat_ground, heat_pred,
+                             white_priority=white_priority,
+                             diff_mapper=diff_mapper)
+
+
+def prop_heatmap_penalized_fn_loss(heat_ground, heat_pred, white_priority=0.0, delta=0.0):
+    diff_mapper = lambda x: -delta/2 * K.pow(x, 3) + (1 + delta/2) * K.square(x)
+    return prop_heatmap_loss(heat_ground, heat_pred,
+                             white_priority=white_priority,
+                             diff_mapper=diff_mapper)
 
 
 if __name__ == '__main__':
