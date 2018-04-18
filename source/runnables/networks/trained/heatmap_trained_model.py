@@ -20,7 +20,7 @@ model1_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper
 model2_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m2.h5')
 model3_save_path = models_path('hand_cropper', 'incremental_predictor', 'cropper_v5_m3.h5')
 
-read_from_png = True
+read_from_png = False
 
 height = 4*50
 width = 4*50
@@ -29,8 +29,7 @@ if read_from_png:
 else:
     images = load_dataset(train_samples=2,
                           valid_samples=0,
-                          dataset_path=dataset_path,
-                          random_dataset=True)[TRAIN_IN]
+                          dataset_path=dataset_path)[TRAIN_IN]
 
 images_ = (images - np.mean(images))/np.std(images)
 # images_ = images
@@ -59,16 +58,18 @@ images_ = attach_heat_map(images_, model2)
 model = km.load_model(model3_save_path)
 
 # Testing the model getting some outputs
-net_out = model.predict(images_)[0]
+net_out = model.predict(images_)
 net_out = net_out.clip(max=1)
-first_out = resize(net_out, output_shape=(height, width, 1))
-total_sum = np.sum(first_out[0])
-
+images = (images - np.mean(images))/np.var(images)
 k = 0.15
-u.showimage(get_image_with_mask(images[0], net_out))
-u.showimages(u.get_crops_from_heatmap(images[0], np.squeeze(net_out), 4, 4, enlarge=0.5,
-                                      accept_crop_minimum_dimension_pixels=100))
+imgs = get_image_with_mask(images, net_out)
+for idx in range(len(images)):
+    min = np.min(imgs[idx])
+    max = np.max(imgs[idx])
+    u.showimage((imgs[idx] - min)/(max-min))
+    u.showimages(u.get_crops_from_heatmap(images[idx], np.squeeze(net_out[idx]), 4, 4, enlarge=0.5,
+                                          accept_crop_minimum_dimension_pixels=100))
 
-send_to_telegram = True
+send_to_telegram = False
 if send_to_telegram:
     send_image_from_array(get_image_with_mask(images[0], net_out))

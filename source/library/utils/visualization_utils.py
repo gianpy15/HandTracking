@@ -20,9 +20,9 @@ def get_image_with_mask(image, mask, k=0.15):
             tmp_mask = mask[i]
             if np.shape(image[i])[:-1] != np.shape(mask[i])[:-1]:
                 tmp_mask = resize(mask[i], output_shape=np.shape(image[i])[:-1])
-            images.append((k + (1 - k) * tmp_mask) * image[i])
+            images.append((k + (1 - k) * tmp_mask) * (image[i] - np.min(image[i])))
         return np.array(images)
 
     if np.shape(image)[:-1] != np.shape(mask)[:-1]:
         mask = resize(mask, output_shape=np.shape(image)[:-1])
-    return (k + ((1 - k) * mask)) * image
+    return (k + ((1 - k) * mask)) * (image - np.min(image))
