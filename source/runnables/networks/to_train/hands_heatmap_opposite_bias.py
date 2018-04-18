@@ -77,7 +77,7 @@ def attach_heat_map(inputs, fitted_model_positive_path, fitted_model_negative_pa
 # Model with high penalty for P(x = 1 | not hand)
 model1 = train_model(dataset=dataset,
                      model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay),
-                     loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, loss_delta),
+                     loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, 0.8),
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/opposite_bias_v1_m1",
@@ -90,7 +90,7 @@ model1 = train_model(dataset=dataset,
 # Model with high penalty for P(x = 0 | hand)
 model2 = train_model(dataset=dataset,
                      model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay),
-                     loss=lambda x, y: prop_heatmap_penalized_fn_loss(x, y, -1.85, loss_delta),
+                     loss=lambda x, y: prop_heatmap_penalized_fn_loss(x, y, -1.85, 2),
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/opposite_bias_v1_m2",
