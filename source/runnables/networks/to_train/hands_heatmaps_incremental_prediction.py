@@ -4,6 +4,7 @@ import sys
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
 from library.neural_network.keras.models.heatmap import *
+from library.neural_network.keras.custom_layers.heatmap_loss import *
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from keras.engine import training as kt
 from skimage.transform import rescale
@@ -16,6 +17,7 @@ from data.regularization.regularizer import Regularizer
 import numpy as np
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
+m1_path = croppers_path("cropper_v6_m1.h5")
 
 TBManager.set_path("heat_maps")
 train = True
@@ -64,17 +66,18 @@ dataset[TRAIN_IN] = np.concatenate((dataset[TRAIN_IN], np.zeros(shape=np.shape(d
                                    axis=-1)
 dataset[VALID_IN] = np.concatenate((dataset[VALID_IN], np.zeros(shape=np.shape(dataset[VALID_IN])[0:-1] + (1,))),
                                    axis=-1)
-model1 = train_model(dataset=dataset,
-                     model_generator=lambda: incremental_predictor_1(weight_decay=weight_decay),
-                     learning_rate=learning_rate,
-                     patience=5,
-                     tb_path="heat_maps/m1",
-                     model_name="cropper_v6_m1",
-                     model_type=CROPPER,
-                     batch_size=20,
-                     epochs=50,
-                     loss_white_prio=-2.25,
-                     verbose=True)
+# model1 = train_model(dataset=dataset,
+#                      model_generator=lambda: incremental_predictor_1(weight_decay=weight_decay),
+#                      learning_rate=learning_rate,
+#                      patience=5,
+#                      tb_path="heat_maps/m1",
+#                      model_name="cropper_v6_m1",
+#                      model_type=CROPPER,
+#                      batch_size=20,
+#                      epochs=50,
+#                      loss_white_prio=-1.85,
+#                      verbose=True)
+model1 = km.load_model(m1_path, custom_objects={'<lambda>': my_loss})
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model1)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], model1)
@@ -88,7 +91,7 @@ model2 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=20,
                      epochs=50,
-                     loss_white_prio=-1.8,
+                     loss_white_prio=-1.5,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model2)

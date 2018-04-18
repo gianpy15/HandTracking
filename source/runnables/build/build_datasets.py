@@ -37,5 +37,5 @@ def create_joint_dataset():
 
 
 if __name__ == '__main__':
-    # build_default_egohands()
-    build_default_crops()
+    build_default_egohands()
+    # build_default_crops()
