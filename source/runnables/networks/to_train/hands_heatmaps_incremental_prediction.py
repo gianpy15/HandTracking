@@ -74,7 +74,7 @@ model1 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=20,
                      epochs=50,
-                     loss_white_prio=-1.0,
+                     loss_white_prio=-2.25,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model1)
@@ -89,7 +89,7 @@ model2 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=20,
                      epochs=50,
-                     loss_white_prio=-1.25,
+                     loss_white_prio=-1.8,
                      verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model2)
