@@ -66,18 +66,17 @@ dataset[TRAIN_IN] = np.concatenate((dataset[TRAIN_IN], np.zeros(shape=np.shape(d
                                    axis=-1)
 dataset[VALID_IN] = np.concatenate((dataset[VALID_IN], np.zeros(shape=np.shape(dataset[VALID_IN])[0:-1] + (1,))),
                                    axis=-1)
-# model1 = train_model(dataset=dataset,
-#                      model_generator=lambda: incremental_predictor_1(weight_decay=weight_decay),
-#                      learning_rate=learning_rate,
-#                      patience=5,
-#                      tb_path="heat_maps/m1",
-#                      model_name="cropper_v6_m1",
-#                      model_type=CROPPER,
-#                      batch_size=20,
-#                      epochs=50,
-#                      loss_white_prio=-1.85,
-#                      verbose=True)
-model1 = km.load_model(m1_path, custom_objects={'<lambda>': my_loss})
+model1 = train_model(dataset=dataset,
+                     model_generator=lambda: incremental_predictor_1(weight_decay=weight_decay),
+                     learning_rate=learning_rate,
+                     patience=5,
+                     tb_path="heat_maps/m1",
+                     model_name="cropper_v6_m1",
+                     model_type=CROPPER,
+                     batch_size=20,
+                     epochs=50,
+                     loss_white_prio=-1.85,
+                     verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model1)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], model1)
