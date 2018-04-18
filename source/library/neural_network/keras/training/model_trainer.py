@@ -11,9 +11,6 @@ from library.neural_network.tensorboard_interface.tensorboard_manager import Ten
 from library.telegram.telegram_bot import *
 from library.utils.visualization_utils import get_image_with_mask
 
-DEFAULT_CHECKPOINT_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.ckp'))
-DEFAULT_H5MODEL_PATH = resources_path(os.path.join('models/hand_cropper/cropper_v5.h5'))
-
 
 def train_model(model_generator, dataset,
                 tb_path='', model_name=None, model_type=None,
@@ -99,8 +96,8 @@ def train_model(model_generator, dataset,
                                      training_samples=len(dataset[TRAIN_IN]),
                                      validation_samples=len(dataset[VALID_IN]),
                                      tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception:
-            pass
+        except Exception as e:
+            log(e, level=ERRORS)
 
     history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
                         batch_size=batch_size, callbacks=callbacks, verbose=1,
@@ -118,8 +115,8 @@ def train_model(model_generator, dataset,
                                 final_accuracy=accuracy,
                                 final_validation_accuracy=valid_accuracy,
                                 tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception:
-            pass
+        except Exception as e:
+            log(e, level=ERRORS)
 
         if model_name == CROPPER:
             try:
@@ -133,12 +130,13 @@ def train_model(model_generator, dataset,
                 map_ = model.predict(img)
                 send_image_from_array(get_image_with_mask(img, map_))
                 send_image_from_array(get_image_with_mask(img, map_))
-            except Exception:
-                pass
+            except Exception as e:
+                log(e, level=ERRORS)
 
     if h5model_path is not None:
         if verbose:
             print("Saving H5 model...")
+        model = model_generator()
         model.load_weights(checkpoint_path)
         model.save(h5model_path)
         os.remove(checkpoint_path)
