@@ -29,8 +29,7 @@ learning_rate = 1e-3
 # Load data
 dataset = load_dataset(train_samples=3000,
                        valid_samples=100,
-                       use_depth=False,
-                       verbose=True)
+                       use_depth=False)
 # Augment data
 print("Augmenting data...")
 augmenter = Augmenter()
