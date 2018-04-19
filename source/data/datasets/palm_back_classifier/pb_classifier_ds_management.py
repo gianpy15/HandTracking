@@ -6,11 +6,16 @@ import data.regularization.regularizer as reg
 import tqdm
 import scipy.io as scio
 from data.naming import *
+from library.geometry.left_right_detection import palmback as pb
+from library.geometry.formatting import hand_format
 import pandas as pd
 
 RIGHT = 1
 LEFT = 0
 csv_path = resources_path(os.path.join("csv", "left_right.csv"))
+
+PALM = 1.0
+BACK = -1.0
 
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):
@@ -63,7 +68,16 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                 try:
                     frame = frames[i]
                     label = labels[i][:, 0:2]
-                    result, conf = get_palm_back(label, lr)
+
+                    # conf is a real in [-1.0, 1.0] such that -1.0 is full back, +1.0 is full palm
+                    # middle values express partial confidence, but all info is in one single value
+                    conf = pb.leftright_to_palmback(hand=hand_format(label),
+                                                    side=pb.RIGHT if lr == RIGHT else pb.LEFT)
+                    # if you want the crisp result, there it is:
+                    result = PALM if conf >= 0 else BACK
+                    # and the confidence on that result is in [0..1]:
+                    conf = abs(conf)
+
                     label *= [frame.shape[1], frame.shape[0]]
                     label = np.array(label, dtype=np.int32).tolist()
                     label = [[p[1], p[0]] for p in label]
