@@ -1,4 +1,4 @@
-from keras.engine import Layer
+from keras.engine.topology import Layer
 from keras import backend as K
 
 
@@ -7,7 +7,7 @@ class Abs(Layer):
         super(Abs, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        pass
+        super(Abs, self).build(input_shape)
 
     def call(self, x, mask=None):
         return K.abs(x)

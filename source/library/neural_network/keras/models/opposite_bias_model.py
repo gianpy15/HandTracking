@@ -4,21 +4,27 @@ from library.neural_network.keras.custom_layers.heatmap_loss import *
 def opposite_bias_adversarial(channels=3, weight_decay=None, name='opposite_bias_adversarial', activation='relu'):
     model = km.Sequential(name=name)
     model.add(kl.Conv2D(input_shape=(None, None, channels), filters=64, kernel_size=[5, 5], padding='same'))
-    model.add(kl.Activation('relu'))
-    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=256, kernel_size=[5, 5], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=256, kernel_size=[5, 5], padding='same',
                         kernel_regularizer=weight_decay))
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
     model.add(kl.MaxPooling2D())
-    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
     model.add(kl.MaxPooling2D())
-    model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
     model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
     model.add(kl.Activation('sigmoid'))
 
@@ -28,25 +34,33 @@ def opposite_bias_adversarial(channels=3, weight_decay=None, name='opposite_bias
 def opposite_bias_regularizer(channels=5, weight_decay=None, name='opposite_bias_regularizer', activation='relu'):
     model = km.Sequential(name=name)
     model.add(kl.Conv2D(input_shape=(None, None, channels), filters=64, kernel_size=[5, 5], padding='same'))
-    model.add(kl.Activation('relu'))
-    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=256, kernel_size=[5, 5], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=256, kernel_size=[5, 5], padding='same',
                         kernel_regularizer=weight_decay))
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
     model.add(kl.MaxPooling2D())
-    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same', activation=activation,
+    model.add(kl.Conv2D(filters=128, kernel_size=[5, 5], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
     model.add(kl.MaxPooling2D())
-    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
-    model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same', activation=activation,
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
+    model.add(kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay))
+    model.add(kl.Activation(activation) if type(activation) is str else activation)
     model.add(kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', kernel_regularizer=weight_decay))
     model.add(kl.Activation('sigmoid'))
 
