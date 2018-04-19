@@ -12,7 +12,7 @@ import pandas as pd
 
 RIGHT = 1
 LEFT = 0
-csv_path = resources_path(os.path.join("csv", "left_right.csv"))
+csv_path = resources_path("csv", "left_right.csv")
 
 PALM = 1.0
 BACK = -1.0
