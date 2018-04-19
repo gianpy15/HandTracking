@@ -35,7 +35,7 @@ activation = Abs()
 
 
 # Load data
-dataset = load_dataset(train_samples=3000,
+dataset = load_dataset(train_samples=4000,
                        valid_samples=1000,
                        use_depth=False)
 
@@ -112,6 +112,7 @@ dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], m1_path, m2_path)
 model3 = train_model(dataset=dataset,
                      model_generator=lambda: opposite_bias_regularizer(weight_decay=weight_decay,
                                                                        activation=activation),
+                     loss=lambda x, y: prop_heatmap_loss(x, y, -0.8),
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/" + model + "m3",
