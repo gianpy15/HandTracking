@@ -96,27 +96,27 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                                      training_samples=len(dataset[TRAIN_IN]),
                                      validation_samples=len(dataset[VALID_IN]),
                                      tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception as e:
-            log(e, level=ERRORS)
+        except Exception:
+            pass
 
     history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
                         batch_size=batch_size, callbacks=callbacks, verbose=1,
                         validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
     if verbose:
         print('Fitting completed!')
-        loss = "{:.5f}".format(history.history['loss'][-1])
+        loss_ = "{:.5f}".format(history.history['loss'][-1])
         valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
         try:
             notify_training_end(model_name=model_type + "_" + model_name,
-                                final_loss=loss,
-                                final_validation_loss=valid_loss,
-                                final_accuracy=accuracy,
-                                final_validation_accuracy=valid_accuracy,
+                                final_loss=str(loss_),
+                                final_validation_loss=str(valid_loss),
+                                final_accuracy=str(accuracy),
+                                final_validation_accuracy=str(valid_accuracy),
                                 tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception as e:
-            log(e, level=ERRORS)
+        except Exception:
+            pass
 
         if model_name == CROPPER:
             try:
@@ -130,8 +130,8 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                 map_ = model.predict(img)
                 send_image_from_array(get_image_with_mask(img, map_))
                 send_image_from_array(get_image_with_mask(img, map_))
-            except Exception as e:
-                log(e, level=ERRORS)
+            except Exception:
+                pass
 
     if h5model_path is not None:
         if verbose:

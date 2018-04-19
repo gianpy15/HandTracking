@@ -20,8 +20,8 @@ import numpy as np
 
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 m1_path = cropper_h5_path("cropper_opposite_bias_v1_m1")
-m2_path = cropper_h5_path("cropper_opposite_bias_v1_m1")
-m3_path = cropper_h5_path("cropper_opposite_bias_v1_m1")
+m2_path = cropper_h5_path("cropper_opposite_bias_v1_m2")
+m3_path = cropper_h5_path("cropper_opposite_bias_v1_m3")
 
 TBManager.set_path("heat_maps")
 train = True
