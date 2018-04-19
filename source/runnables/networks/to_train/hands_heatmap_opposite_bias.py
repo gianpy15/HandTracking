@@ -19,7 +19,6 @@ import numpy as np
 
 model = 'cropper_opposite_bias_v2'
 
-dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
 m1_path = cropper_h5_path(model + "m1")
 m2_path = cropper_h5_path(model + "m2")
 m3_path = cropper_h5_path(model + "m3")
@@ -31,7 +30,7 @@ train = True
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 loss_delta = 0.8
-activation = Abs()
+activation = Abs
 
 
 # Load data
@@ -58,8 +57,8 @@ log("Regularization end")
 
 def attach_heat_map(inputs, fitted_model_positive_path, fitted_model_negative_path):
     _inputs = inputs[:, :, :, 0:3]
-    fitted_model_positive = km.load_model(fitted_model_positive_path)
-    fitted_model_negative = km.load_model(fitted_model_negative_path)
+    fitted_model_positive = km.load_model(fitted_model_positive_path, custom_objects={"Abs": Abs})
+    fitted_model_negative = km.load_model(fitted_model_negative_path, custom_objects={"Abs": Abs})
     outputs_positive = fitted_model_positive.predict(inputs)
     outputs_negative = fitted_model_negative.predict(inputs)
     rescaled_positive = []
