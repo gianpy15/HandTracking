@@ -3,10 +3,9 @@ import sys
 
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
-from library.neural_network.keras.models.heatmap import *
 from library.neural_network.keras.custom_layers.heatmap_loss import *
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
-from keras.engine import training as kt
+from library.neural_network.keras.custom_layers.abs import Abs
 import keras.models as km
 from skimage.transform import rescale
 from data.datasets.data_loader import load_dataset
@@ -18,10 +17,12 @@ from data.augmentation.data_augmenter import Augmenter
 from data.regularization.regularizer import Regularizer
 import numpy as np
 
+model = 'cropper_opposite_bias_v2'
+
 dataset_path = resources_path(os.path.join("hands_bounding_dataset", "network_test"))
-m1_path = cropper_h5_path("cropper_opposite_bias_v1_m1")
-m2_path = cropper_h5_path("cropper_opposite_bias_v1_m2")
-m3_path = cropper_h5_path("cropper_opposite_bias_v1_m3")
+m1_path = cropper_h5_path(model + "m1")
+m2_path = cropper_h5_path(model + "m2")
+m3_path = cropper_h5_path(model + "m3")
 
 TBManager.set_path("heat_maps")
 train = True
@@ -30,6 +31,7 @@ train = True
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 loss_delta = 0.8
+activation = Abs()
 
 
 # Load data
@@ -40,7 +42,7 @@ dataset = load_dataset(train_samples=3000,
 # Augment data
 log("Augmenting data...")
 augmenter = Augmenter()
-augmenter.shift_hue(prob=0.2, var=0.1).shift_sat(prob=0.2).shift_val(prob=0.2)
+augmenter.shift_hue(prob=0.25).shift_sat(prob=0.25).shift_val(prob=0.25)
 dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
 dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
 log("Augmentation end")
@@ -75,29 +77,29 @@ def attach_heat_map(inputs, fitted_model_positive_path, fitted_model_negative_pa
 
 # Build up the model
 # Model with high penalty for P(x = 1 | not hand)
-"""
 model1 = train_model(dataset=dataset,
-                     model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay),
+                     model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay,
+                                                                       activation=activation),
                      loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, 0.8),
                      learning_rate=learning_rate,
                      patience=5,
-                     tb_path="heat_maps/opposite_bias_v1_m1",
-                     model_name="cropper_opposite_bias_v1_m1",
+                     tb_path="heat_maps/" + model + "m1",
+                     model_name=model + "m1",
                      model_type=CROPPER,
                      batch_size=30,
                      epochs=50,
                      verbose=False)
 
-"""
 
 # Model with high penalty for P(x = 0 | hand)
 model2 = train_model(dataset=dataset,
-                     model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay),
+                     model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay,
+                                                                       activation=activation),
                      loss=lambda x, y: prop_heatmap_penalized_fn_loss(x, y, -1.85, 2),
                      learning_rate=learning_rate,
                      patience=5,
-                     tb_path="heat_maps/opposite_bias_v1_m2",
-                     model_name="cropper_opposite_bias_v1_m2",
+                     tb_path="heat_maps/" + model + "m2",
+                     model_name=model + "m2",
                      model_type=CROPPER,
                      batch_size=30,
                      epochs=50,
@@ -106,16 +108,15 @@ model2 = train_model(dataset=dataset,
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], m1_path, m2_path)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], m1_path, m2_path)
 
-"""
 # Third Model
 model3 = train_model(dataset=dataset,
-                     model_generator=lambda: opposite_bias_regularizer(weight_decay=weight_decay),
+                     model_generator=lambda: opposite_bias_regularizer(weight_decay=weight_decay,
+                                                                       activation=activation),
                      learning_rate=learning_rate,
                      patience=5,
-                     tb_path="heat_maps/opposite_bias_v1_m3",
-                     model_name="cropper_opposite_bias_v1_m3",
+                     tb_path="heat_maps/" + model + "m3",
+                     model_name=model + "m3",
                      model_type=CROPPER,
                      batch_size=20,
                      epochs=1,
                      verbose=False)
-"""
