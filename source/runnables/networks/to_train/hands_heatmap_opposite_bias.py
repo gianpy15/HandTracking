@@ -87,7 +87,7 @@ model1 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=30,
                      epochs=50,
-                     verbose=False)
+                     verbose=True)
 
 
 # Model with high penalty for P(x = 0 | hand)
@@ -102,7 +102,7 @@ model2 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=30,
                      epochs=50,
-                     verbose=False)
+                     verbose=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], m1_path, m2_path)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], m1_path, m2_path)
@@ -118,5 +118,5 @@ model3 = train_model(dataset=dataset,
                      model_name=model + "m3",
                      model_type=CROPPER,
                      batch_size=20,
-                     epochs=1,
-                     verbose=False)
+                     epochs=50,
+                     verbose=True)
