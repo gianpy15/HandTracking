@@ -10,19 +10,19 @@ from data.naming import *
 
 
 # egohands by default have dimension 720x1280
-def build_default_egohands(res_rate=0.25):
+def build_default_egohands(res_rate=0.5):
     egocreate(savepath=crops_path(),
               resize_rate=res_rate,
-              width_shrink_rate=4,
-              heigth_shrink_rate=4)
+              width_shrink_rate=1,
+              heigth_shrink_rate=1)
 
 
 # our hands by default have dimension 480x640
-def build_default_crops(res_rate=0.25):
+def build_default_crops(res_rate=0.5):
     cropscreate(savepath=crops_path(), fillgaps=True,
                 resize_rate=res_rate,
-                width_shrink_rate=4,
-                heigth_shrink_rate=4)
+                width_shrink_rate=1,
+                heigth_shrink_rate=1)
 
 
 def create_joint_dataset():
@@ -37,5 +37,5 @@ def create_joint_dataset():
 
 
 if __name__ == '__main__':
-    # build_default_egohands()
+    build_default_egohands()
     build_default_crops()
