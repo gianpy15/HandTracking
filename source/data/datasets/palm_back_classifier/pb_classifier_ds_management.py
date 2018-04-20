@@ -7,6 +7,8 @@ import tqdm
 import scipy.io as scio
 from data.naming import *
 import pandas as pd
+from library.geometry.formatting import *
+from library.geometry.left_right_detection.palmback import leftright_to_palmback
 
 RIGHT = 1
 LEFT = 0
@@ -58,6 +60,8 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
         frames, labels = load_labelled_videos(vid, fillgaps=fillgaps)
         fr_num = frames.shape[0]
         lr = get_right_left(vid)
+        if lr == LEFT:
+            lr = -1
         for i in tqdm.tqdm(range(0, fr_num)):
             if labels[i] is not None:
                 try:
@@ -76,6 +80,17 @@ def create_dataset(videos_list=None, savepath=None, im_regularizer=reg.Regulariz
                     print("Error " + str(e) + " on vid " + vid + str(i))
 
 
+def get_palm_back(label, lr):
+    label = hand_format(label)
+    res = leftright_to_palmback(label, lr)
+    result = 1
+    if res < 0:
+        result = 0
+    conf = abs(res)
+    return result, conf
+
+
+
 def read_dataset(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
@@ -88,7 +103,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     (frames, labels, conf, test_frames, test_labels, test_conf)
     """
     if path is None:
-        basedir = resources_path("left_right_classification_dataset")
+        basedir = resources_path("palm_back_classification_dataset")
     else:
         basedir = path
     samples = os.listdir(basedir)
@@ -130,7 +145,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     :param leave_out: list of videos from which samples will NOT be taken
     """
     if path is None:
-        basedir = resources_path("left_right_classification_dataset")
+        basedir = resources_path("palm_back_classification_dataset")
     else:
         basedir = path
     samples = os.listdir(basedir)
@@ -207,32 +222,19 @@ def __get_coord_from_labels(lista):
     return [[min_x, min_y], [min_x, max_y], [max_x, min_y], [max_x, max_y]]
 
 
-def __persist_frame(path, cut, rl, conf):
+def __persist_frame(path, cut, pb, conf):
     fr_to_save = {'cut': cut,
-                  'rl': rl,
+                  'pb': pb,
                   'conf': conf}
     scio.savemat(path, fr_to_save)
 
 
-def count_ones_zeros(y_train, y_test):
-    right = 0
-    left = 0
-    for i in range(len(y_train)):
-        if y_train[i] == 1:
-            right += 1
-        else:
-            left += 1
-    print("TRAIN R: ", right)
-    print("TRAIN L: ", left)
-    right = 0
-    left = 0
-    for i in range(len(y_test)):
-        if y_test[i] == 1:
-            right += 1
-        else:
-            left += 1
-    print("TEST R: ", right)
-    print("TEST L: ", left)
+def attach_out_conf(y, c):
+    n = len(y)
+    ris = []
+    for i in range(n):
+        ris.append([y[i], c[i]])
+    return np.array(ris)
 
 
 if __name__ == '__main__':
@@ -240,7 +242,7 @@ if __name__ == '__main__':
     im_r.fixresize(200, 200)
     im_r.rgb2gray()
     #create_dataset(im_regularizer=im_r)
-    c, b = read_dataset_random()
-    print(b[0])
+    c, r, co = read_dataset_random()
+    print(r[0], co[0])
     u.showimage(c[0].squeeze())
 

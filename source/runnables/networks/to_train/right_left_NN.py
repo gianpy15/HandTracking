@@ -42,7 +42,7 @@ if __name__ == '__main__':
         model = simple_classifier3()
 
     opt = keras.optimizers.adam(lr=0.05)
-    # model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     model.summary()
     if TRAIN_MODEL:
 
