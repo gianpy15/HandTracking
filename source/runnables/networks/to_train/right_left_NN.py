@@ -12,17 +12,18 @@ import keras
 
 if __name__ == '__main__':
 
-    LOAD_MODEL = False
+    LOAD_MODEL = True
 
-    TRAIN_MODEL = True
+    TRAIN_MODEL = False
 
     regularizer = reg.Regularizer()
-    regularizer.fixresize(200, 200)
+    regularizer.fixresize(150, 150)
     regularizer.rgb2gray()
 
     #create_dataset(im_regularizer=regularizer, data_augment=True)
 
     x_train, y_train, x_test, y_test = read_dataset(leave_out=['handsMaddalena2', 'handsGianpy', 'handsMatteo'])
+
     x_train = np.array(x_train)
     y_train = np.array(y_train)
 
@@ -36,9 +37,9 @@ if __name__ == '__main__':
 
     if LOAD_MODEL:
         # change the name of the model to be loaded
-        model = load_model("right_left_classifier.h5")
+        model = load_model("right_left_classifier_data_augment.h5")
     else:
-        model = simple_classifier2()
+        model = simple_classifier3()
 
     opt = keras.optimizers.adam(lr=0.05)
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
@@ -50,9 +51,9 @@ if __name__ == '__main__':
         # change the name of the model to save
         model.save("right_left_classifier_data_augment.h5")
 
-    evaluation_score = model.evaluate(x=x_test, y=y_test, batch_size=5, verbose=1)
+    # evaluation_score = model.evaluate(x=x_test, y=y_test, batch_size=5, verbose=1)
 
-    print("Model evaluation:", evaluation_score)
+    # print("Model evaluation:", evaluation_score)
 
     n = x_test.shape[0]
     ris = model.predict(x_test)
