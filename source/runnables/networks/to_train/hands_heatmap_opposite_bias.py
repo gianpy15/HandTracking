@@ -85,7 +85,7 @@ model1 = train_model(dataset=dataset,
                      tb_path="heat_maps/" + model + "m1",
                      model_name=model + "m1",
                      model_type=CROPPER,
-                     batch_size=30,
+                     batch_size=10,
                      epochs=50,
                      verbose=True)
 
@@ -100,7 +100,7 @@ model2 = train_model(dataset=dataset,
                      tb_path="heat_maps/" + model + "m2",
                      model_name=model + "m2",
                      model_type=CROPPER,
-                     batch_size=30,
+                     batch_size=10,
                      epochs=50,
                      verbose=True)
 
@@ -117,6 +117,6 @@ model3 = train_model(dataset=dataset,
                      tb_path="heat_maps/" + model + "m3",
                      model_name=model + "m3",
                      model_type=CROPPER,
-                     batch_size=20,
+                     batch_size=10,
                      epochs=50,
                      verbose=True)
