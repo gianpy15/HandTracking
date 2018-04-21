@@ -18,7 +18,7 @@ from data.augmentation.data_augmenter import Augmenter
 from data.regularization.regularizer import Regularizer
 import numpy as np
 
-model = 'cropper_opposite_bias_norm_v1'
+model = 'cropper_opposite_bias_norm_leaky_v1'
 
 m1_path = cropper_h5_path(model + "m1")
 m2_path = cropper_h5_path(model + "m2")
