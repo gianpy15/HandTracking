@@ -13,6 +13,7 @@ from data.naming import *
 from library.neural_network.keras.models.opposite_bias_model import opposite_bias_adversarial, opposite_bias_regularizer
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
+import keras as K
 from data.augmentation.data_augmenter import Augmenter
 from data.regularization.regularizer import Regularizer
 import numpy as np
@@ -30,7 +31,7 @@ train = True
 weight_decay = kr.l2(1e-5)
 learning_rate = 1e-3
 loss_delta = 0.8
-activation = Abs
+activation = lambda : K.layers.LeakyReLU(alpha=0.1)
 
 
 # Load data
