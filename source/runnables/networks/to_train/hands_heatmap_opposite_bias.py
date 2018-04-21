@@ -34,8 +34,8 @@ activation = Abs
 
 
 # Load data
-dataset = load_dataset(train_samples=4000,
-                       valid_samples=1000,
+dataset = load_dataset(train_samples=100,
+                       valid_samples=20,
                        use_depth=False)
 
 # Augment data
