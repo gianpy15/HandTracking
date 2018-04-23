@@ -41,6 +41,9 @@ if __name__ == '__main__':
     dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
     log("Augmentation end")
 
+    input_shape = np.shape(dataset[TRAIN_IN][0])
+    print("Input shape: {}".format(input_shape))
+
     # Regularize data
     log("Regularizing data...")
     regularizer = Regularizer()
@@ -48,9 +51,14 @@ if __name__ == '__main__':
     dataset[TRAIN_IN] = regularizer.apply_on_batch(dataset[TRAIN_IN])
     dataset[VALID_IN] = regularizer.apply_on_batch(dataset[VALID_IN])
     log("Regularization end")
-
+    reg2 = Regularizer()
+    reg2.fixresize(height=60, width=80)
+    dataset[TRAIN_TARGET] = reg2.apply_on_batch(dataset[TRAIN_TARGET])
+    dataset[VALID_TARGET] = reg2.apply_on_batch(dataset[VALID_TARGET])
     input_shape = np.shape(dataset[TRAIN_IN][0])
+    target_shape = np.shape(dataset[TRAIN_TARGET][0])
     print("Input shape: {}".format(input_shape))
+    print("Target shape: {}".format(target_shape))
 
     # Build up the model
     # Model with high penalty for P(x = 1 | not hand)
