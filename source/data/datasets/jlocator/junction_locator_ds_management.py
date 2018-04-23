@@ -151,17 +151,14 @@ def read_dataset_random(path=joints_path(), number=1, verbosity=0, vid_list=None
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
+    random.shuffle(samples)
+    samples = samples[:number]
     cuts = []
     heatmaps = []
     visible = []
-    for i in range(number):
-        if verbosity == 1:
-            print("Reading image: ", i, " of ", tot)
-            i += 1
-        which = int(np.math.floor(random.uniform(0, tot - 0.01)))
-        realpath = os.path.join(basedir, samples[which])
-        samples.pop(which)
-        tot -= 1
+    iterator = tqdm.trange(number, file=sys.stdout, unit='frms') if verbosity == 1 else range(number)
+    for i in iterator:
+        realpath = os.path.join(basedir, samples[i])
         readcuts, readheats, readvis = __read_frame(realpath)
         cuts.append(readcuts)
         heatmaps.append(readheats)

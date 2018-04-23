@@ -1,8 +1,9 @@
-from tqdm import tqdm
+from tqdm import tqdm, trange
 from skimage import io as sio
 from scipy.misc import imresize
 import data.datasets.crop.utils as u
 import os
+import sys
 from data.naming import resources_path
 import random
 import math
@@ -261,16 +262,13 @@ def read_dataset_random(path=None, number=1, verbosity=0, vid_list=None):
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
+    random.shuffle(samples)
+    samples = samples[:number]
     frames = []
     heatmaps = []
-    for i in range(number):
-        if verbosity == 1:
-            print("Reading image: ", i, " of ", tot)
-            i += 1
-        which = int(np.math.floor(random.uniform(0, tot - 0.01)))
-        realpath = os.path.join(basedir, samples[which])
-        samples.pop(which)
-        tot -= 1
+    iterator = trange(number, file=sys.stdout, unit='frms') if verbosity == 1 else range(number)
+    for i in iterator:
+        realpath = os.path.join(basedir, samples[i])
         readcuts, readheats = __read_frame(realpath)
         frames.append(readcuts)
         heatmaps.append(readheats)
