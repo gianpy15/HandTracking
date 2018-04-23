@@ -15,7 +15,8 @@ from library.utils.visualization_utils import get_image_with_mask
 def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                 tb_path='', model_name=None, model_type=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
-                additional_callbacks=None, verbose=False):
+                additional_callbacks=None, verbose=False,
+                fit_generator: K.utils.Sequence=None):
     K.backend.clear_session()
 
     model = model_generator()
@@ -75,7 +76,7 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                                      name='train_output'))
         callbacks.append(ImageWriter(data=(dataset[VALID_IN],
                                            dataset[VALID_TARGET]),
-                                     name='valid_output'))
+                                     name='valid_output', freq=3))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
 
@@ -99,9 +100,14 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         except Exception:
             pass
 
-    history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
-                        batch_size=batch_size, callbacks=callbacks, verbose=1,
-                        validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
+    if fit_generator is None:
+        history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
+                            batch_size=batch_size, callbacks=callbacks, verbose=1,
+                            validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
+    else:
+        # TODO: write fit_generator
+        pass
+
     if verbose:
         print('Fitting completed!')
         loss_ = "{:.5f}".format(history.history['loss'][-1])

@@ -17,7 +17,7 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    model = 'cropper_u_net_v1'
+    model = 'cropper_eta_net_v1'
 
     m1_path = cropper_h5_path(model)
 
@@ -29,8 +29,8 @@ if __name__ == '__main__':
     learning_rate = 1e-4
 
     # Load data
-    dataset = load_dataset(train_samples=4000,
-                           valid_samples=1000,
+    dataset = load_dataset(train_samples=500,
+                           valid_samples=100,
                            use_depth=False)
 
     # Augment data
@@ -58,12 +58,12 @@ if __name__ == '__main__':
                          model_generator=lambda: eta_net(input_shape=input_shape, weight_decay=weight_decay,
                                                          dropout_rate=0.5,
                                                          activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
-                         loss=lambda x, y: prop_heatmap_penalized_fn_loss(x, y, -1.5, 2),
+                         loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, 3),
                          learning_rate=learning_rate,
                          patience=5,
                          tb_path="heat_maps/" + model,
                          model_name=model,
                          model_type=CROPPER,
-                         batch_size=5,
+                         batch_size=10,
                          epochs=100,
                          verbose=True)
