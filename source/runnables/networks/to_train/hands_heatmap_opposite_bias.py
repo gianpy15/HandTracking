@@ -35,8 +35,8 @@ activation = lambda: K.layers.LeakyReLU(alpha=0.1)
 
 
 # Load data
-dataset = load_dataset(train_samples=500,
-                       valid_samples=50,
+dataset = load_dataset(train_samples=4000,
+                       valid_samples=1000,
                        use_depth=False)
 
 # Augment data
