@@ -7,7 +7,8 @@ from library.neural_network.keras.custom_layers.heatmap_loss import *
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from data.datasets.data_loader import load_dataset
 from data.naming import *
-from library.neural_network.keras.models.u_net import u_net
+import keras as K
+from library.neural_network.keras.models.eta_net import eta_net
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
 from data.augmentation.data_augmenter import Augmenter
@@ -54,8 +55,9 @@ if __name__ == '__main__':
     # Build up the model
     # Model with high penalty for P(x = 1 | not hand)
     model1 = train_model(dataset=dataset,
-                         model_generator=lambda: u_net(input_shape=input_shape, weight_decay=weight_decay,
-                                                       dropout_rate=0.5),
+                         model_generator=lambda: eta_net(input_shape=input_shape, weight_decay=weight_decay,
+                                                         dropout_rate=0.5,
+                                                         activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
                          loss=lambda x, y: prop_heatmap_penalized_fn_loss(x, y, -1.5, 2),
                          learning_rate=learning_rate,
                          patience=5,
