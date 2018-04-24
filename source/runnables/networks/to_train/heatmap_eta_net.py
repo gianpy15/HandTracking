@@ -29,8 +29,8 @@ if __name__ == '__main__':
     learning_rate = 1e-4
 
     # Load data
-    dataset = load_dataset(train_samples=500,
-                           valid_samples=100,
+    dataset = load_dataset(train_samples=5,
+                           valid_samples=1,
                            use_depth=False)
 
     # Augment data

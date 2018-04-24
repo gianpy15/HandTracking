@@ -1,8 +1,8 @@
 from keras.callbacks import Callback
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 import tensorflow as tf
-import numpy as np
 import threading
+from library.multi_threading import ThreadPoolManager
 
 
 class ScalarWriter(Callback):
@@ -15,6 +15,7 @@ class ScalarWriter(Callback):
         self.valid_loss_tensor = None
         self.train_acc_tensor = None
         self.valid_acc_tensor = None
+        self.pool = ThreadPoolManager.get_thread_pool()
 
     def on_train_begin(self, logs=None):
         self.train_loss_tensor = tf.placeholder(dtype=tf.float32,
@@ -39,10 +40,7 @@ class ScalarWriter(Callback):
         logs = logs or {}
 
         if epoch % self.freq == 0:
-            write_thread = threading.Thread(target=self.__write_step,
-                                            args=(logs, epoch, tf.get_default_graph()),
-                                            daemon=True)
-            write_thread.start()
+            self.pool.submit(self.__write_step, logs, epoch, tf.get_default_graph())
 
     def __write_step(self, logs, epoch, cur_graph):
         train_loss = logs['loss']

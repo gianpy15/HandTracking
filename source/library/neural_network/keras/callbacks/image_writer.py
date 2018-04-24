@@ -3,6 +3,7 @@ from library.neural_network.tensorboard_interface.tensorboard_manager import Ten
 import tensorflow as tf
 import numpy as np
 from library.utils.visualization_utils import get_image_with_mask
+from library.multi_threading import ThreadPoolManager
 import threading
 
 
@@ -20,6 +21,7 @@ class ImageWriter(Callback):
         self.output_tensor = None
         self.target_tensor = None
         self.mask_tensor = None
+        self.pool = ThreadPoolManager.get_thread_pool()
 
     def on_train_begin(self, logs=None):
         if self.input_images is not None and self.target_images is not None:
@@ -48,10 +50,7 @@ class ImageWriter(Callback):
         if epoch % self.freq == 0:
             if self.input_images is not None and self.target_images is not None:
                 heat_maps = self.model.predict(self.input_images)
-                write_thread = threading.Thread(target=self.__write_step,
-                                                args=(heat_maps, epoch, tf.get_default_graph()),
-                                                daemon=True)
-                write_thread.start()
+                self.pool.submit(self.__write_step, heat_maps, epoch, tf.get_default_graph())
 
     def __write_step(self, heat_maps, epoch, cur_graph):
         with tf.Session(graph=cur_graph) as s:
