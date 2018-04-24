@@ -6,6 +6,7 @@ import keras.optimizers as ko
 
 from data.naming import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter
+from library.neural_network.keras.callbacks.scalar_writer import ScalarWriter
 from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from library.telegram import telegram_bot as tele
@@ -70,8 +71,7 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
 
         if verbose:
             print("Adding tensorboard callbacks...")
-        callbacks.append(kc.TensorBoard(log_dir=tensorboard_path(tb_path),
-                                        histogram_freq=1))
+        callbacks.append(ScalarWriter())
         callbacks.append(ImageWriter(data=(dataset[TRAIN_IN],
                                            dataset[TRAIN_TARGET]),
                                      name='train_output'))
@@ -93,11 +93,14 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
     if verbose:
         print('Fitting model...')
         # Notification for telegram
-        tele.notify_training_starting(bot=bot,
-                                      model_name=model_type + "_" + model_name,
-                                      training_samples=len(dataset[TRAIN_IN]),
-                                      validation_samples=len(dataset[VALID_IN]),
-                                      tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        try:
+            tele.notify_training_starting(bot=bot,
+                                          model_name=model_type + "_" + model_name,
+                                          training_samples=len(dataset[TRAIN_IN]),
+                                          validation_samples=len(dataset[VALID_IN]),
+                                          tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        except Exception:
+            pass
 
     if fit_generator is None:
         history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
@@ -113,25 +116,28 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
-        tele.notify_training_end(bot=bot,
-                                 model_name=model_type + "_" + model_name,
-                                 final_loss=str(loss_),
-                                 final_validation_loss=str(valid_loss),
-                                 final_accuracy=str(accuracy),
-                                 final_validation_accuracy=str(valid_accuracy),
-                                 tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+        try:
+            tele.notify_training_end(bot=bot,
+                                     model_name=model_type + "_" + model_name,
+                                     final_loss=str(loss_),
+                                     final_validation_loss=str(valid_loss),
+                                     final_accuracy=str(accuracy),
+                                     final_validation_accuracy=str(valid_accuracy),
+                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
 
-        if model_name == CROPPER:
-            tele.send_message(bot, "Training sample...")
-            img = dataset[TRAIN_IN][0]
-            map_ = model.predict(img)
-            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-            tele.send_message(bot, "Validation sample...")
-            img = dataset[VALID_IN][0]
-            map_ = model.predict(img)
-            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+            if model_name == CROPPER:
+                tele.send_message(bot, "Training sample...")
+                img = dataset[TRAIN_IN][0]
+                map_ = model.predict(img)
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_message(bot, "Validation sample...")
+                img = dataset[VALID_IN][0]
+                map_ = model.predict(img)
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+        except Exception:
+            pass
 
     if h5model_path is not None:
         if verbose:
