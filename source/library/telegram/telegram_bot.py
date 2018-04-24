@@ -3,6 +3,7 @@ import datetime
 import socket
 import numpy as np
 import io
+import time
 from PIL import Image
 
 BOT_TOKEN = "561223507:AAGvadvBfQcRb3hhTXQN1FN7c2xtn6B9vm0"
@@ -96,10 +97,16 @@ def send_image(image, bot=None, caption=None):
 
 
 if __name__ == "__main__":
+    bot = newbot()
+    send_message(bot, "test")
+
+    time.sleep(301)
+
+    send_message(bot, "test after 300 secs")
+    """
     h = 200
     w = 200
     img = np.empty(shape=(h, w, 3), dtype=np.uint8)
-    bot = newbot()
     for i in range(h):
         for j in range(w):
             img[i, j, 0] = (i+j)*255//(h+w)
@@ -108,3 +115,4 @@ if __name__ == "__main__":
     send_image_from_array(img,
                           bot,
                           caption="Image sent without creating any file! In a slightly cleaner way")
+    """

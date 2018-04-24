@@ -6,6 +6,7 @@ import keras.optimizers as ko
 
 from data.naming import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter
+from library.neural_network.keras.callbacks.scalar_writer import ScalarWriter
 from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from library.telegram import telegram_bot as tele
@@ -70,7 +71,7 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
 
         if verbose:
             print("Adding tensorboard callbacks...")
-        # callbacks.append(kc.TensorBoard(log_dir=tensorboard_path(tb_path),
+        callbacks.append(ScalarWriter())
         callbacks.append(ImageWriter(data=(dataset[TRAIN_IN],
                                            dataset[TRAIN_TARGET]),
                                      name='train_output'))

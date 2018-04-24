@@ -8,12 +8,11 @@ import threading
 
 class ImageWriter(Callback):
     def __init__(self, data: tuple=(None, None), max_imgs=5, name='images', freq=1):
-        tb_manager = TBManager(scope_name=name)
+        self.tb_manager = TBManager(scope_name=name)
         super(ImageWriter, self).__init__()
         self.input_images = data[0][0:max_imgs]
         self.input_images_3d = None
         self.target_images = data[1][0:max_imgs]
-        self.tb_manager = TBManager(name) if tb_manager is None else tb_manager
         self.name = name
         self.freq = freq
         self.max_imgs = max_imgs
