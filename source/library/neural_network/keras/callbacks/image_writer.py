@@ -3,6 +3,7 @@ from library.neural_network.tensorboard_interface.tensorboard_manager import Ten
 import tensorflow as tf
 import numpy as np
 from library.utils.visualization_utils import get_image_with_mask
+import threading
 
 
 class ImageWriter(Callback):
@@ -48,10 +49,16 @@ class ImageWriter(Callback):
         if epoch % self.freq == 0:
             if self.input_images is not None and self.target_images is not None:
                 heat_maps = self.model.predict(self.input_images)
-                with tf.Session() as s:
-                    summary = s.run(self.tb_manager.get_runnable(),
-                                    feed_dict={self.image_tensor: self.input_images_3d,
-                                               self.output_tensor: heat_maps,
-                                               self.target_tensor: self.target_images,
-                                               self.mask_tensor: get_image_with_mask(self.input_images_3d, heat_maps)})[0]
-                    self.tb_manager.write_step(summary, epoch)
+                write_thread = threading.Thread(target=self.__write_step,
+                                                args=(heat_maps, epoch, tf.get_default_graph()),
+                                                daemon=True)
+                write_thread.start()
+
+    def __write_step(self, heat_maps, epoch, cur_graph):
+        with tf.Session(graph=cur_graph) as s:
+            summary = s.run(self.tb_manager.get_runnable(),
+                            feed_dict={self.image_tensor: self.input_images_3d,
+                                       self.output_tensor: heat_maps,
+                                       self.target_tensor: self.target_images,
+                                       self.mask_tensor: get_image_with_mask(self.input_images_3d, heat_maps)})[0]
+            self.tb_manager.write_step(summary, epoch)
