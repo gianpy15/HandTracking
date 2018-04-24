@@ -8,7 +8,7 @@ from data.naming import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter
 from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
-from library.telegram.telegram_bot import *
+from library.telegram import telegram_bot as tele
 from library.utils.visualization_utils import get_image_with_mask
 
 
@@ -16,10 +16,11 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                 tb_path='', model_name=None, model_type=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
                 additional_callbacks=None, verbose=False,
-                fit_generator: K.utils.Sequence=None):
+                fit_generator: K.utils.Sequence = None):
     K.backend.clear_session()
 
     model = model_generator()
+    bot = tele.newbot()
 
     if model_name is None or model_type is None:
         checkpoint_path = None
@@ -93,10 +94,11 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         print('Fitting model...')
         # Notification for telegram
         try:
-            notify_training_starting(model_name=model_type + "_" + model_name,
-                                     training_samples=len(dataset[TRAIN_IN]),
-                                     validation_samples=len(dataset[VALID_IN]),
-                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+            tele.notify_training_starting(bot=bot,
+                                          model_name=model_type + "_" + model_name,
+                                          training_samples=len(dataset[TRAIN_IN]),
+                                          validation_samples=len(dataset[VALID_IN]),
+                                          tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
         except Exception:
             pass
 
@@ -115,27 +117,28 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
         try:
-            notify_training_end(model_name=model_type + "_" + model_name,
-                                final_loss=str(loss_),
-                                final_validation_loss=str(valid_loss),
-                                final_accuracy=str(accuracy),
-                                final_validation_accuracy=str(valid_accuracy),
-                                tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+            tele.notify_training_end(bot=bot,
+                                     model_name=model_type + "_" + model_name,
+                                     final_loss=str(loss_),
+                                     final_validation_loss=str(valid_loss),
+                                     final_accuracy=str(accuracy),
+                                     final_validation_accuracy=str(valid_accuracy),
+                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
         except Exception:
             pass
 
         if model_name == CROPPER:
             try:
-                send_message("Training sample...")
+                tele.send_message(bot, "Training sample...")
                 img = dataset[TRAIN_IN][0]
                 map_ = model.predict(img)
-                send_image_from_array(get_image_with_mask(img, map_))
-                send_image_from_array(get_image_with_mask(img, map_))
-                send_message("Validation sample...")
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_message(bot, "Validation sample...")
                 img = dataset[VALID_IN][0]
                 map_ = model.predict(img)
-                send_image_from_array(get_image_with_mask(img, map_))
-                send_image_from_array(get_image_with_mask(img, map_))
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
             except Exception:
                 pass
 
