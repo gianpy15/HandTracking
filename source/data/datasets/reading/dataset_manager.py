@@ -2,7 +2,8 @@ from data.naming import *
 import math
 import threading
 from data.datasets.reading.dataset_separator import DatasetSeparator
-from data.datasets.reading.reader import read_formatted_batch
+from data.datasets.reading.general_reading import read_formatted_batch
+from library.multi_threading.thread_pool_manager import ThreadPoolManager
 
 
 class DatasetManager:
@@ -12,9 +13,7 @@ class DatasetManager:
         self.batch_size = batch_size
         self.dataset_dir = dataset_dir
         self.formatting = formatting
-        self.loader_worker = threading.Thread(target=self.__separate_and_load, daemon=True)
-        self.loader_worker.start()
-
+        ThreadPoolManager.get_thread_pool().submit(fn=self.__separate_and_load)
         self.train_batch_number = None
         self.train_availability = 0
         self.valid_availability = 0
@@ -50,9 +49,9 @@ class DatasetManager:
         self.main_lock.notify_all()
         self.main_lock.release()
 
-    def get_training_batch(self, index=None, async=False):
+    def get_training_batch(self, index=None, blocking=True):
         index = self.current_train_batch_index if index is None else index
-        if async:
+        if not blocking:
             if self.traindata is None or self.traindata[index] is None:
                 return None
             return self.traindata[index]
@@ -65,16 +64,16 @@ class DatasetManager:
         self.current_train_batch_index = (index + 1) % self.train_batch_number
         return self.traindata[index]
 
-    def get_training_batch_number(self, async=False):
-        if async:
+    def get_training_batch_number(self, blocking=True):
+        if not blocking:
             return self.train_batch_number
         self.main_lock.acquire()
         self.main_lock.wait_for(predicate=lambda: self.traindata is not None)
         self.main_lock.release()
         return self.train_batch_number
 
-    def get_validation_set(self, async=False):
-        if async:
+    def get_validation_set(self, blocking=True):
+        if not blocking:
             return self.validdata
         self.main_lock.acquire()
         self.main_lock.wait_for(predicate=lambda: self.validdata is not None)
