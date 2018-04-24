@@ -93,14 +93,11 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
     if verbose:
         print('Fitting model...')
         # Notification for telegram
-        try:
-            tele.notify_training_starting(bot=bot,
-                                          model_name=model_type + "_" + model_name,
-                                          training_samples=len(dataset[TRAIN_IN]),
-                                          validation_samples=len(dataset[VALID_IN]),
-                                          tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception:
-            pass
+        tele.notify_training_starting(bot=bot,
+                                      model_name=model_type + "_" + model_name,
+                                      training_samples=len(dataset[TRAIN_IN]),
+                                      validation_samples=len(dataset[VALID_IN]),
+                                      tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
 
     if fit_generator is None:
         history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
@@ -116,31 +113,25 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
-        try:
-            tele.notify_training_end(bot=bot,
-                                     model_name=model_type + "_" + model_name,
-                                     final_loss=str(loss_),
-                                     final_validation_loss=str(valid_loss),
-                                     final_accuracy=str(accuracy),
-                                     final_validation_accuracy=str(valid_accuracy),
-                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception:
-            pass
+        tele.notify_training_end(bot=bot,
+                                 model_name=model_type + "_" + model_name,
+                                 final_loss=str(loss_),
+                                 final_validation_loss=str(valid_loss),
+                                 final_accuracy=str(accuracy),
+                                 final_validation_accuracy=str(valid_accuracy),
+                                 tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
 
         if model_name == CROPPER:
-            try:
-                tele.send_message(bot, "Training sample...")
-                img = dataset[TRAIN_IN][0]
-                map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_message(bot, "Validation sample...")
-                img = dataset[VALID_IN][0]
-                map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-            except Exception:
-                pass
+            tele.send_message(bot, "Training sample...")
+            img = dataset[TRAIN_IN][0]
+            map_ = model.predict(img)
+            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+            tele.send_message(bot, "Validation sample...")
+            img = dataset[VALID_IN][0]
+            map_ = model.predict(img)
+            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+            tele.send_image_from_array(get_image_with_mask(img, map_), bot)
 
     if h5model_path is not None:
         if verbose:
