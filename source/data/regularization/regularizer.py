@@ -36,6 +36,7 @@ class Regularizer:
 
     def normalize(self):
         self.pars[OPS].append(NORMALIZE_AVG_VARIANCE)
+        return self
 
     def heatmaps_threshold(self, thresh):
         self.pars[OPS].append(HEATMAPS_TH)

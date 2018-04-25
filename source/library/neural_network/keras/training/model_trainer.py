@@ -17,7 +17,8 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                 tb_path='', model_name=None, model_type=None,
                 learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
                 additional_callbacks=None, verbose=False,
-                fit_generator: K.utils.Sequence = None):
+                train_generator: K.utils.Sequence = None,
+                valid_generator: K.utils.Sequence = None):
     K.backend.clear_session()
 
     model = model_generator()
@@ -102,12 +103,13 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         except Exception:
             pass
 
-    if fit_generator is None:
+    if train_generator is None or valid_generator is None:
         history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
                             batch_size=batch_size, callbacks=callbacks, verbose=1,
                             validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
     else:
-        # TODO: write fit_generator
+        history = model.fit_generator(generator=train_generator, epochs=epochs, verbose=1,
+                                      callbacks=callbacks, validation_data=valid_generator)
         pass
 
     if verbose:
