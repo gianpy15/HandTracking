@@ -36,12 +36,14 @@ class DatasetManager:
         self.valid_batch_number = int(math.ceil(valid_avail_tot / self.batch_size))
         self.batchdata = [None for _ in range(self.train_batch_number + self.valid_batch_number)]
         while not self.loading_done:
-            idx, frames = self.get_next_batch()
+            idx, frames = self.__get_next_batch()
             if idx is None:
                 break
             assert self.batchdata[idx] is None
-            log("DATA LOADING WORKER: loading %s batch %d" % ("train" if idx < self.train_batch_number else "valid",
-                                                              idx % self.train_batch_number),
+            log("DATA LOADING WORKER: loading %s batch %d" % ("train" if idx < self.train_batch_number
+                                                              else "valid",
+                                                              idx if idx < self.train_batch_number
+                                                              else idx - self.train_batch_number),
                 level=DEBUG)
             data = read_formatted_batch(frames=frames,
                                         formatdict=self.formatting)
@@ -51,7 +53,7 @@ class DatasetManager:
             self.main_lock.release()
         log("DATA LOADING WORKER: quitting")
 
-    def get_next_batch(self):
+    def __get_next_batch(self):
         assert self.batchdata is not None
         index = None
         # try to determine next index to process by popping the urgent queue first
@@ -81,7 +83,9 @@ class DatasetManager:
             return index, self.validframes[start:end]
 
     def get_training_batch(self, index=None, blocking=True):
-        index = index or self.current_train_batch_index
+        if index is None:
+            index = self.current_train_batch_index
+            self.current_train_batch_index += 1
         if not blocking:
             if self.batchdata is None:
                 return None
@@ -95,7 +99,6 @@ class DatasetManager:
             self.urgent_queue.append(index)
         self.main_lock.wait_for(predicate=lambda: self.batchdata[index] is not None)
         self.main_lock.release()
-        self.current_train_batch_index = (index + 1) % self.train_batch_number
         return self.batchdata[index]
 
     def get_training_batch_number(self, blocking=True):
@@ -107,7 +110,10 @@ class DatasetManager:
         return self.train_batch_number
 
     def get_validation_batch(self, index=None, blocking=True):
-        index = index or self.current_valid_batch_index
+        if index is None:
+            index = self.current_valid_batch_index
+            self.current_valid_batch_index += 1
+
         if not blocking:
             if self.batchdata is None:
                 return None
@@ -122,7 +128,6 @@ class DatasetManager:
             self.urgent_queue.append(realindex)
         self.main_lock.wait_for(predicate=lambda: self.batchdata[realindex] is not None)
         self.main_lock.release()
-        self.current_valid_batch_index = (index + 1) % self.valid_batch_number
         return self.batchdata[realindex]
 
     def get_validation_batch_number(self, blocking=True):
