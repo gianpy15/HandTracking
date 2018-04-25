@@ -7,6 +7,21 @@ from library.multi_threading.thread_pool_manager import ThreadPoolManager
 
 
 class DatasetManager:
+    class _DataSequence:
+        def __init__(self, getitem, lenf):
+            self.getitemf = getitem
+            self.lenf = lenf
+
+        def __getitem__(self, item):
+            return self.getitemf(item)
+
+        def __len__(self):
+            return self.lenf()
+
+        def __iter__(self):
+            for idx in range(len(self)):
+                yield self[idx]
+
     def __init__(self, train_samples, valid_samples, batch_size, dataset_dir, formatting):
         self.train_samples = train_samples
         self.valid_samples = valid_samples
@@ -138,9 +153,19 @@ class DatasetManager:
         self.main_lock.release()
         return self.valid_batch_number
 
+    def train(self, blocking=True):
+        return DatasetManager._DataSequence(getitem=lambda idx: self.get_training_batch(index=idx,
+                                                                                        blocking=blocking),
+                                            lenf=lambda: self.get_training_batch_number(blocking=blocking))
+
+    def valid(self, blocking=True):
+        return DatasetManager._DataSequence(getitem=lambda idx: self.get_validation_batch(index=idx,
+                                                                                          blocking=blocking),
+                                            lenf=lambda: self.get_validation_batch_number(blocking=blocking))
+
 
 if __name__ == '__main__':
-    from matplotlib.pyplot import imshow, show
+    # from matplotlib.pyplot import imshow, show
     import time
     dm = DatasetManager(train_samples=5000,
                         valid_samples=5000,
@@ -151,16 +176,20 @@ if __name__ == '__main__':
     batches = []
     set_verbosity(DEBUG)
     t1 = time.time()
-    for idx in range(dm.get_validation_batch_number()):
+    valid = dm.valid()
+    train = dm.train()
+    idx = 0
+    for valid_batch in valid:
         t = time.time()
         print('REQUEST: valid batch %d' % idx)
-        batches.append(dm.get_validation_batch())
+        batches.append(valid_batch)
         print('RESULT valid batch %d in %f ms' % (idx, 1000*(time.time()-t)))
+        idx += 1
 
-    for idx in range(dm.get_training_batch_number()):
+    for idx in range(len(train)):
         t = time.time()
         print('REQUEST: train batch %d' % idx)
-        batches.append(dm.get_training_batch())
+        batches.append(train[idx])
         print('RESULT: train batch %d in %f ms' % (idx, 1000*(time.time()-t)))
     print('total time spent: %f ms' % (1000*(time.time()-t1)))
     # for batch in batches:
