@@ -85,7 +85,7 @@ class DatasetManager:
     def get_training_batch(self, index=None, blocking=True):
         if index is None:
             index = self.current_train_batch_index
-            self.current_train_batch_index += 1
+            self.current_train_batch_index = (self.current_train_batch_index + 1) % self.train_batch_number
         if not blocking:
             if self.batchdata is None:
                 return None
@@ -112,7 +112,7 @@ class DatasetManager:
     def get_validation_batch(self, index=None, blocking=True):
         if index is None:
             index = self.current_valid_batch_index
-            self.current_valid_batch_index += 1
+            self.current_valid_batch_index = (self.current_valid_batch_index + 1) % self.valid_batch_number
 
         if not blocking:
             if self.batchdata is None:
