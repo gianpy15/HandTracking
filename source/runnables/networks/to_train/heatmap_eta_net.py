@@ -14,7 +14,12 @@ import keras.regularizers as kr
 from data.augmentation.data_augmenter import Augmenter
 from data.regularization.regularizer import Regularizer
 import numpy as np
+from data.datasets.reading.dataset_manager import DatasetManager
+from library.neural_network.keras.sequence import TrainSequence, ValidSequence
 
+train_samples = 5
+valid_samples = 1
+batch_size = 20
 
 if __name__ == '__main__':
     model = 'cropper_eta_net_v1'
@@ -29,14 +34,20 @@ if __name__ == '__main__':
     learning_rate = 1e-4
 
     # Load data
-    dataset = load_dataset(train_samples=5,
-                           valid_samples=1,
+    dataset = load_dataset(train_samples=train_samples,
+                           valid_samples=valid_samples,
                            use_depth=False)
+
+    generator = DatasetManager(train_samples=train_samples,
+                               valid_samples=valid_samples,
+                               batch_size=batch_size,
+                               dataset_dir=None,
+                               formatting=CROPS_STD_FORMAT)
 
     # Augment data
     log("Augmenting data...")
     augmenter = Augmenter()
-    augmenter.shift_hue(prob=0.25).shift_sat(prob=0.25).shift_val(prob=0.25)
+    augmenter.shift_hue(prob=.2).shift_sat(prob=.2).shift_val(prob=.2)
     dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
     dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
     log("Augmentation end")
@@ -62,6 +73,9 @@ if __name__ == '__main__':
 
     # Build up the model
     # Model with high penalty for P(x = 1 | not hand)
+    train_sequence = TrainSequence(generator, augmenter=augmenter, regularizer=regularizer)
+    valid_sequence = ValidSequence(generator, augmenter=augmenter, regularizer=regularizer)
+
     model1 = train_model(dataset=dataset,
                          model_generator=lambda: eta_net(input_shape=input_shape, weight_decay=weight_decay,
                                                          dropout_rate=0.5,
@@ -72,6 +86,6 @@ if __name__ == '__main__':
                          tb_path="heat_maps/" + model,
                          model_name=model,
                          model_type=CROPPER,
-                         batch_size=10,
+                         batch_size=batch_size,
                          epochs=100,
                          verbose=True)
