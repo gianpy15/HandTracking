@@ -48,7 +48,7 @@ class BatchGenerator(Sequence):
                 # and it should be the same. Don't tick it as not ready.
 
                 # lend the data!
-                log("Data %d/%d ready, train: %s valid: %s" % (index+1, len(self),
+                log("Data %d/%d ready, input: %s target: %s" % (index+1, len(self),
                                                                np.shape(self.batches[index][0]),
                                                                np.shape(self.batches[index][1])),
                     level=COMMENTARY)
@@ -62,7 +62,7 @@ class BatchGenerator(Sequence):
             next = (index + 1) % len(self)
             self._schedule_batch_preparation(next)
             # and lend the data, finally!
-            log("Data %d/%d computed, train: %s valid: %s" % (index+1, len(self),
+            log("Data %d/%d computed, input: %s target: %s" % (index+1, len(self),
                                                               np.shape(self.batches[index][0]),
                                                               np.shape(self.batches[index][1])),
                 level=COMMENTARY)
@@ -74,7 +74,6 @@ class BatchGenerator(Sequence):
     def on_epoch_end(self):
         # the epoch is done! all work done must be redone! ...
         # ... maybe later. W lazy policies.
-        print(self.batches_on_processing)
         try:
             with self.main_lock:
                 # make sure that nobody is doing useless computation

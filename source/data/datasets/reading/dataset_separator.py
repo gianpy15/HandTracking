@@ -65,13 +65,11 @@ class DatasetSeparator:
         if len(sharedvids) > 0:
             trainavail = self.__available_frames(trainvids)
             validavail = self.__available_frames(validvids)
-            trainsatis = trainavail / train
-            validsatis = validavail / valid
-            if trainsatis + validsatis == 0:
-                trainsatis = valid
-                validsatis = train
-            to_train_idx = int(validsatis / (trainsatis + validsatis))
             sharedframes = self.__vidlist_to_full_framelist(sharedvids)
+            trainmissing = max(0, train-trainavail)
+            validmissing = max(0, valid-validavail)
+            assert trainmissing or validmissing
+            to_train_idx = int(len(sharedframes) * trainmissing / (trainmissing + validmissing))
             trainpool += sharedframes[:to_train_idx]
             validpool += sharedframes[to_train_idx:]
 
@@ -127,3 +125,13 @@ class DatasetSeparator:
             poolbatch.sort(key=self.dataset_info.__getitem__)
             shared = poolbatch.pop(count_smaller_than(target))
             return trainvids, validvids, [shared]
+
+
+if __name__ == '__main__':
+    from data.naming import *
+    ds = DatasetSeparator(crops_path())
+    ds.exclude_videos('hands')
+    sel = ds.select_train_validation_framelists(train=5, valid=5)
+    print('train: %d' % len(sel[0]))
+    print('valid: %d' % len(sel[1]))
+    print('intersection: %s' % set(sel[0]).intersection(set(sel[1])))

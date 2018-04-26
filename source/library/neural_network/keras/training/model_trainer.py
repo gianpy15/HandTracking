@@ -126,11 +126,9 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                 img = train_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_message(bot, "Validation sample...")
                 img = valid_data[0][IN] * 255
                 map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
         except Exception:
             pass

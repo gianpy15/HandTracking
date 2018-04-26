@@ -23,12 +23,13 @@ class DatasetManager:
             for idx in range(len(self)):
                 yield self[idx]
 
-    def __init__(self, train_samples, valid_samples, batch_size, dataset_dir, formatting):
+    def __init__(self, train_samples, valid_samples, batch_size, dataset_dir, formatting, exclude_videos=None):
         self.train_samples = train_samples
         self.valid_samples = valid_samples
         self.batch_size = batch_size
         self.dataset_dir = dataset_dir
         self.formatting = formatting
+        self.exclude_videos = exclude_videos or []
         ThreadPoolManager.get_thread_pool().submit(fn=self.__separate_and_load)
         self.train_batch_number = None
         self.valid_batch_number = None
@@ -43,6 +44,7 @@ class DatasetManager:
 
     def __separate_and_load(self):
         separator = DatasetSeparator(self.dataset_dir)
+        separator.exclude_videos(self.exclude_videos)
         try:
             self.trainframes, self.validframes = separator.select_train_validation_framelists(self.train_samples,
                                                                                     self.valid_samples)
