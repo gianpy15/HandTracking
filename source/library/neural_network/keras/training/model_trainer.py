@@ -41,14 +41,12 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
             checkpoint_path = None
             h5model_path = None
 
-    if verbose:
-        print("Model:")
-        model.summary()
+    log("Model:", level=COMMENTARY)
+    model.summary(print_fn=lambda s: log(s, level=COMMENTARY))
 
     callbacks = []
     if checkpoint_path is not None:
-        if verbose:
-            print("Adding callback for checkpoint...")
+        log("Adding callback for checkpoint...", level=COMMENTARY)
         callbacks.append(kc.ModelCheckpoint(filepath=checkpoint_path,
                                             monitor='val_loss',
                                             verbose=1,
@@ -56,8 +54,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                             mode='min',
                                             period=1))
     if patience > 0:
-        if verbose:
-            print("Adding callback for early stopping...")
+        log("Adding callback for early stopping...", level=COMMENTARY)
         callbacks.append(kc.EarlyStopping(patience=patience,
                                           verbose=1,
                                           monitor='val_loss',
@@ -66,13 +63,11 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
 
     if tb_path is not None:
         TBManager.set_path(tb_path)
-        if verbose:
-            print("Setting up tensorboard...")
-            print("Clearing tensorboard files...")
+        log("Setting up tensorboard...", level=COMMENTARY)
+        log("Clearing tensorboard files...", level=COMMENTARY)
         TBManager.clear_data()
 
-        if verbose:
-            print("Adding tensorboard callbacks...")
+        log("Adding tensorboard callbacks...", level=COMMENTARY)
         callbacks.append(ScalarWriter())
         callbacks.append(ImageWriter(data=(train_data[0][IN],
                                            train_data[0][TARGET]),
@@ -86,14 +81,13 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
     # Training tools
     optimizer = ko.adam(lr=learning_rate)
 
-    if verbose:
-        print("Compiling model...")
+    log("Compiling model...", level=COMMENTARY)
 
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=['accuracy'])
     if verbose:
-        print('Fitting model...')
+        log('Fitting model...', level=COMMENTARY)
         # Notification for telegram
         try:
             tele.notify_training_starting(bot=bot,
@@ -113,7 +107,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                                                  regularizer=regularizer))
 
     if verbose:
-        print('Fitting completed!')
+        log('Fitting completed!', level=COMMENTARY)
         loss_ = "{:.5f}".format(history.history['loss'][-1])
         valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
@@ -129,12 +123,12 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
 
             if model_type == CROPPER:
                 tele.send_message(bot, "Training sample...")
-                img = train_data[0][IN]
+                img = train_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_message(bot, "Validation sample...")
-                img = valid_data[0][IN]
+                img = valid_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
@@ -142,14 +136,12 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
             pass
 
     if h5model_path is not None:
-        if verbose:
-            print("Saving H5 model...")
+        log("Saving H5 model...", level=COMMENTARY)
         model = model_generator()
         model.load_weights(checkpoint_path)
         model.save(h5model_path)
         os.remove(checkpoint_path)
 
-    if verbose:
-        print("Training completed!")
+    log("Training completed!", level=COMMENTARY)
 
     return model

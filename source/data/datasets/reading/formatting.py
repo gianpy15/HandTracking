@@ -1,16 +1,12 @@
 import numpy as np
 
 
-def __heatmap_dequantize(heat):
-    return heat / 255.0
-
-
-CROPIMGFORMAT = ('frame', lambda x: x)
-CROPHEATMAPFORMAT = ('heatmap', __heatmap_dequantize)
+CROPIMGFORMAT = ('frame', lambda x: x / 255.0)
+CROPHEATMAPFORMAT = ('heatmap', lambda x: x / 255.0)
 CROPDEPTHFORMAT = ('depth', lambda x: np.reshape(x, newshape=np.shape(x)+(1,)))
 
-JUNCIMGFORMAT = ('cut', lambda x: x)
-JUNCHEATFORMAT = ('heatmap_array', __heatmap_dequantize)
+JUNCIMGFORMAT = ('cut', lambda x: x / 255.0)
+JUNCHEATFORMAT = ('heatmap_array', lambda x: x / 255.0)
 JUNCVISFORMAT = ('visible', lambda x: x)
 
 

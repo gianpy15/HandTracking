@@ -14,13 +14,13 @@ import numpy as np
 from data import DatasetManager
 from data import Regularizer
 
-train_samples = 6
-valid_samples = 1
-batch_size = 2
+train_samples = 10
+valid_samples = 5
+batch_size = 3
 
 if __name__ == '__main__':
     model = 'cropper_eta_net_v1'
-    set_verbosity(DEBUG)
+    set_verbosity(COMMENTARY)
     m1_path = cropper_h5_path(model)
 
     TBManager.set_path("heat_maps")
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     reg = Regularizer().fixresize(60, 80)
     formatting = CROPS_STD_FORMAT
     oldf = formatting[TARGET][0][1]
-    formatting[TARGET] = ((formatting[TARGET][0][0], lambda x: reg.apply(oldf(x))),)
+    formatting[TARGET] = ((formatting[TARGET][0][0], lambda x: np.expand_dims(reg.apply(oldf(x)), axis=-1)),)
     # Load data
     generator = DatasetManager(train_samples=train_samples,
                                valid_samples=valid_samples,
@@ -52,5 +52,5 @@ if __name__ == '__main__':
                          tb_path="heat_maps/" + model,
                          model_name=model,
                          model_type=CROPPER,
-                         epochs=100,
+                         epochs=2,
                          verbose=True)

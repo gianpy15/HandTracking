@@ -47,7 +47,9 @@ class DatasetManager:
             self.trainframes, self.validframes = separator.select_train_validation_framelists(self.train_samples,
                                                                                     self.valid_samples)
         except Exception as e:
+            traceback.print_exc()
             log(str(e), level=ERRORS)
+            raise e
         train_avail_tot = len(self.trainframes)
         valid_avail_tot = len(self.validframes)
         self.train_batch_number = int(math.ceil(train_avail_tot / self.batch_size))
@@ -69,6 +71,7 @@ class DatasetManager:
             except Exception as e:
                 traceback.print_exc()
                 log(str(e), level=ERRORS)
+                raise e
             self.main_lock.acquire()
             self.batchdata[idx] = data
             self.main_lock.notify_all()

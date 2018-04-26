@@ -47,7 +47,7 @@ def hsv2rgb_pix(arr: np.ndarray):
     return arr
 
 
-@jit(nopython=True, parallel=True, nogil=True)
+@jit(nopython=True, parallel=False, nogil=True)
 def hsv2rgb(arr: np.ndarray):
     for i in prange(len(arr)):
         for j in prange(len(arr[i])):
@@ -55,7 +55,7 @@ def hsv2rgb(arr: np.ndarray):
     return arr
 
 
-@jit(nopython=True, parallel=True, nogil=True)
+@jit(nopython=True, parallel=False, nogil=True)
 def rgb2hsv(arr: np.ndarray):
     for i in prange(len(arr)):
         for j in prange(len(arr[i])):
