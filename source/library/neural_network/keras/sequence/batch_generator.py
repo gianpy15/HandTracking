@@ -95,7 +95,7 @@ class BatchGenerator(Sequence):
             assert not self.batches_ready[index]
 
             # do your job
-            augmented_in_batch = self.augmenter.apply_on_batch(self.data_sequence[index][IN][:])
+            augmented_in_batch = self.augmenter.apply_on_batch(np.array(self.data_sequence[index][IN]))
             target_batch = self.data_sequence[index][TARGET]
             in_batch = self.reg.apply_on_batch(augmented_in_batch)
 
@@ -119,5 +119,6 @@ class BatchGenerator(Sequence):
                 return
             self.batches_on_processing[index] = True
             ThreadPoolManager.get_thread_pool().submit(self._prepare_batch, index)
+
 
 
