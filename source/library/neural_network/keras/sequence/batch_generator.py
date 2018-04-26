@@ -33,7 +33,7 @@ class BatchGenerator(Sequence):
         self._schedule_batch_preparation(0)
 
     def __getitem__(self, index):
-        log("Requested index %d/%d" % (index+1, len(self)), level=COMMENTARY)
+        log("Requested index %d/%d" % (index+1, len(self)), level=DEBUG)
         log("Processing: %s" % self.batches_on_processing, level=DEBUG)
         log("Ready: %s" % self.batches_ready, level=DEBUG)
         # synchronize
@@ -51,7 +51,7 @@ class BatchGenerator(Sequence):
                 log("Data %d/%d ready, input: %s target: %s" % (index+1, len(self),
                                                                np.shape(self.batches[index][0]),
                                                                np.shape(self.batches[index][1])),
-                    level=COMMENTARY)
+                    level=DEBUG)
                 return self.batches[index]
 
         # here the batch was not ready and nobody is processing it...
@@ -65,7 +65,7 @@ class BatchGenerator(Sequence):
             log("Data %d/%d computed, input: %s target: %s" % (index+1, len(self),
                                                               np.shape(self.batches[index][0]),
                                                               np.shape(self.batches[index][1])),
-                level=COMMENTARY)
+                level=DEBUG)
             return self.batches[index]
 
     def __len__(self):
