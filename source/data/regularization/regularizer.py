@@ -22,17 +22,21 @@ class Regularizer:
     def padding(self, right_pad, left_pad):
         self.pars[OPS].append(PADDING)
         self.pars[PADDING] = [right_pad, left_pad]
+        return self
 
     def rgb2gray(self):
         self.pars[OPS].append(RGB2GREY)
+        return self
 
     def percresize(self, perc):
         self.pars[OPS].append(RESIZEPERC)
         self.pars[RESIZEPERC] = perc
+        return self
 
     def fixresize(self, height, width):
         self.pars[OPS].append(RESIZEFIX)
         self.pars[RESIZEFIX] = [height, width]
+        return self
 
     def normalize(self):
         self.pars[OPS].append(NORMALIZE_AVG_VARIANCE)
@@ -41,6 +45,7 @@ class Regularizer:
     def heatmaps_threshold(self, thresh):
         self.pars[OPS].append(HEATMAPS_TH)
         self.pars[HEATMAPS_TH] = thresh
+        return self
 
     def apply(self, frame: np.ndarray):
         for op in self.pars[OPS]:

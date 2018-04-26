@@ -58,17 +58,18 @@ class DatasetSeparator:
 
         # select which videos will be used for which task
         trainvids, validvids, sharedvids = self.__choose_train_valid_shared_videos(train, valid)
-
         # read the complete frames list
         trainpool = self.__vidlist_to_full_framelist(trainvids)
         validpool = self.__vidlist_to_full_framelist(validvids)
-
         # if any shared video is needed, shared based on needs
         if len(sharedvids) > 0:
             trainavail = self.__available_frames(trainvids)
             validavail = self.__available_frames(validvids)
             trainsatis = trainavail / train
             validsatis = validavail / valid
+            if trainsatis + validsatis == 0:
+                trainsatis = valid
+                validsatis = train
             to_train_idx = int(validsatis / (trainsatis + validsatis))
             sharedframes = self.__vidlist_to_full_framelist(sharedvids)
             trainpool += sharedframes[:to_train_idx]

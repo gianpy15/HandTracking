@@ -47,7 +47,7 @@ class BatchGenerator(Sequence):
             # and it should be the same. Don't tick it as not ready.
 
             # lend the data!
-            return self.batches[index]
+            return self.batches[index][IN], self.batches[index][TARGET]
 
         # here the batch was not ready and nobody is processing it...
         # so we must do the dirty job, possibly with full resources.
@@ -59,7 +59,7 @@ class BatchGenerator(Sequence):
             ThreadPoolManager.get_thread_pool().submit(fn=self._prepare_batch,
                                                        args=(next,))
         # and lend the data, finally!
-        return self.batches[index]
+        return self.batches[index][IN], self.batches[index][TARGET]
 
     def __len__(self):
         return len(self.data_sequence)

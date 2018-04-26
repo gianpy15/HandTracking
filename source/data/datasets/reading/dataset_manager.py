@@ -4,6 +4,7 @@ import threading
 from data.datasets.reading.dataset_separator import DatasetSeparator
 from data.datasets.reading.general_reading import read_formatted_batch
 from library.multi_threading.thread_pool_manager import ThreadPoolManager
+import traceback
 
 
 class DatasetManager:
@@ -42,11 +43,13 @@ class DatasetManager:
 
     def __separate_and_load(self):
         separator = DatasetSeparator(self.dataset_dir)
-        self.trainframes, self.validframes = separator.select_train_validation_framelists(self.train_samples,
-                                                                                self.valid_samples)
+        try:
+            self.trainframes, self.validframes = separator.select_train_validation_framelists(self.train_samples,
+                                                                                    self.valid_samples)
+        except Exception as e:
+            log(str(e), level=ERRORS)
         train_avail_tot = len(self.trainframes)
         valid_avail_tot = len(self.validframes)
-
         self.train_batch_number = int(math.ceil(train_avail_tot / self.batch_size))
         self.valid_batch_number = int(math.ceil(valid_avail_tot / self.batch_size))
         self.batchdata = [None for _ in range(self.train_batch_number + self.valid_batch_number)]
@@ -60,8 +63,12 @@ class DatasetManager:
                                                               idx if idx < self.train_batch_number
                                                               else idx - self.train_batch_number),
                 level=DEBUG)
-            data = read_formatted_batch(frames=frames,
-                                        formatdict=self.formatting)
+            try:
+                data = read_formatted_batch(frames=frames,
+                                            formatdict=self.formatting)
+            except Exception as e:
+                traceback.print_exc()
+                log(str(e), level=ERRORS)
             self.main_lock.acquire()
             self.batchdata[idx] = data
             self.main_lock.notify_all()

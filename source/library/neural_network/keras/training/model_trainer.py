@@ -1,25 +1,26 @@
-import os
-
 import keras as K
 import keras.callbacks as kc
 import keras.optimizers as ko
 
+from data.datasets.reading.dataset_manager import DatasetManager
 from data.naming import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter
 from library.neural_network.keras.callbacks.scalar_writer import ScalarWriter
 from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
+from library.neural_network.keras.sequence import BatchGenerator
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from library.telegram import telegram_bot as tele
 from library.utils.visualization_utils import get_image_with_mask
 
 
-def train_model(model_generator, dataset, loss=prop_heatmap_loss,
-                tb_path='', model_name=None, model_type=None,
-                learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
-                additional_callbacks=None, verbose=False,
-                train_generator: K.utils.Sequence = None,
-                valid_generator: K.utils.Sequence = None):
+def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heatmap_loss,
+                tb_path='', model_name=None, model_type=None, augmenter=None, regularizer=None,
+                learning_rate=1e-3, epochs=50, patience=-1,
+                additional_callbacks=None, verbose=False):
     K.backend.clear_session()
+
+    train_data = dataset_manager.train()
+    valid_data = dataset_manager.valid()
 
     model = model_generator()
     bot = tele.newbot()
@@ -73,11 +74,11 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         if verbose:
             print("Adding tensorboard callbacks...")
         callbacks.append(ScalarWriter())
-        callbacks.append(ImageWriter(data=(dataset[TRAIN_IN],
-                                           dataset[TRAIN_TARGET]),
+        callbacks.append(ImageWriter(data=(train_data[0][IN],
+                                           train_data[0][TARGET]),
                                      name='train_output'))
-        callbacks.append(ImageWriter(data=(dataset[VALID_IN],
-                                           dataset[VALID_TARGET]),
+        callbacks.append(ImageWriter(data=(valid_data[0][IN],
+                                           valid_data[0][TARGET]),
                                      name='valid_output', freq=3))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
@@ -97,20 +98,19 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
         try:
             tele.notify_training_starting(bot=bot,
                                           model_name=model_type + "_" + model_name,
-                                          training_samples=len(dataset[TRAIN_IN]),
-                                          validation_samples=len(dataset[VALID_IN]),
+                                          training_samples=len(train_data) * dataset_manager.batch_size,
+                                          validation_samples=len(valid_data) * dataset_manager.batch_size,
                                           tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
         except Exception:
             pass
 
-    if train_generator is None or valid_generator is None:
-        history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
-                            batch_size=batch_size, callbacks=callbacks, verbose=1,
-                            validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
-    else:
-        history = model.fit_generator(generator=train_generator, epochs=epochs, verbose=1,
-                                      callbacks=callbacks, validation_data=valid_generator)
-        pass
+    history = model.fit_generator(generator=BatchGenerator(data_sequence=train_data,
+                                                           augmenter=augmenter,
+                                                           regularizer=regularizer),
+                                  epochs=epochs, verbose=1, callbacks=callbacks,
+                                  validation_data=BatchGenerator(data_sequence=valid_data,
+                                                                 augmenter=augmenter,
+                                                                 regularizer=regularizer))
 
     if verbose:
         print('Fitting completed!')
@@ -127,14 +127,14 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                                      final_validation_accuracy=str(valid_accuracy),
                                      tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
 
-            if model_name == CROPPER:
+            if model_type == CROPPER:
                 tele.send_message(bot, "Training sample...")
-                img = dataset[TRAIN_IN][0]
+                img = train_data[0][IN]
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_message(bot, "Validation sample...")
-                img = dataset[VALID_IN][0]
+                img = valid_data[0][IN]
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
