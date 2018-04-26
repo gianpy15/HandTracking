@@ -1,6 +1,6 @@
-import keras.layers as kl
-import keras.models as km
 import keras as K
+import keras.layers as kl
+from keras.models import Model
 
 
 def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activation='relu'):
@@ -62,7 +62,7 @@ def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activa
     # Output with one filter and sigmoid activation function
     out = kl.Conv2D(filters=1, kernel_size=[1, 1], activation='sigmoid')(act7)
 
-    eta_net_model = km.Model(input=inputs, output=out, name=name)
+    eta_net_model = Model(inputs=(inputs,), outputs=(out,), name=name)
 
     return eta_net_model
 
