@@ -90,8 +90,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
         log('Fitting model...', level=COMMENTARY)
         # Notification for telegram
         try:
-            tele.notify_training_starting(bot=bot,
-                                          model_name=model_type + "_" + model_name,
+            tele.notify_training_starting(model_name=model_type + "_" + model_name,
                                           training_samples=len(train_data) * dataset_manager.batch_size,
                                           validation_samples=len(valid_data) * dataset_manager.batch_size,
                                           tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")

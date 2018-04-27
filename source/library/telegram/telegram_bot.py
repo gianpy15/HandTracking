@@ -4,8 +4,10 @@ import socket
 import numpy as np
 import io
 import time
+import requests
 from PIL import Image
 
+URL = 'https://api.telegram.org/bot{0}/{1}'
 BOT_TOKEN = "561223507:AAGvadvBfQcRb3hhTXQN1FN7c2xtn6B9vm0"
 CHAT_ID = -307476339
 
@@ -14,10 +16,20 @@ def newbot():
     return telepot.Bot(BOT_TOKEN)
 
 
-def send_message(bot=None, message="", disable_notification=False):
+def send_message(message="", bot=None, disable_notification=False):
     if bot is None:
-        bot = newbot()
-    bot.sendMessage(CHAT_ID, message, disable_notification=disable_notification)
+        __send_message(message=message)
+    else:
+        bot.sendMessage(CHAT_ID, message, disable_notification=disable_notification)
+
+
+def __send_message(message=""):
+    response = requests.post(
+        url=URL.format(BOT_TOKEN, 'sendMessage'),
+        data={'chat_id': CHAT_ID, 'text': message}
+    ).json()
+
+    return response
 
 
 def notify_training_starting(bot=None, model_name=None, **kwargs):
@@ -98,11 +110,11 @@ def send_image(image, bot=None, caption=None):
 
 if __name__ == "__main__":
     bot = newbot()
-    send_message(bot, "test")
+    send_message(message="test senza usare telepot")
 
-    time.sleep(301)
+    #time.sleep(301)
 
-    send_message(bot, "test after 300 secs")
+    #send_message(bot, "test after 300 secs")
     """
     h = 200
     w = 200
