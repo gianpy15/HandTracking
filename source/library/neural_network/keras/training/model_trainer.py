@@ -23,7 +23,6 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
     valid_data = dataset_manager.valid()
 
     model = model_generator()
-    bot = tele.newbot()
 
     if model_name is None or model_type is None:
         checkpoint_path = None
@@ -86,7 +85,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=['accuracy'])
-
+    """
     if verbose:
         log('Fitting model...', level=COMMENTARY)
         # Notification for telegram
@@ -98,6 +97,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                           tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
         except Exception:
             pass
+    """
 
     history = model.fit_generator(generator=BatchGenerator(data_sequence=train_data,
                                                            augmenter=augmenter,
@@ -123,6 +123,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
         try:
+            bot = tele.newbot()
             tele.notify_training_end(bot=bot,
                                      model_name=model_type + "_" + model_name,
                                      final_loss=str(loss_),
