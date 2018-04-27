@@ -129,11 +129,11 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
 
             if model_type == CROPPER:
                 tele.send_message(message="Training samples:")
-                img = train_data[0][IN] * 255
+                img = train_data[0][IN(0)] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_))
                 tele.send_message(message="Validation samples:")
-                img = valid_data[0][IN] * 255
+                img = valid_data[0][IN(0)] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_))
         except Exception:
