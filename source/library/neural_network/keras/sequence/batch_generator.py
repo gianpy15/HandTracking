@@ -1,16 +1,15 @@
 from keras.utils import Sequence
 from data.naming import *
-from data.regularization.regularizer import Regularizer
-from data.augmentation.data_augmenter import Augmenter
 from library.multi_threading.thread_pool_manager import ThreadPoolManager
 from threading import Condition
+from library.neural_network.batch_processing.processing_plan import ProcessingPlan
+import numpy as np
 import traceback
 
 
 class BatchGenerator(Sequence):
     def __init__(self, data_sequence,
-                 augmenter: Augmenter = None,
-                 regularizer: Regularizer = None):
+                 process_plan: ProcessingPlan=None):
         """
         Create a Sequence to feed the fit_generator with freshly augmented data every batch
         :param data_sequence: an object providing the raw data through subscription.
@@ -23,9 +22,7 @@ class BatchGenerator(Sequence):
         super(BatchGenerator, self).__init__()
         self.epoch = 0
         self.data_sequence = data_sequence
-        self.reg = regularizer or Regularizer().normalize()
-        self.augmenter = augmenter or Augmenter().shift_hue(.2).shift_sat(.2).shift_val(.2)
-
+        self.batch_processing = process_plan or ProcessingPlan()
         self.batches = [None for _ in range(len(self.data_sequence))]
         self.batches_on_processing = [False for _ in range(len(self.data_sequence))]
         self.batches_ready = [False for _ in range(len(self.data_sequence))]
@@ -33,7 +30,7 @@ class BatchGenerator(Sequence):
         self._schedule_batch_preparation(0)
 
     def __getitem__(self, index):
-        log("Requested index %d/%d" % (index+1, len(self)), level=DEBUG)
+        log("Requested index %d/%d" % (index + 1, len(self)), level=DEBUG)
         log("Processing: %s" % self.batches_on_processing, level=DEBUG)
         log("Ready: %s" % self.batches_ready, level=DEBUG)
         # synchronize
@@ -48,9 +45,9 @@ class BatchGenerator(Sequence):
                 # and it should be the same. Don't tick it as not ready.
 
                 # lend the data!
-                log("Data %d/%d ready, input: %s target: %s" % (index+1, len(self),
-                                                               np.shape(self.batches[index][0]),
-                                                               np.shape(self.batches[index][1])),
+                log("Data %d/%d ready, input: %s target: %s" % (index + 1, len(self),
+                                                                np.shape(self.batches[index][0]),
+                                                                np.shape(self.batches[index][1])),
                     level=DEBUG)
                 return self.batches[index]
 
@@ -62,9 +59,9 @@ class BatchGenerator(Sequence):
             next = (index + 1) % len(self)
             self._schedule_batch_preparation(next)
             # and lend the data, finally!
-            log("Data %d/%d computed, input: %s target: %s" % (index+1, len(self),
-                                                              np.shape(self.batches[index][0]),
-                                                              np.shape(self.batches[index][1])),
+            log("Data %d/%d computed, input: %s target: %s" % (index + 1, len(self),
+                                                               np.shape(self.batches[index][0]),
+                                                               np.shape(self.batches[index][1])),
                 level=DEBUG)
             return self.batches[index]
 
@@ -88,21 +85,20 @@ class BatchGenerator(Sequence):
             raise e
 
     def _prepare_batch(self, index):
-        log("Preparing batch %d/%d" % (index+1, len(self)), level=DEBUG)
+        log("Preparing batch %d/%d" % (index + 1, len(self)), level=DEBUG)
         try:
             self.batches_on_processing[index] = True
             # check everything is okay
             assert not self.batches_ready[index]
 
             # do your job
-            augmented_in_batch = self.augmenter.apply_on_batch(np.array(self.data_sequence[index][IN]))
-            target_batch = self.data_sequence[index][TARGET]
-            in_batch = self.reg.apply_on_batch(augmented_in_batch)
+            processed_in_batchdict = self.batch_processing.process_filtered_batch(self.data_sequence[index], IN)
+            processed_out_batchdict = self.batch_processing.process_filtered_batch(self.data_sequence[index], OUT)
 
             # synchronize
             with self.main_lock:
                 # say everything is ready
-                self.batches[index] = ([in_batch], [target_batch])
+                self.batches[index] = (processed_in_batchdict, processed_out_batchdict)
                 self.batches_ready[index] = True
                 self.batches_on_processing[index] = False
                 # wake up those lazy sleepers
@@ -111,7 +107,7 @@ class BatchGenerator(Sequence):
             traceback.print_exc()
             log(str(e), level=ERRORS)
             raise e
-        log("Prepared batch %d/%d" % (index+1, len(self)), level=DEBUG)
+        log("Prepared batch %d/%d" % (index + 1, len(self)), level=DEBUG)
 
     def _schedule_batch_preparation(self, index):
         with self.main_lock:
@@ -119,6 +115,3 @@ class BatchGenerator(Sequence):
                 return
             self.batches_on_processing[index] = True
             ThreadPoolManager.get_thread_pool().submit(self._prepare_batch, index)
-
-
-

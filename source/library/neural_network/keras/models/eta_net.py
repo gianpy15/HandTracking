@@ -1,10 +1,11 @@
 import keras as K
 import keras.layers as kl
 from keras.models import Model
+from data import IN, OUT
 
 
 def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activation='relu'):
-    inputs = kl.Input(shape=input_shape)
+    inputs = kl.Input(shape=input_shape, name=IN(0))
 
     # Encoding part of the network
     conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(inputs)
@@ -60,7 +61,7 @@ def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activa
     act7 = kl.Activation(activation)(conv7) if type(activation) is str else activation()(conv7)
 
     # Output with one filter and sigmoid activation function
-    out = kl.Conv2D(filters=1, kernel_size=[1, 1], activation='sigmoid')(act7)
+    out = kl.Conv2D(filters=1, kernel_size=[1, 1], activation='sigmoid', name=OUT(0))(act7)
 
     eta_net_model = Model(inputs=(inputs,), outputs=(out,), name=name)
 

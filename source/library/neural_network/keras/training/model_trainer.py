@@ -12,10 +12,11 @@ from library.neural_network.keras.sequence import BatchGenerator
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from library.telegram import telegram_bot as tele
 from library.utils.visualization_utils import get_image_with_mask
+from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 
 
 def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heatmap_loss,
-                tb_path='', model_name=None, model_type=None, augmenter=None, regularizer=None,
+                tb_path='', model_name=None, model_type=None, data_processing_plan: ProcessingPlan=None,
                 learning_rate=1e-3, epochs=50, patience=-1,
                 additional_callbacks=None, verbose=False):
     K.backend.clear_session()
@@ -69,11 +70,11 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
 
         log("Adding tensorboard callbacks...", level=COMMENTARY)
         callbacks.append(ScalarWriter())
-        callbacks.append(ImageWriter(data=(train_data[0][IN],
-                                           train_data[0][TARGET]),
+        callbacks.append(ImageWriter(data=(train_data[0][IN(0)],
+                                           train_data[0][OUT(0)]),
                                      name='train_output'))
-        callbacks.append(ImageWriter(data=(valid_data[0][IN],
-                                           valid_data[0][TARGET]),
+        callbacks.append(ImageWriter(data=(valid_data[0][IN(0)],
+                                           valid_data[0][OUT(0)]),
                                      name='valid_output', freq=3))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
@@ -99,12 +100,10 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
             traceback.print_exc()
 
     history = model.fit_generator(generator=BatchGenerator(data_sequence=train_data,
-                                                           augmenter=augmenter,
-                                                           regularizer=regularizer),
+                                                           process_plan=data_processing_plan),
                                   epochs=epochs, verbose=1, callbacks=callbacks,
                                   validation_data=BatchGenerator(data_sequence=valid_data,
-                                                                 augmenter=augmenter,
-                                                                 regularizer=regularizer))
+                                                                 process_plan=data_processing_plan))
 
     if h5model_path is not None:
         log("Saving H5 model...", level=COMMENTARY)
@@ -132,11 +131,11 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
 
             if model_type == CROPPER:
                 tele.send_message(bot=bot, message="Training samples:")
-                img = train_data[0][IN] * 255
+                img = train_data[0][IN(0)] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
                 tele.send_message(bot=bot, message="Validation samples:")
-                img = valid_data[0][IN] * 255
+                img = valid_data[0][IN(0)] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
         except Exception:
