@@ -102,7 +102,7 @@ class BatchGenerator(Sequence):
             # synchronize
             with self.main_lock:
                 # say everything is ready
-                self.batches[index] = (in_batch, target_batch)
+                self.batches[index] = ([in_batch], [target_batch])
                 self.batches_ready[index] = True
                 self.batches_on_processing[index] = False
                 # wake up those lazy sleepers

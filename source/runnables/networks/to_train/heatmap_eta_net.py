@@ -14,9 +14,9 @@ import numpy as np
 from data import DatasetManager
 from data import Regularizer
 
-train_samples = 4
-valid_samples = 1
-batch_size = 15
+train_samples = 5
+valid_samples = 2
+batch_size = 2
 
 if __name__ == '__main__':
     model = 'cropper_eta_net_v1'

@@ -51,7 +51,7 @@ def notify_training_starting(bot=None, model_name=None, **kwargs):
         for key, value in kwargs.items():
             string += "\t\t{}: {}\n".format(key, str(value))
 
-    send_message(bot, string)
+    send_message(bot=bot, message=string)
 
 
 def notify_training_end(bot=None, model_name=None, **kwargs):
@@ -73,7 +73,7 @@ def notify_training_end(bot=None, model_name=None, **kwargs):
         for key, value in kwargs.items():
             string += "\t\t{}: {}\n".format(key, str(value))
 
-    send_message(bot, string)
+    send_message(bot=bot, message=string)
 
 
 def send_image_from_file(image_path, bot=None, caption=None):
@@ -93,13 +93,13 @@ def send_image_from_array(image: np.ndarray, bot=None, caption=None):
             imagefile = io.BytesIO()
             Image.fromarray(np.array(im, dtype=np.uint8)).save(imagefile, format='PNG')
             imagefile.read = imagefile.getvalue
-            send_image(imagefile, bot=bot, caption=caption)
+            send_image(image=imagefile, bot=bot, caption=caption)
 
     elif len(np.shape(image)) == 3:  # If image is a single image
         imagefile = io.BytesIO()
         Image.fromarray(np.array(image, dtype=np.uint8)).save(imagefile, format='PNG')
         imagefile.read = imagefile.getvalue
-        send_image(imagefile, bot=bot, caption=caption)
+        send_image(image=imagefile, bot=bot, caption=caption)
 
 
 def send_image(image, bot=None, caption=None):

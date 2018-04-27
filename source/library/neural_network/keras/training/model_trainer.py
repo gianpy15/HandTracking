@@ -1,6 +1,7 @@
 import keras as K
 import keras.callbacks as kc
 import keras.optimizers as ko
+import traceback
 
 from data.datasets.reading.dataset_manager import DatasetManager
 from data.naming import *
@@ -95,7 +96,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                           validation_samples=len(valid_data) * dataset_manager.batch_size,
                                           tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
         except Exception:
-            pass
+            traceback.print_exc()
 
     history = model.fit_generator(generator=BatchGenerator(data_sequence=train_data,
                                                            augmenter=augmenter,
@@ -130,15 +131,15 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                      final_validation_accuracy=str(valid_accuracy))
 
             if model_type == CROPPER:
-                tele.send_message(bot, "Training samples:")
+                tele.send_message(bot=bot, message="Training samples:")
                 img = train_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_message(bot, "Validation samples:")
+                tele.send_message(bot=bot, message="Validation samples:")
                 img = valid_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
         except Exception:
-            pass
+            traceback.print_exc()
 
     return model
