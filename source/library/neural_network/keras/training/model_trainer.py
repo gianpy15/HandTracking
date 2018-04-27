@@ -121,23 +121,21 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
         try:
-            bot = tele.newbot()
-            tele.notify_training_end(bot=bot,
-                                     model_name=model_type + "_" + model_name,
+            tele.notify_training_end(model_name=model_type + "_" + model_name,
                                      final_loss=str(loss_),
                                      final_validation_loss=str(valid_loss),
                                      final_accuracy=str(accuracy),
                                      final_validation_accuracy=str(valid_accuracy))
 
             if model_type == CROPPER:
-                tele.send_message(bot=bot, message="Training samples:")
-                img = train_data[0][IN(0)] * 255
+                tele.send_message(message="Training samples:")
+                img = train_data[0][IN] * 255
                 map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_message(bot=bot, message="Validation samples:")
-                img = valid_data[0][IN(0)] * 255
+                tele.send_image_from_array(get_image_with_mask(img, map_))
+                tele.send_message(message="Validation samples:")
+                img = valid_data[0][IN] * 255
                 map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_), bot)
+                tele.send_image_from_array(get_image_with_mask(img, map_))
         except Exception:
             traceback.print_exc()
 
