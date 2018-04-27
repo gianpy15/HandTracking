@@ -86,6 +86,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=['accuracy'])
+
     if verbose:
         log('Fitting model...', level=COMMENTARY)
         # Notification for telegram
@@ -106,6 +107,15 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                                                  augmenter=augmenter,
                                                                  regularizer=regularizer))
 
+    if h5model_path is not None:
+        log("Saving H5 model...", level=COMMENTARY)
+        model = model_generator()
+        model.load_weights(checkpoint_path)
+        model.save(h5model_path)
+        os.remove(checkpoint_path)
+
+    log("Training completed!", level=COMMENTARY)
+
     if verbose:
         log('Fitting completed!', level=COMMENTARY)
         loss_ = "{:.5f}".format(history.history['loss'][-1])
@@ -118,28 +128,18 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
                                      final_loss=str(loss_),
                                      final_validation_loss=str(valid_loss),
                                      final_accuracy=str(accuracy),
-                                     final_validation_accuracy=str(valid_accuracy),
-                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+                                     final_validation_accuracy=str(valid_accuracy))
 
             if model_type == CROPPER:
-                tele.send_message(bot, "Training sample...")
+                tele.send_message(bot, "Training samples:")
                 img = train_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
-                tele.send_message(bot, "Validation sample...")
+                tele.send_message(bot, "Validation samples:")
                 img = valid_data[0][IN] * 255
                 map_ = model.predict(img)
                 tele.send_image_from_array(get_image_with_mask(img, map_), bot)
         except Exception:
             pass
-
-    if h5model_path is not None:
-        log("Saving H5 model...", level=COMMENTARY)
-        model = model_generator()
-        model.load_weights(checkpoint_path)
-        model.save(h5model_path)
-        os.remove(checkpoint_path)
-
-    log("Training completed!", level=COMMENTARY)
 
     return model
