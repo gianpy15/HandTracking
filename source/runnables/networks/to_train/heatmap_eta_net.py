@@ -14,8 +14,8 @@ import numpy as np
 from data import DatasetManager
 from data import Regularizer
 
-train_samples = 4000
-valid_samples = 1000
+train_samples = 4
+valid_samples = 1
 batch_size = 15
 
 if __name__ == '__main__':
@@ -52,5 +52,5 @@ if __name__ == '__main__':
                          tb_path="heat_maps/" + model,
                          model_name=model,
                          model_type=CROPPER,
-                         epochs=2,
+                         epochs=1,
                          verbose=True)
