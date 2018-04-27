@@ -52,5 +52,5 @@ if __name__ == '__main__':
                          tb_path="heat_maps/" + model,
                          model_name=model,
                          model_type=CROPPER,
-                         epochs=1,
+                         epochs=100,
                          verbose=True)
