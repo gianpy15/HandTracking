@@ -13,6 +13,7 @@ RESIZEFIX = 'RESIZEFIX'
 PADDING = 'PADDING'
 HEATMAPS_TH = 'HEATMAPS_TH'
 OPS = 'OPS'
+DIVIDEBYMAX = 'DIV_MAX'
 
 
 class Regularizer:
@@ -42,6 +43,9 @@ class Regularizer:
         self.pars[OPS].append(HEATMAPS_TH)
         self.pars[HEATMAPS_TH] = thresh
 
+    def divide_by_max(self):
+        self.pars[OPS].append(DIVIDEBYMAX)
+
     def apply(self, frame: np.ndarray):
         for op in self.pars[OPS]:
             if op == PADDING:
@@ -66,6 +70,9 @@ class Regularizer:
             if op == HEATMAPS_TH:
                 frame = heat_thresh(frame, self.pars[HEATMAPS_TH])
                 continue
+            if op == DIVIDEBYMAX:
+                frame = div_by_max(frame)
+                continue
             frame = normalize(frame)
         return frame
 
@@ -80,6 +87,13 @@ def add_padding(image, right_pad, bottom_pad):
     image = np.hstack((image, np.zeros([image.shape[0], right_pad, image.shape[2]], dtype=image.dtype)))
     image = np.vstack((image, np.zeros([bottom_pad, image.shape[1], image.shape[2]], dtype=image.dtype)))
     return image
+
+
+def div_by_max(frame):
+    m = np.max(frame)
+    if m != 0:
+        frame = frame / m
+    return frame
 
 
 def rgb2gray(rgb):
