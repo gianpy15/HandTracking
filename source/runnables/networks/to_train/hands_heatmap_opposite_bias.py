@@ -13,11 +13,12 @@ from data.naming import *
 from library.neural_network.keras.models.opposite_bias_model import opposite_bias_adversarial, opposite_bias_regularizer
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
+import keras as K
 from data.augmentation.data_augmenter import Augmenter
 from data.regularization.regularizer import Regularizer
 import numpy as np
 
-model = 'cropper_opposite_bias_v2'
+model = 'cropper_opposite_bias_norm_leaky_v1'
 
 m1_path = cropper_h5_path(model + "m1")
 m2_path = cropper_h5_path(model + "m2")
@@ -27,10 +28,10 @@ TBManager.set_path("heat_maps")
 train = True
 
 # Hyper parameters
-weight_decay = kr.l2(1e-5)
-learning_rate = 1e-3
+weight_decay = kr.l2(1e-6)
+learning_rate = 1e-4
 loss_delta = 0.8
-activation = Abs
+activation = lambda: K.layers.LeakyReLU(alpha=0.1)
 
 
 # Load data
@@ -41,9 +42,9 @@ dataset = load_dataset(train_samples=4000,
 # Augment data
 log("Augmenting data...")
 augmenter = Augmenter()
-augmenter.shift_hue(prob=0.25).shift_sat(prob=0.25).shift_val(prob=0.25)
+augmenter.shift_hue(prob=0.25).shift_sat(prob=0.15).shift_val(prob=0.4)
 dataset[TRAIN_IN] = augmenter.apply_on_batch(dataset[TRAIN_IN])
-dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
+# dataset[VALID_IN] = augmenter.apply_on_batch(dataset[VALID_IN])
 log("Augmentation end")
 
 # Regularize data
@@ -79,7 +80,7 @@ def attach_heat_map(inputs, fitted_model_positive_path, fitted_model_negative_pa
 model1 = train_model(dataset=dataset,
                      model_generator=lambda: opposite_bias_adversarial(weight_decay=weight_decay,
                                                                        activation=activation),
-                     loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, 0.8),
+                     loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, 3),
                      learning_rate=learning_rate,
                      patience=5,
                      tb_path="heat_maps/" + model + "m1",

@@ -173,6 +173,22 @@ if __name__ == '__main__':
             indexes=indexes,
             discard=discard,
         )
+
+        # keypress binding 
+        canvas.bind('p', lambda e: player.play())
+        canvas.bind('o', lambda e: player.pause())
+        canvas.bind('k', lambda e: player.keepthis())
+        canvas.bind('l', lambda e: player.keepall())
+        canvas.bind('d', lambda e: player.set_changes())
+        canvas.bind('s', lambda e: player.print_changes(vidname))
+        canvas.bind('<Up>', lambda e: player.set_current_frame(player.current_frame+1))
+        canvas.bind('<Right>', lambda e: player.next_fixed_frame())
+        canvas.bind('<Down>', lambda e: player.set_current_frame(player.current_frame-1))
+        canvas.bind('<Left>', lambda e: player.next_fixed_frame(jumps=-1))
+        canvas.bind('a', lambda e: player.reinterpolate())
+
+        canvas.focus_set()
+
         pause_button.bind('<Button-1>', lambda e: player.pause())
         play_button.bind('<Button-1>', lambda e: player.play())
         keep_button.bind('<Button-1>', lambda e: player.keepthis())

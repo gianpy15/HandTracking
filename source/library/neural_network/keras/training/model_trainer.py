@@ -1,22 +1,28 @@
-import os
-
 import keras as K
 import keras.callbacks as kc
 import keras.optimizers as ko
+import traceback
 
+from data.datasets.reading.dataset_manager import DatasetManager
 from data.naming import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter
+from library.neural_network.keras.callbacks.scalar_writer import ScalarWriter
 from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
+from library.neural_network.keras.sequence import BatchGenerator
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
-from library.telegram.telegram_bot import *
+from library.telegram import telegram_bot as tele
 from library.utils.visualization_utils import get_image_with_mask
+from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 
 
-def train_model(model_generator, dataset, loss=prop_heatmap_loss,
-                tb_path='', model_name=None, model_type=None,
-                learning_rate=1e-3, batch_size=10, epochs=50, patience=-1,
+def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heatmap_loss,
+                tb_path='', model_name=None, model_type=None, data_processing_plan: ProcessingPlan=None,
+                learning_rate=1e-3, epochs=50, patience=-1,
                 additional_callbacks=None, verbose=False):
     K.backend.clear_session()
+
+    train_data = dataset_manager.train()
+    valid_data = dataset_manager.valid()
 
     model = model_generator()
 
@@ -36,14 +42,12 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
             checkpoint_path = None
             h5model_path = None
 
-    if verbose:
-        print("Model:")
-        model.summary()
+    log("Model:", level=COMMENTARY)
+    model.summary(print_fn=lambda s: log(s, level=COMMENTARY))
 
     callbacks = []
     if checkpoint_path is not None:
-        if verbose:
-            print("Adding callback for checkpoint...")
+        log("Adding callback for checkpoint...", level=COMMENTARY)
         callbacks.append(kc.ModelCheckpoint(filepath=checkpoint_path,
                                             monitor='val_loss',
                                             verbose=1,
@@ -51,8 +55,7 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
                                             mode='min',
                                             period=1))
     if patience > 0:
-        if verbose:
-            print("Adding callback for early stopping...")
+        log("Adding callback for early stopping...", level=COMMENTARY)
         callbacks.append(kc.EarlyStopping(patience=patience,
                                           verbose=1,
                                           monitor='val_loss',
@@ -61,87 +64,79 @@ def train_model(model_generator, dataset, loss=prop_heatmap_loss,
 
     if tb_path is not None:
         TBManager.set_path(tb_path)
-        if verbose:
-            print("Setting up tensorboard...")
-            print("Clearing tensorboard files...")
+        log("Setting up tensorboard...", level=COMMENTARY)
+        log("Clearing tensorboard files...", level=COMMENTARY)
         TBManager.clear_data()
 
-        if verbose:
-            print("Adding tensorboard callbacks...")
-        callbacks.append(kc.TensorBoard(log_dir=tensorboard_path(tb_path),
-                                        histogram_freq=1))
-        callbacks.append(ImageWriter(data=(dataset[TRAIN_IN],
-                                           dataset[TRAIN_TARGET]),
+        log("Adding tensorboard callbacks...", level=COMMENTARY)
+        callbacks.append(ScalarWriter())
+        callbacks.append(ImageWriter(data=(train_data[0][IN(0)],
+                                           train_data[0][OUT(0)]),
                                      name='train_output'))
-        callbacks.append(ImageWriter(data=(dataset[VALID_IN],
-                                           dataset[VALID_TARGET]),
-                                     name='valid_output'))
+        callbacks.append(ImageWriter(data=(valid_data[0][IN(0)],
+                                           valid_data[0][OUT(0)]),
+                                     name='valid_output', freq=3))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
 
     # Training tools
     optimizer = ko.adam(lr=learning_rate)
 
-    if verbose:
-        print("Compiling model...")
+    log("Compiling model...", level=COMMENTARY)
 
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=['accuracy'])
+
     if verbose:
-        print('Fitting model...')
+        log('Fitting model...', level=COMMENTARY)
         # Notification for telegram
         try:
-            notify_training_starting(model_name=model_type + "_" + model_name,
-                                     training_samples=len(dataset[TRAIN_IN]),
-                                     validation_samples=len(dataset[VALID_IN]),
-                                     tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
+            tele.notify_training_starting(model_name=model_type + "_" + model_name,
+                                          training_samples=len(train_data) * dataset_manager.batch_size,
+                                          validation_samples=len(valid_data) * dataset_manager.batch_size,
+                                          tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
         except Exception:
-            pass
+            traceback.print_exc()
 
-    history = model.fit(dataset[TRAIN_IN], dataset[TRAIN_TARGET], epochs=epochs,
-                        batch_size=batch_size, callbacks=callbacks, verbose=1,
-                        validation_data=(dataset[VALID_IN], dataset[VALID_TARGET]))
-    if verbose:
-        print('Fitting completed!')
-        loss_ = "{:.5f}".format(history.history['loss'][-1])
-        valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
-        accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
-        valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
-        try:
-            notify_training_end(model_name=model_type + "_" + model_name,
-                                final_loss=str(loss_),
-                                final_validation_loss=str(valid_loss),
-                                final_accuracy=str(accuracy),
-                                final_validation_accuracy=str(valid_accuracy),
-                                tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
-        except Exception:
-            pass
-
-        if model_name == CROPPER:
-            try:
-                send_message("Training sample...")
-                img = dataset[TRAIN_IN][0]
-                map_ = model.predict(img)
-                send_image_from_array(get_image_with_mask(img, map_))
-                send_image_from_array(get_image_with_mask(img, map_))
-                send_message("Validation sample...")
-                img = dataset[VALID_IN][0]
-                map_ = model.predict(img)
-                send_image_from_array(get_image_with_mask(img, map_))
-                send_image_from_array(get_image_with_mask(img, map_))
-            except Exception:
-                pass
+    history = model.fit_generator(generator=BatchGenerator(data_sequence=train_data,
+                                                           process_plan=data_processing_plan),
+                                  epochs=epochs, verbose=1, callbacks=callbacks,
+                                  validation_data=BatchGenerator(data_sequence=valid_data,
+                                                                 process_plan=data_processing_plan))
 
     if h5model_path is not None:
-        if verbose:
-            print("Saving H5 model...")
+        log("Saving H5 model...", level=COMMENTARY)
         model = model_generator()
         model.load_weights(checkpoint_path)
         model.save(h5model_path)
         os.remove(checkpoint_path)
 
+    log("Training completed!", level=COMMENTARY)
+
     if verbose:
-        print("Training completed!")
+        log('Fitting completed!', level=COMMENTARY)
+        loss_ = "{:.5f}".format(history.history['loss'][-1])
+        valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
+        accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
+        valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
+        try:
+            tele.notify_training_end(model_name=model_type + "_" + model_name,
+                                     final_loss=str(loss_),
+                                     final_validation_loss=str(valid_loss),
+                                     final_accuracy=str(accuracy),
+                                     final_validation_accuracy=str(valid_accuracy))
+
+            if model_type == CROPPER:
+                tele.send_message(message="Training samples:")
+                img = train_data[0][IN(0)] * 255
+                map_ = model.predict(img)
+                tele.send_image_from_array(get_image_with_mask(img, map_))
+                tele.send_message(message="Validation samples:")
+                img = valid_data[0][IN(0)] * 255
+                map_ = model.predict(img)
+                tele.send_image_from_array(get_image_with_mask(img, map_))
+        except Exception:
+            traceback.print_exc()
 
     return model

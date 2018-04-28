@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.misc import imresize
 from skimage.transform import rescale
 from skimage.transform import resize
 import scipy
@@ -24,24 +23,30 @@ class Regularizer:
     def padding(self, right_pad, left_pad):
         self.pars[OPS].append(PADDING)
         self.pars[PADDING] = [right_pad, left_pad]
+        return self
 
     def rgb2gray(self):
         self.pars[OPS].append(RGB2GREY)
+        return self
 
     def percresize(self, perc):
         self.pars[OPS].append(RESIZEPERC)
         self.pars[RESIZEPERC] = perc
+        return self
 
     def fixresize(self, height, width):
         self.pars[OPS].append(RESIZEFIX)
         self.pars[RESIZEFIX] = [height, width]
+        return self
 
     def normalize(self):
         self.pars[OPS].append(NORMALIZE_AVG_VARIANCE)
+        return self
 
     def heatmaps_threshold(self, thresh):
         self.pars[OPS].append(HEATMAPS_TH)
         self.pars[HEATMAPS_TH] = thresh
+        return self
 
     def divide_by_max(self):
         self.pars[OPS].append(DIVIDEBYMAX)
@@ -56,16 +61,9 @@ class Regularizer:
                 frame = rgb2gray(frame)
                 continue
             if op == RESIZEPERC:
-                if len(frame.shape) == 3:
-                    frame = imresizeperc(frame, self.pars[RESIZEPERC])
-                else:
-                    frame = rescale(frame, self.pars[RESIZEPERC])
-                continue
+                frame = imresizeperc(frame, self.pars[RESIZEPERC])
             if op == RESIZEFIX:
-                if len(frame.shape) == 3:
-                    frame = fixed_resize(frame, self.pars[RESIZEFIX])
-                else:
-                    frame = resize(frame, self.pars[RESIZEFIX])
+                frame = fixed_resize(frame, self.pars[RESIZEFIX])
                 continue
             if op == HEATMAPS_TH:
                 frame = heat_thresh(frame, self.pars[HEATMAPS_TH])
@@ -103,11 +101,25 @@ def rgb2gray(rgb):
 
 
 def imresizeperc(frame, rate):
-    return imresize(frame, rate)
+    shape_compressed = False
+    if len(frame.shape) == 3 and frame.shape[-1] == 1:
+        frame = np.reshape(frame, newshape=frame.shape[:-1])
+        shape_compressed = True
+    ret = rescale(frame, rate)
+    if shape_compressed:
+        ret = np.reshape(ret, newshape=ret.shape + (1,))
+    return ret
 
 
 def fixed_resize(frame, size):
-    return imresize(frame, size)
+    shape_compressed = False
+    if len(frame.shape) == 3 and frame.shape[-1] == 1:
+        frame = np.reshape(frame, newshape=frame.shape[:-1])
+        shape_compressed = True
+    ret = resize(frame, size)
+    if shape_compressed:
+        ret = np.reshape(ret, newshape=ret.shape + (1,))
+    return ret
 
 
 def normalize(frame):

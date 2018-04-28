@@ -449,17 +449,14 @@ def read_dataset_random(path=crops_path(), number=1, verbosity=0, vid_list=None)
     tot = len(samples)
     if number > tot:
         raise ValueError("number must be smaller than the number of samples")
-    already_read = np.zeros([tot])
+    random.shuffle(samples)
+    samples = samples[:number]
     frames = []
     heatmaps = []
     depths = []
     iterator = tqdm.trange(number, file=sys.stdout, unit='frms') if verbosity == 1 else range(number)
-    for _ in iterator:
-        which = int(math.floor(random.uniform(0, tot - 0.01)))
-        while already_read[which] == 1:
-            which = int(math.floor(random.uniform(0, tot - 0.01)))
-        already_read[which] = 1
-        name = samples[which]
+    for idx in iterator:
+        name = samples[idx]
         realpath = os.path.join(basedir, name)
         matcontent = scio.loadmat(realpath)
         frames.append(matcontent['frame'])

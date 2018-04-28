@@ -1,6 +1,10 @@
 # THIS CLASS EXISTS BECAUSE PATH RESOLUTION IS A MESS
+
+# unused imports are intended to unify the naming files
+# about data naming conventions and defines
 import os
 import sys
+import re
 
 def __robust_respath_search():
     curpath = os.path.realpath(__file__)
@@ -27,6 +31,7 @@ JOINTSDATAFOLDER = os.path.join(DATASETSFOLDER, "joints")
 
 # #################### DATASET-COMPONENT DEFINES ###############
 
+# ### DEPRECATED ###
 TRAIN_IN = 'TRAIN_IN'
 TRAIN_TARGET = 'TRAIN_TARGET'
 TRAIN_TARGET2 = 'TRAIN_TARGET2'
@@ -36,6 +41,32 @@ VALID_TARGET2 = 'VALID_TARGET2'
 GENERIC_IN = 'GENERIC_IN'
 GENERIC_TARGET = 'GENERIC_TARGET'
 GENERIC_TARGET2 = 'GENERIC_TARGET2'
+
+
+class NameGenerator:
+    def __init__(self, prefix, separator):
+        self.prefix = prefix
+        self.separator = separator
+        self.regex = re.compile("^%s%s" % (self.prefix, self.separator))
+
+    def __call__(self, str):
+        if isinstance(str, int):
+            return "%s%s%04d" % (self.prefix, self.separator, str)
+        return "%s%s%s" % (self.prefix, self.separator, str)
+
+    def __getitem__(self, item):
+        return self(item)
+
+    def filter(self, names):
+        return [name for name in names if re.match(pattern=self.regex,
+                                                   string=name)]
+
+
+# network input-output conventions
+IN = NameGenerator(prefix='IN',
+                   separator='_')
+OUT = NameGenerator(prefix='OUT',
+                    separator='_')
 
 CROPPER = 'cropper'
 JLOCATOR = 'jlocator'
@@ -169,8 +200,9 @@ def list_files(basedir):
 
 
 if __name__ == '__main__':
-    print(joints_path("j1", "jj.mat"))
-    print(croppers_path("mod1.ckp"))
-    print(joint_locators_path("j1", "jj1"))
-    print(crops_path())
+    for i in range(10):
+        print(IN(i+0.))
+        print(OUT(i))
+
+    print(IN.filter(['92', 'IN_IN_IN', 'IN_', 'IN_23', 'OUT_O', 'aIN_a']))
 
