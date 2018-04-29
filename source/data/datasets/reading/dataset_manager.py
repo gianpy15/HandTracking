@@ -7,9 +7,54 @@ from data.datasets.reading.general_reading import read_formatted_batch
 from library.multi_threading.thread_pool_manager import ThreadPoolManager
 import traceback
 
+# Here is all the asynchronous reading logic.
+# Please use this class to manage datasets to enable asynchronous I/O
+
 
 class DatasetManager:
+    """
+    An asynchronous manager of datasets: it reads data and provides them formatted
+    as specified. It implements the abstraction of having all data instantly available.
+
+    Data are formatted and provided in the form of batch dictionaries.
+    The formatting dictionary specified at initialization determines the content of the dictionaries.
+    example:
+        data formatted as:
+        fmt = {
+            'in': (IMGDATA, DEPTHDATA),  // builds RGBD data according to formatting specification
+            'out': (HEATDATA,)          // just plain heatmap data
+        }
+        then:
+        dm = DatasetManager(...., formatting=fmt) // produce one istance
+        train_data = dm.train()  // get interface to train data, see _DataSequence down here
+        train_data[i] -> the dictionary of contents relative to the i-th batch:
+        train_data[i] is:
+            {
+                'in': <a 4-DIM numpy array containing a single RGBD data batch>
+                'out': <a 4-DIM numpy array containing a single heatmap data batch>
+            }
+        // NOTE: if the formatting specification produces dimension D,
+        //       the batched fields will have dimension D+1
+
+    """
     class _DataSequence:
+        """
+        A simplified interface to the DatasetManager.
+        Data are provided in the form of dictionary-like sequences for one data stream at a time.
+
+        This interface provides full expressiveness towards one single data partition (either train or valid)
+
+        DataSequences are provided by:
+            DataManager.train() -> sequence of train batchdicts
+            DataManager.valid() -> sequence of validation batchdicts
+
+        A sequence can be accessed in many pythonic ways:
+
+            seq[i] -> returns i-th batchdict of sequence
+            len(seq) -> returns the total number of batchdicts in the sequence
+            for elem in seq: -> iterates over all batchdicts in the sequence
+
+        """
         def __init__(self, getitem, lenf):
             self.getitemf = getitem
             self.lenf = lenf
@@ -25,6 +70,19 @@ class DatasetManager:
                 yield self[idx]
 
     def __init__(self, train_samples, valid_samples, batch_size, dataset_dir, formatting, exclude_videos=None):
+        """
+        Initializes a DatasetManager specifying all necessary parameters for asynchronous data reading
+        :param train_samples: the amount of trainig samples to use. May provide less samples than specified.
+        :param valid_samples: the amount of validation samples to use. May provide less samples than specified.
+        :param batch_size: the number of frames to include in each chunk of read and provided data.
+                           Notice that the last batch may be smaller than specified.
+                           Use a batch size greater than both training and validation samples to
+                           build one single big bach of data
+        :param dataset_dir: The directory of the dataset, absolute path
+        :param formatting: The formatting specification to provide the data.
+                           See the class doc and formatting.py for details
+        :param exclude_videos: a list of regexes of video names to be excluded from the dataset
+        """
         self.train_samples = train_samples
         self.valid_samples = valid_samples
         self.batch_size = batch_size
@@ -80,7 +138,7 @@ class DatasetManager:
             with self.main_lock:
                 self.batchdata[idx] = data
                 self.main_lock.notify_all()
-        log("DATA LOADING WORKER: quitting")
+        log("DATA LOADING WORKER: quitting", level=COMMENTARY)
 
     def __get_next_batch(self):
         assert self.batchdata is not None
@@ -170,11 +228,27 @@ class DatasetManager:
         return self.valid_batch_number
 
     def train(self, blocking=True):
+        """
+        Get complete read-only access to the training data as a sequence-like interface.
+        See _DataSequence specification on top of this class.
+        :param blocking: determine the behaviour on unavailable data:
+            blocking=True => set requested data as urgent, and wait for them before returning
+            blocking=False => returns None if data is not available
+        :return: a sequence-like interface to training data
+        """
         return DatasetManager._DataSequence(getitem=lambda idx: self.get_training_batch(index=idx,
                                                                                         blocking=blocking),
                                             lenf=lambda: self.get_training_batch_number(blocking=blocking))
 
     def valid(self, blocking=True):
+        """
+        Get complete read-only access to the validation data as a sequence-like interface.
+        See _DataSequence specification on top of this class.
+        :param blocking: determine the behaviour on unavailable data:
+            blocking=True => set requested data as urgent, and wait for them before returning
+            blocking=False => returns None if data is not available
+        :return: a sequence-like interface to validation data
+        """
         return DatasetManager._DataSequence(getitem=lambda idx: self.get_validation_batch(index=idx,
                                                                                           blocking=blocking),
                                             lenf=lambda: self.get_validation_batch_number(blocking=blocking))
