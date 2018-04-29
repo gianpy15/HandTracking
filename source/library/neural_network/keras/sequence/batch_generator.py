@@ -1,5 +1,6 @@
 from keras.utils import Sequence
-from data.naming import *
+from data import *
+from library import *
 from library.multi_threading.thread_pool_manager import ThreadPoolManager
 from threading import Condition
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan

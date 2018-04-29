@@ -1,4 +1,4 @@
-from data import log, WARNINGS
+from library.utils.logging import log, WARNINGS
 import types
 
 STD_DEPRECATED_CLASS_MSG = "Class %s has been deprecated. Please do not use it."

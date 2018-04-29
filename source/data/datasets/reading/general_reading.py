@@ -9,6 +9,8 @@ import numpy as np
 #   - consumer: a function to digest the mat content to produce preprocessed data
 #           (example: directly normalized, or dequantized data)
 # formatdicts are dictionaries of formats
+#
+# See data.datasets.reading.formatting.py for more info about format specifications
 
 
 def _read_frame(path: str, *, format):
@@ -58,7 +60,11 @@ def _read_frame_batch(frames: list, *, format):
 
 def read_formatted_batch(frames: list, formatdict: dict):
     """
-    Read a batch of frames and organize information into a dictionary of contents
+    Read a batch of frames and organize information into a dictionary of contents.
+
+    This should not be used by training scripts directly,
+    use a higher level DatasetManager instead.
+
     :param frames: the list of frames to be included into the desired batch
     :param formatdict: the format dictionary specifying a format sequence for each entry
                        of the resulting dictionary.

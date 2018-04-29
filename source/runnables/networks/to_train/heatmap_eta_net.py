@@ -4,16 +4,14 @@ import sys
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
 from library.neural_network.keras.custom_layers.heatmap_loss import *
-from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
 from data import *
+from library import *
 import keras as K
 from library.neural_network.keras.models.eta_net import eta_net
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
 import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
-from data import DatasetManager
-from data import Regularizer
 
 train_samples = 5
 valid_samples = 2
@@ -33,7 +31,6 @@ if __name__ == '__main__':
     formatting = format_add_outer_func(f=reg.apply,
                                        format=CROPS_STD_FORMAT,
                                        entry_index=OUT(0))
-
     # Load data
     generator = DatasetManager(train_samples=train_samples,
                                valid_samples=valid_samples,

@@ -3,8 +3,8 @@ import keras.callbacks as kc
 import keras.optimizers as ko
 import traceback
 
-from data.datasets.reading.dataset_manager import DatasetManager
-from data.naming import *
+from data import *
+from library import *
 from library.neural_network.keras.callbacks.image_writer import ImageWriter
 from library.neural_network.keras.callbacks.scalar_writer import ScalarWriter
 from library.neural_network.keras.custom_layers.heatmap_loss import prop_heatmap_loss
@@ -41,7 +41,6 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss=prop_heat
         else:
             checkpoint_path = None
             h5model_path = None
-
     log("Model:", level=COMMENTARY)
     model.summary(print_fn=lambda s: log(s, level=COMMENTARY))
 

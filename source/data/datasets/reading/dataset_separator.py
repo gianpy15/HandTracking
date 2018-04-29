@@ -3,8 +3,22 @@ import re
 import numpy as np
 import random
 
+# In this module we specify all the logic about allocating videos to train and validation sets.
+# The general idea is to try to separate them as much as possible and making them as varied as possible
+# while maintaining the requested proportion of number of samples
+
 
 class DatasetSeparator:
+    """
+    The DatasetSeparator embodies all the logic about separating train and validation
+    Just:
+        1) instantiate it with the dataset directory
+        2) exclude the videos you don't want to consider
+        3) ask for the train and validation sets of frames
+
+    This should not be used directly in training scripts, use
+    a complete DatasetManager instead (which is backed by this)
+    """
     def __init__(self, dataset_dir):
         self.dataset_dir = dataset_dir
         self.dataset_info = self.__get_available_dataset_stats()
@@ -23,11 +37,15 @@ class DatasetSeparator:
         return stats
 
     def exclude_videos(self, videos):
+        """
+        Exclude some videos from the accounted set. Regexes enabled.
+        :param videos: a list of video regexes to be excluded
+        """
         to_be_deleted = [vid for vid in self.dataset_info.keys() if
                          any([re.match(vidreg, vid) for vidreg in videos])]
         for vid in to_be_deleted:
             del self.dataset_info[vid]
-        return self.dataset_info
+        return self
 
     def __available_frames(self, vidlist):
         count = 0
