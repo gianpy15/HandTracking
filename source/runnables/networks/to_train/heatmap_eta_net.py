@@ -52,8 +52,8 @@ if __name__ == '__main__':
                          learning_rate=learning_rate,
                          patience=5,
                          data_processing_plan=data_processing_plan,
-                         tb_path="heat_maps/" + model,
+                         tb_path="heat_maps",
                          model_name=model,
                          model_type=CROPPER,
                          epochs=2,
-                         verbose=True)
+                         enable_telegram_log=True)

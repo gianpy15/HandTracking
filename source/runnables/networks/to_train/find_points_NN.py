@@ -20,4 +20,4 @@ if __name__ == '__main__':
                         epochs=1,
                         tb_path=None,
                         patience=5,
-                        verbose=True)
+                        enable_telegram_log=True)
