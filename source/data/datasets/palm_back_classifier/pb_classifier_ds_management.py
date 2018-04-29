@@ -11,6 +11,8 @@ from library.geometry.formatting import hand_format
 import pandas as pd
 from library.geometry.formatting import *
 from library.geometry.left_right_detection.palmback import leftright_to_palmback
+from library.utils.deprecation import deprecated_fun
+from data.datasets.reading.dataset_manager import DatasetManager
 
 RIGHT = 1
 LEFT = 0
@@ -322,7 +324,7 @@ def get_palm_back(label, lr):
     return result, conf
 
 
-
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
@@ -366,7 +368,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     return frames, label, conf, t_frames, t_label, t_conf
 
 
-
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset_h(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
@@ -414,7 +416,7 @@ def read_dataset_h(path=None, verbosity=0, leave_out=None):
     return frames, label, conf, heat, t_frames, t_label, t_conf, t_heat
 
 
-
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method

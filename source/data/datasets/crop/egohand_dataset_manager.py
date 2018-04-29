@@ -11,6 +11,8 @@ import numpy as np
 from scipy import io as scio
 import data.regularization.regularizer as reg
 from library.geometry import polygon_utils as poly
+from library.utils.deprecation import deprecated_fun
+from data.datasets.reading.dataset_manager import DatasetManager
 
 
 # ######### SQUARES ############
@@ -203,6 +205,7 @@ def create_dataset(videos_list=None, savepath=None, resize_rate=1.0, heigth_shri
                 scio.savemat(path, fr_to_save)
 
 
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset(path=None, verbosity=0, leave_out=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
@@ -242,6 +245,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
     return frames, heatmaps, t_frames, t_heatmaps
 
 
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset_random(path=None, number=1, verbosity=0, vid_list=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
