@@ -6,7 +6,8 @@ from data.naming import IN, OUT
 #   0) an extensive description of the formatting object specification
 #   1) functions to manipulate existing high-level formats easily
 #   2) data-reading low level format specifications
-#   3) dataset-organization high level format specifications
+#   3) cross-data aggregation into mid-level data specifications
+#   4) dataset-organization high level format specifications
 #
 
 # ######################## SECTION 0: FORMAT SPECIFICATIONS #######################
@@ -53,8 +54,8 @@ def format_set_field_name(name, format, entry, channel_index=0):
     Set the .mat field name of a particular component of a format dict
     :param name: the .mat field name to insert
     :param format: the high level format dict to manipulate
-    :param entry: the entry to be modified
-    :param channel_index: the channel oreder where the .mat content to redirect is stored
+    :param entry: the high level entry to be modified
+    :param channel_index: the channel order where the .mat content to redirect is stored
     :return: the modified format
     """
     format[entry][channel_index][0] = name
@@ -66,8 +67,8 @@ def format_add_inner_func(f, format, entry, channel_index=0):
     Add a consumer function directly on the .mat output of a particular component of a format dict
     :param f: the consumer function to be pipelined
     :param format: the high level format dict to manipulate
-    :param entry: the entry to be modified
-    :param channel_index: the channel oreder where the .mat content to redirect is stored
+    :param entry: the high level entry to be modified
+    :param channel_index: the channel order where the .mat content to redirect is stored
     :return: the modified format
     """
     old_f = format[entry][channel_index][1]
@@ -80,8 +81,8 @@ def format_add_outer_func(f, format, entry, channel_index=0):
     Add a consumer function at the end of the consumer pipeline of a particular component of a format dict
     :param f: the consumer function to be pipelined
     :param format: the high level format dict to manipulate
-    :param entry: the entry to be modified
-    :param channel_index: the channel oreder where the .mat content to redirect is stored
+    :param entry: the high level entry to be modified
+    :param channel_index: the channel order where the .mat content to redirect is stored
     :return: the modified format
     """
     old_f = format[entry][channel_index][1]
@@ -118,7 +119,7 @@ MIDFMT_JUNC_RGB = [LOWFMT_JUNC_IMG]
 MIDFMT_JUNC_HEATMAP = [LOWFMT_JUNC_HEATMAP],
 MIDFMT_JUNC_VISIBILITY = [LOWFMT_JUNC_VISIBILITY]
 
-# ######################### SECTION 3: HIGH-LEVEL STANDARDS #####################
+# ######################### SECTION 4: HIGH-LEVEL STANDARDS #####################
 
 CROPS_STD_FORMAT = {
     IN(0): MIDFMT_CROP_RGB,
