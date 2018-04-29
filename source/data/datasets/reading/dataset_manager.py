@@ -118,6 +118,7 @@ class DatasetManager:
         self.train_batch_number = int(math.ceil(train_avail_tot / self.batch_size))
         self.valid_batch_number = int(math.ceil(valid_avail_tot / self.batch_size))
         self.batchdata = [None for _ in range(self.train_batch_number + self.valid_batch_number)]
+        log("DATA LOADING WORKER: starting to load data...", level=COMMENTARY)
         while not self.loading_done:
             idx, frames = self.__get_next_batch()
             if idx is None:
@@ -138,7 +139,7 @@ class DatasetManager:
             with self.main_lock:
                 self.batchdata[idx] = data
                 self.main_lock.notify_all()
-        log("DATA LOADING WORKER: quitting", level=COMMENTARY)
+        log("DATA LOADING WORKER: work done, quitting", level=COMMENTARY)
 
     def __get_next_batch(self):
         assert self.batchdata is not None

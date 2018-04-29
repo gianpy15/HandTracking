@@ -30,7 +30,7 @@ if __name__ == '__main__':
     reg = Regularizer().fixresize(60, 80)
     formatting = format_add_outer_func(f=reg.apply,
                                        format=CROPS_STD_FORMAT,
-                                       entry_index=OUT(0))
+                                       entry=OUT(0))
     # Load data
     generator = DatasetManager(train_samples=train_samples,
                                valid_samples=valid_samples,
