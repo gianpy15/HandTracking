@@ -12,13 +12,14 @@ class BatchGenerator(Sequence):
     def __init__(self, data_sequence,
                  process_plan: ProcessingPlan=None):
         """
-        Create a Sequence to feed the fit_generator with freshly augmented data every batch
-        :param data_sequence: an object providing the raw data through subscription.
-                              must implement __getitem__ and __len__.
-        :param augmenter: the Augmenter to be applied to data freshly at each epoch,
-                          defaults to 0.2 probability and 0.15 variance for each component
-        :param regularizer: the regularizer to use to regularize data before feeding them
-                            to the outside. Normalization only, by default
+        Create a Sequence to feed the fit_generator with freshly augmented data every batch.
+        Preprocessing of batches is done asynchronously to anticipate the requests of the fit_generator.
+        :param data_sequence: an object providing the raw data as a subscriptable sequence.
+                              Should use the DataManager's dictionary interfaces, but works
+                              with anything implementing a __getitem__ and a __len__.
+        :param process_plan: the ProcessingPlan to be applied to data every time before feeding
+                             to the fit_generator. May specify any kind of operation on single
+                             batches through this, including online augmentation and regularization.
         """
         super(BatchGenerator, self).__init__()
         self.epoch = 0

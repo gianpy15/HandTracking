@@ -1,10 +1,48 @@
 from data import *
 
+# Define a plan for online batch processing.
+
+# If used by a BatchGenerator (library.neural_network.keras.sequence.batch_generator.py)
+# the specified operations will be performed on the specified batches of data
+# each time before feeding them to the network
+
 
 class ProcessingPlan:
+    """
+        Define a plan for online batch processing.
+
+        Easy definition:
+            aug = Augmenter().shiftHue(0.3)
+            reg = Regularizer().normalize()
+            pp = ProcessingPlane(augmenter=aug,
+                                 regularizer=reg,
+                                 keyset={IN(0), IN(1)})
+            // just define a processing plan that performs augmentation
+            // and regularization on entries IN(0) and IN(1) of the network data
+
+        Complete definition:
+            pp.add_inner(key=OUT(0), fun=lambda x: 2*x)
+            // schedules the given function directly on all data coming from the OUT(0) entry
+            pp.add_outer(...)
+            // analogous meaning, but the function is applied after all the others
+            pp[OUT(0)] = lambda x: 2*x
+            // deletes any other schedules on OUT(0) and applies only the given function
+
+        Use:
+            The ProcessingPlan is mainly intended to be defined and then passed to a BatchGenerator
+            or to the train_model function that will make BatchGenerators
+
+            for custom use info refer to the doc of methods process_batch and process_filtered_batch
+    """
     def __init__(self, augmenter: Augmenter=None,
                  regularizer: Regularizer=None,
                  keyset: set=None):
+        """
+
+        :param augmenter:
+        :param regularizer:
+        :param keyset:
+        """
         self.ops = {}
         if keyset is not None:
             if augmenter is not None:
@@ -44,6 +82,14 @@ class ProcessingPlan:
                               fun=regularizer.apply_on_batch)
 
     def process_batch(self, batch: dict):
+        """
+        Apply all scheduled actions over a batch dictonary.
+        Operations are not applied in place, so that the original batch data is preserved.
+        Unspecified fields will be just copied in the output.
+
+        :param batch: the batch dictionary to be processed
+        :return: a dictionary of results, fields are copied if no op has been scheduled for them
+        """
         ret = {}
         for k in batch.keys():
             if k in self.ops.keys():
@@ -53,6 +99,10 @@ class ProcessingPlan:
         return ret
 
     def process_filtered_batch(self, batch: dict, name_gen: NameGenerator):
+        """
+        Filter the batch only on names provided by the specified NameGenerator
+        and then process only those fields. Avoids useless copies.
+        """
         return self.process_batch(batch={k: batch[k] for k in name_gen.filter(batch.keys())})
 
 

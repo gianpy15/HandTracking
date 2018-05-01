@@ -6,6 +6,8 @@ import data.regularization.regularizer as reg
 import tqdm
 import scipy.io as scio
 from data.naming import *
+from library.utils.deprecation import deprecated_fun
+from data.datasets.reading.dataset_manager import DatasetManager
 
 
 def load_labelled_videos(vname, getdepth=False, fillgaps=False, gapflags=False, verbosity=0):
@@ -88,6 +90,7 @@ def __heatmaps_dim_reducer(heatmaps):
     return heatris
 
 
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset(path=joints_path(), verbosity=0, test_vids=None):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
@@ -131,6 +134,7 @@ def read_dataset(path=joints_path(), verbosity=0, test_vids=None):
     return cuts, heatmaps, visible, t_cuts, t_heatmaps, t_visible
 
 
+@deprecated_fun(alternative=DatasetManager)
 def read_dataset_random(path=joints_path(), number=1, verbosity=0, vid_list=None):
     """reads "number" different random .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method

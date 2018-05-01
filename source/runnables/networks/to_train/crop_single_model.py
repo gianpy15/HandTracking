@@ -48,4 +48,4 @@ if train:
                         epochs=1,
                         batch_size=40,
                         patience=5,
-                        verbose=True)
+                        enable_telegram_log=True)

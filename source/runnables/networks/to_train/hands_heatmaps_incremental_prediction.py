@@ -76,7 +76,7 @@ model1 = train_model(dataset=dataset,
                      batch_size=20,
                      epochs=50,
                      loss_white_prio=-1.85,
-                     verbose=True)
+                     enable_telegram_log=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model1)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], model1)
@@ -91,7 +91,7 @@ model2 = train_model(dataset=dataset,
                      batch_size=20,
                      epochs=50,
                      loss_white_prio=-1.5,
-                     verbose=True)
+                     enable_telegram_log=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], model2)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], model2)
@@ -105,4 +105,4 @@ model3 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=20,
                      epochs=50,
-                     verbose=False)
+                     enable_telegram_log=False)
