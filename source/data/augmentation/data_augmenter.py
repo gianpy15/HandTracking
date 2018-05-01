@@ -9,7 +9,7 @@ VAL = 2
 class Augmenter:
     def __init__(self):
         self.prob = [.0, .0, .0]
-        self.var = [.15, .15, .15]
+        self.var = [.1, .1, .1]
         self.in_place = True
 
     def apply(self, frame: np.ndarray):
@@ -39,19 +39,19 @@ class Augmenter:
                 ris.append(new_elem)
         return np.array(ris)
 
-    def __shift(self, comp, prob=1.0, var=.15):
+    def __shift(self, comp, prob=1.0, var=.1):
         self.prob[comp] = prob
         self.var[comp] = var
 
-    def shift_hue(self, prob=1.0, var=.15):
+    def shift_hue(self, prob=1.0, var=.1):
         self.__shift(HUE, prob, var)
         return self
 
-    def shift_sat(self, prob=1.0, var=.15):
+    def shift_sat(self, prob=1.0, var=.1):
         self.__shift(SAT, prob, var)
         return self
 
-    def shift_val(self, prob=1.0, var=.15):
+    def shift_val(self, prob=1.0, var=.1):
         self.__shift(VAL, prob, var)
         return self
 

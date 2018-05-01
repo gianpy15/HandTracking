@@ -8,7 +8,8 @@ def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activa
     inputs = kl.Input(shape=input_shape, name=IN(0))
 
     # Encoding part of the network
-    conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(inputs)
+    in1 = kl.BatchNormalization()(inputs)
+    conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(in1)
     act1 = kl.Activation(activation)(conv1) if type(activation) is str else activation()(conv1)
     conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(act1)
     act1 = kl.Activation(activation)(conv1) if type(activation) is str else activation()(conv1)
@@ -59,9 +60,10 @@ def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activa
     act7 = kl.Activation(activation)(conv7) if type(activation) is str else activation()(conv7)
     conv7 = kl.Conv2D(filters=128, kernel_size=[3, 3], activation='relu', padding='same')(act7)
     act7 = kl.Activation(activation)(conv7) if type(activation) is str else activation()(conv7)
+    drop7 = kl.Dropout(rate=dropout_rate)(act7)
 
     # Output with one filter and sigmoid activation function
-    out = kl.Conv2D(filters=1, kernel_size=[1, 1], activation='sigmoid', name=OUT(0))(act7)
+    out = kl.Conv2D(filters=1, kernel_size=[1, 1], activation='sigmoid', name=OUT(0))(drop7)
 
     eta_net_model = Model(inputs=(inputs,), outputs=(out,), name=name)
 

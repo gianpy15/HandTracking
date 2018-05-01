@@ -9,7 +9,8 @@ from library.neural_network.keras.custom_layers.abs import Abs
 import keras.models as km
 from skimage.transform import rescale
 from data.datasets.data_loader import load_dataset
-from data.naming import *
+from data import *
+from library import *
 from library.neural_network.keras.models.opposite_bias_model import opposite_bias_adversarial, opposite_bias_regularizer
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
@@ -88,7 +89,7 @@ model1 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=30,
                      epochs=50,
-                     verbose=True)
+                     enable_telegram_log=True)
 
 
 # Model with high penalty for P(x = 0 | hand)
@@ -103,7 +104,7 @@ model2 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=30,
                      epochs=50,
-                     verbose=True)
+                     enable_telegram_log=True)
 
 dataset[TRAIN_IN] = attach_heat_map(dataset[TRAIN_IN], m1_path, m2_path)
 dataset[VALID_IN] = attach_heat_map(dataset[VALID_IN], m1_path, m2_path)
@@ -120,4 +121,4 @@ model3 = train_model(dataset=dataset,
                      model_type=CROPPER,
                      batch_size=20,
                      epochs=50,
-                     verbose=True)
+                     enable_telegram_log=True)

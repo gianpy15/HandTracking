@@ -1,4 +1,5 @@
 import random as rand
+from library.utils.deprecation import deprecated_class
 
 
 def __check_data_consistence__(data):
@@ -9,6 +10,7 @@ def __check_data_consistence__(data):
     return True
 
 
+@deprecated_class
 class DataManager:
     def __init__(self, *data, **args):
         if not __check_data_consistence__(data):

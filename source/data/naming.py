@@ -2,11 +2,23 @@
 
 # unused imports are intended to unify the naming files
 # about data naming conventions and defines
+
+# if any new naming path convention is needed, just:
+#   1) Notify the group
+#   2) Add it here
+#       2.1) Add its RESOURCES DIRECTORY DEFINITION (currently around line 35)
+#       2.2) Add its BASE DIRECTORY-RELATIVE PATH (currently around line 200)
+#       2.3) Optionally add MODEL NAME CONVENTIONS (currently around line 270)
+#   3) Use everywhere the path functions you just added and expect everybody to do the same
 import os
-import sys
 import re
+from library.utils.deprecation import deprecated_class
 
 def __robust_respath_search():
+    """
+    Resolve the path for resources from anywhere in the code.
+    :return: The real path of the resources
+    """
     curpath = os.path.realpath(__file__)
     basepath = curpath
     while os.path.split(basepath)[1] != 'source':
@@ -44,15 +56,25 @@ GENERIC_TARGET2 = 'GENERIC_TARGET2'
 
 
 class NameGenerator:
+    """
+    This class generates names with a fixed pattern to be able to identify
+    back at any moment the names it generated.
+    Useful to standardize cross-code dependencies (ex: model definition to training dictionary)
+    """
     def __init__(self, prefix, separator):
         self.prefix = prefix
         self.separator = separator
         self.regex = re.compile("^%s%s" % (self.prefix, self.separator))
 
-    def __call__(self, str):
-        if isinstance(str, int):
-            return "%s%s%04d" % (self.prefix, self.separator, str)
-        return "%s%s%s" % (self.prefix, self.separator, str)
+    def __call__(self, iden):
+        """
+        Produce a name from the fixed pattern
+        :param iden: any kind of identifier. If int, pads up to 4 digits to enable sorting.
+        :return: a name uniquely identified by iden, following the pattern from self
+        """
+        if isinstance(iden, int):
+            return "%s%s%04d" % (self.prefix, self.separator, iden)
+        return "%s%s%s" % (self.prefix, self.separator, iden)
 
     def __getitem__(self, item):
         return self(item)
@@ -63,8 +85,34 @@ class NameGenerator:
 
 
 # network input-output conventions
+
+# This NameGenerator should be used to specify all inputs in a Model
+# you can use any kind of identifier to name the component
+# ex:
+#
+# inputs = keras.layers.Input(input_shape=(None, None, 3), name=IN(0))
+# side_inputs = keras.Input(input_shape=(21,), name=IN(1))
+#
+# At the end they must be the inputs of the final Model.
+# All of them must be named with IN
 IN = NameGenerator(prefix='IN',
                    separator='_')
+
+# This NameGenerator should be used to specify all outputs in a Model
+# you can use any kind of identifier to name the component
+# ex:
+#
+# out = keras.layers.Conv2D(filters=1,
+#                           kernel_size=[1, 1],
+#                           activation='sigmoid',
+#                           name=OUT(0))(act7)
+# secondary_output = keras.layers.Dense(units=1,
+#                                       activation='sigmoid',
+#                                       use_bias=True,
+#                                       name=OUT('pb_class')(x)
+#
+# At the end they must be the outputs of the final Model.
+# All of them must be named with OUT
 OUT = NameGenerator(prefix='OUT',
                     separator='_')
 
@@ -73,39 +121,14 @@ JLOCATOR = 'jlocator'
 RAND = 'RAND'
 SEQUENTIAL = 'SEQ'
 
-
-# ############################# VERBOSITY LEVELS ############################À
-
-DEBUG = 0
-COMMENTARY = 1
-WARNINGS = 2
-IMPORTANT_WARNINGS = 3
-ERRORS = 4
-SILENT = 5
-
-
-VERBOSITY = WARNINGS
-LOGFILE = sys.stdout
-
-
-def set_verbosity(verb):
-    global VERBOSITY
-    VERBOSITY = verb
-
-
-def set_log_file(logfile):
-    global LOGFILE
-    LOGFILE = logfile
-
-
-def log(message, level=DEBUG):
-    if level >= VERBOSITY:
-        LOGFILE.write(message + '\n')
-        if level >= IMPORTANT_WARNINGS:
-            LOGFILE.flush()
-
-
 def resources_path(*paths):
+    """
+    Very base function for resources path management.
+    Return the complete path from resources given a sequence of directories
+    eventually terminated by a file, and makes all necessary subdirectories
+    :param paths: a sequence of paths to be joined starting from the base of resources
+    :return: the complete path from resources (all necessary directories are created)
+    """
     p = os.path.join(RESPATH, *paths)
     if os.path.splitext(p)[1] != '':
         basep = os.path.split(p)[0]
@@ -118,53 +141,110 @@ def resources_path(*paths):
 
 
 def tensorboard_path(*paths):
+    """
+    Builds the path starting where all tensorboard data should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(TBFOLDER, *paths)
 
 
 def models_path(*paths):
+    """
+    Builds the path starting where all model data should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(MODELSFOLDER, *paths)
 
 
 def croppers_path(*paths):
+    """
+    Builds the path starting where all cropper models data should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(CROPPERSFOLDER, *paths)
 
 
 def joint_locators_path(*paths):
+    """
+    Builds the path starting where all joint locator models data should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(JLOCATORSFOLDER, *paths)
 
 
 def datasets_path(*paths):
+    """
+    Builds the path starting where all datasets should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(DATASETSFOLDER, *paths)
 
 
 def crops_path(*paths):
+    """
+    Builds the path starting where all datasets about crops should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(CROPSDATAFOLDER, *paths)
 
 
 def joints_path(*paths):
+    """
+    Builds the path starting where all datasets about joint locations should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
     return resources_path(JOINTSDATAFOLDER, *paths)
 
 # ######################### MODEL NAME CONVENTIONS ###################
 
 
 def cropper_h5_path(name):
+    """
+    Builds the standard full path of a .H5 cropper model given its base name
+    :param name: the base name identifier of the H5 model
+    :return: The standard path of the relative .H5 file.
+    """
     return croppers_path(name+".h5")
 
 
 def cropper_ckp_path(name):
+    """
+    Builds the standard full path of a .ckp cropper model given its base name
+    :param name: the base name identifier of the ckp model
+    :return: The standard path of the relative .ckp file.
+    """
     return croppers_path(name+".ckp")
 
 
 def jlocator_h5_path(name):
+    """
+    Builds the standard full path of a .H5 joint locator model given its base name
+    :param name: the base name identifier of the H5 model
+    :return: The standard path of the relative .H5 file.
+    """
     return joint_locators_path(name+".h5")
 
 
 def jlocator_ckp_path(name):
+    """
+    Builds the standard full path of a .ckp joint locator model given its base name
+    :param name: the base name identifier of the ckp model
+    :return: The standard path of the relative .ckp file.
+    """
     return joint_locators_path(name+".ckp")
 
 # ############################## LEGACY #########################################
+# This stuff was designed ages ago... please don't use it
 
 
+@deprecated_class(alternative=resources_path)
 class PathManager:
     """
     This class automatically finds the project root folder at instantiation. It is used
