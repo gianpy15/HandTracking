@@ -43,9 +43,9 @@ if __name__ == '__main__':
 
     # Plan the processing needed before providing inputs and outputs for training and validation
     data_processing_plan = ProcessingPlan(augmenter=Augmenter().shift_hue(.2).shift_sat(.2).shift_val(.2),
+                                          # regularizer=Regularizer().normalize(),
                                           keyset={IN(0)})  # Today we just need to augment one input...
-
-    for white_priority in [-2.]:
+    for _ in [0]:
         model1 = train_model(model_generator=lambda: eta_net(input_shape=np.shape(generator.train()[0][IN(0)])[1:],
                                                              weight_decay=weight_decay,
                                                              dropout_rate=drate,
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                              patience=10,
                              data_processing_plan=data_processing_plan,
                              tb_path="heat_maps/",
-                             model_name=model + "_nullaugnorm_wp_" + str(white_priority),
+                             model_name=model + "_normlayer",
                              model_type=CROPPER,
                              epochs=50,
                              enable_telegram_log=False)
