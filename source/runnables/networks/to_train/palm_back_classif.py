@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     x_train, y_train, c_train, x_test, y_test, c_test = read_dataset(path=path, leave_out=['handsMaddalena2',
                                                                                 'handsGianpy',
-                                                                                'handsMatteo'])
+                                                                                'handsMatteo'], minconf=0.999)
 
     x_train = np.array(x_train)
     y_train = np.array(y_train)
@@ -41,12 +41,12 @@ if __name__ == '__main__':
     y_test = np.array(y_test)
     c_test = np.array(c_test)
     print(x_train.shape, y_train.shape, c_train.shape, x_test.shape, y_test.shape, c_test.shape)
-    count_ones_zeros(y_train, y_test)
 
-    class_weight = {0: 194/531, 1: 337/531}
+    class_weight = count_ones_zeros(y_train, y_test)
+    print(class_weight)
 
-    x_train, y_train, c_train = shuffle_cut_label_conf(x_train, y_train, c_train)
-    x_test, y_test, c_test = shuffle_cut_label_conf(x_test, y_test, c_test)
+   # x_train, y_train, c_train = shuffle_cut_label_conf(x_train, y_train, c_train)
+    #x_test, y_test, c_test = shuffle_cut_label_conf(x_test, y_test, c_test)
 
     if LOAD_MODEL:
         # change the name of the model to be loaded

@@ -52,8 +52,8 @@ if __name__ == '__main__':
                                                                                         leave_out=['handsMaddalena2',
                                                                                                     'handsGianpy',
                                                                                                     'handsMatteo'])
-    x_train = prod_im_heat_batch(x_train, h_train)
-    x_test = prod_im_heat_batch(x_test, h_test)
+    # x_train = prod_im_heat_batch(x_train, h_train)
+    # x_test = prod_im_heat_batch(x_test, h_test)
     x_train = np.array(x_train)
     y_train = np.array(y_train)
     c_train = np.array(c_train)
@@ -63,12 +63,15 @@ if __name__ == '__main__':
     c_test = np.array(c_test)
     h_test = np.array(h_test)
 
-    count_ones_zeros(y_train, y_test)
 
-    class_weight = {0: 531/194, 1: 531/337}
+
+    class_weight = count_ones_zeros(y_train, y_test)
 
     x_train, y_train, c_train, h_train = shuffle_cut_label_conf_h(x_train, y_train, c_train, h_train)
     x_test, y_test, c_test, h_test = shuffle_cut_label_conf_h(x_test, y_test, c_test, h_test)
+
+    u.showimage(x_train[0])
+    print(y_train[0], c_train[0])
 
     if LOAD_MODEL:
         # change the name of the model to be loaded

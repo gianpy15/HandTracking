@@ -323,7 +323,7 @@ def get_palm_back(label, lr):
 
 
 
-def read_dataset(path=None, verbosity=0, leave_out=None):
+def read_dataset(path=None, verbosity=0, leave_out=None, minconf=0.0):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -353,14 +353,15 @@ def read_dataset(path=None, verbosity=0, leave_out=None):
             i += 1
         realpath = os.path.join(basedir, name)
         readframes, readrl, readconf = __read_frame(realpath)
-        if leave_out is None or not __matches(name, leave_out):
-            frames.append(readframes)
-            label.append(readrl)
-            conf.append(readconf)
-        else:
-            t_frames.append(readframes)
-            t_label.append(readrl)
-            t_conf.append(readconf)
+        if readconf >= minconf:
+            if leave_out is None or not __matches(name, leave_out):
+                frames.append(readframes)
+                label.append(readrl)
+                conf.append(readconf)
+            else:
+                t_frames.append(readframes)
+                t_label.append(readrl)
+                t_conf.append(readconf)
     if leave_out is None:
         return frames, label, conf
     return frames, label, conf, t_frames, t_label, t_conf
@@ -562,6 +563,7 @@ def count_ones_zeros(y_train, y_test):
             left += 1
     print("TRAIN P: ", right)
     print("TRAIN B: ", left)
+    class_weight={1: (left+right)/right, 0: (left+right)/left}
     right = 0
     left = 0
     for i in range(len(y_test)):
@@ -571,6 +573,7 @@ def count_ones_zeros(y_train, y_test):
             left += 1
     print("TEST P: ", right)
     print("TEST B: ", left)
+    return class_weight
 
 
 
