@@ -50,12 +50,15 @@ if __name__ == '__main__':
                                                              dropout_rate=0.5,
                                                              activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
                              dataset_manager=generator,
-                             loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, white_priority, delta),
+                             loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
+                                                                                       white_priority=white_priority,
+                                                                                       delta=delta)
+                                   },
                              learning_rate=learning_rate,
                              patience=5,
                              data_processing_plan=data_processing_plan,
                              tb_path="heat_maps/",
-                             model_name=model + "_delta_" + str(-delta),
+                             model_name=model + "_delta_" + str(delta),
                              model_type=CROPPER,
                              epochs=20,
                              enable_telegram_log=True)
