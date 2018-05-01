@@ -53,7 +53,7 @@ if __name__ == '__main__':
                              learning_rate=learning_rate,
                              patience=5,
                              data_processing_plan=data_processing_plan,
-                             tb_path="heat_maps/" + model + "_delta_" + str(-delta),
+                             tb_path="heat_maps/",
                              model_name=model + "_delta_" + str(-delta),
                              model_type=CROPPER,
                              epochs=100,
