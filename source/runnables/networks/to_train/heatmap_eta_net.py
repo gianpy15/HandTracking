@@ -47,7 +47,7 @@ if __name__ == '__main__':
     for delta in [0, 2, 4, 6, 8, 10]:
         model1 = train_model(model_generator=lambda: eta_net(input_shape=np.shape(generator.train()[0][IN(0)])[1:],
                                                              weight_decay=weight_decay,
-                                                             dropout_rate=0.5,
+                                                             dropout_rate=0.2,
                                                              activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
                              dataset_manager=generator,
                              loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,

@@ -153,11 +153,11 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
                 tele.send_message(message="Training samples:")
                 img = train_data[0][IN(0)] * 255
                 map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_))
+                tele.send_image_from_array(get_image_with_mask(img[0:5], map_[0:5]))
                 tele.send_message(message="Validation samples:")
                 img = valid_data[0][IN(0)] * 255
                 map_ = model.predict(img)
-                tele.send_image_from_array(get_image_with_mask(img, map_))
+                tele.send_image_from_array(get_image_with_mask(img[0:5], map_[0:5]))
         except Exception:
             traceback.print_exc()
 
