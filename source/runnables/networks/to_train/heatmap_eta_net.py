@@ -57,4 +57,4 @@ if __name__ == '__main__':
                              model_name=model + "_delta_" + str(-delta),
                              model_type=CROPPER,
                              epochs=100,
-                             verbose=True)
+                             enable_telegram_log=True)
