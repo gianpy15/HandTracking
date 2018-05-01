@@ -120,10 +120,15 @@ if __name__ == '__main__':
             imshow(img)
             show()
 
-    aug = Augmenter().shift_hue(prob=1, var=0.3).shift_sat(prob=1, var=0.3)
-    pp = ProcessingPlan().augment(IN(0), aug)
+    pp = ProcessingPlan(augmenter=Augmenter().shift_val(1).shift_sat(1).shift_hue(1),
+                        regularizer=Regularizer().normalize(),
+                        keyset={IN(0)})
 
     for batch in tr:
         for img in pp.process_filtered_batch(batch, IN)[IN(0)]:
-            imshow(img)
+            m = np.min(img)
+            M = np.max(img)
+            imshow((img - m)/(M-m))
             show()
+    print(pp.process_filtered_batch(tr[0], IN)[IN(0)].var())
+    print(pp.process_filtered_batch(tr[0], OUT)[OUT(0)].var())

@@ -1,5 +1,6 @@
 from data.datasets.crop import hands_locator_from_rgbd as croputils
-from data.naming import *
+from data import *
+from library import *
 from data.datasets.jlocator import junction_locator_ds_management as jlocutils
 from data.datasets.crop import egohand_dataset_manager as egoutils
 import numpy as np

@@ -9,7 +9,8 @@ from library.neural_network.keras.custom_layers.abs import Abs
 import keras.models as km
 from skimage.transform import rescale
 from data.datasets.data_loader import load_dataset
-from data.naming import *
+from data import *
+from library import *
 from library.neural_network.keras.models.opposite_bias_model import opposite_bias_adversarial, opposite_bias_regularizer
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
