@@ -13,9 +13,9 @@ import keras.regularizers as kr
 import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 
-train_samples = 5
-valid_samples = 2
-batch_size = 2
+train_samples = 4000
+valid_samples = 1000
+batch_size = 20
 
 if __name__ == '__main__':
     model = 'cropper_eta_net_v1'
@@ -43,17 +43,18 @@ if __name__ == '__main__':
                                           regularizer=Regularizer().normalize(),
                                           keyset={IN(0)})  # Today we just need to augment and normalize one input...
 
-    model1 = train_model(model_generator=lambda: eta_net(input_shape=np.shape(generator.train()[0][IN(0)])[1:],
-                                                         weight_decay=weight_decay,
-                                                         dropout_rate=0.5,
-                                                         activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
-                         dataset_manager=generator,
-                         loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, -1.85, 3),
-                         learning_rate=learning_rate,
-                         patience=5,
-                         data_processing_plan=data_processing_plan,
-                         tb_path="heat_maps/" + model,
-                         model_name=model,
-                         model_type=CROPPER,
-                         epochs=2,
-                         verbose=True)
+    for delta in [-2.5, -1.85, -1.6, -1.25]:
+        model1 = train_model(model_generator=lambda: eta_net(input_shape=np.shape(generator.train()[0][IN(0)])[1:],
+                                                             weight_decay=weight_decay,
+                                                             dropout_rate=0.5,
+                                                             activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
+                             dataset_manager=generator,
+                             loss=lambda x, y: prop_heatmap_penalized_fp_loss(x, y, delta, 3),
+                             learning_rate=learning_rate,
+                             patience=5,
+                             data_processing_plan=data_processing_plan,
+                             tb_path="heat_maps/" + model + "_delta_" + str(-delta),
+                             model_name=model + "_delta_" + str(-delta),
+                             model_type=CROPPER,
+                             epochs=100,
+                             verbose=True)
