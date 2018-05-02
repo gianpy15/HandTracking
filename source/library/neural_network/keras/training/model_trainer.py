@@ -15,7 +15,7 @@ from library.neural_network.batch_processing.processing_plan import ProcessingPl
 
 
 def train_model(model_generator, dataset_manager: DatasetManager, loss,
-                tb_path=None, tb_plots=None, model_name=None, model_type=None, data_processing_plan: ProcessingPlan=None,
+                tb_path=None, tb_plots=None, model_name=None, model_path=None, data_processing_plan: ProcessingPlan=None,
                 learning_rate=1e-3, epochs=50, patience=-1,
                 additional_callbacks=None, enable_telegram_log=False):
     """
@@ -58,21 +58,14 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
 
     model = model_generator()
 
-    if model_name is None or model_type is None:
+    if model_name is None or model_path is None:
         checkpoint_path = None
         h5model_path = None
     else:
         if tb_path is not None:
             tb_path = os.path.join(tb_path, model_name)
-        if model_type == CROPPER:
-            checkpoint_path = cropper_ckp_path(model_name)
-            h5model_path = cropper_h5_path(model_name)
-        elif model_type == JLOCATOR:
-            checkpoint_path = jlocator_ckp_path(model_name)
-            h5model_path = jlocator_h5_path(model_name)
-        else:
-            checkpoint_path = None
-            h5model_path = None
+        checkpoint_path = os.path.join(model_path, model_name+".ckp")
+        h5model_path = os.path.join(model_path, model_name+".h5")
     log("Model:", level=COMMENTARY)
     model.summary(print_fn=lambda s: log(s, level=COMMENTARY))
 
@@ -124,7 +117,7 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
         log('Fitting model...', level=COMMENTARY)
         # Notification for telegram
         try:
-            tele.notify_training_starting(model_name=model_type + "_" + model_name,
+            tele.notify_training_starting(model_name=model_name,
                                           training_samples=len(train_data) * dataset_manager.batch_size,
                                           validation_samples=len(valid_data) * dataset_manager.batch_size,
                                           tensorboard="handtracking.eastus.cloudapp.azure.com:6006 if active")
@@ -153,13 +146,13 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
         accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
         valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
         try:
-            tele.notify_training_end(model_name=model_type + "_" + model_name,
+            tele.notify_training_end(model_name=model_name,
                                      final_loss=str(loss_),
                                      final_validation_loss=str(valid_loss),
                                      final_accuracy=str(accuracy),
                                      final_validation_accuracy=str(valid_accuracy))
 
-            if model_type == CROPPER:
+            if model_path == croppers_path():
                 tele.send_message(message="Training samples:")
                 img = train_data[0][IN(0)] * 255
                 map_ = model.predict(img)

@@ -66,6 +66,6 @@ if __name__ == '__main__':
                                                                                      feed[NET_OUT(0)]),
                                    'crops': crop_sprite},
                          model_name=model + "_normlayer",
-                         model_type=CROPPER,
+                         model_path=croppers_path(),
                          epochs=50,
                          enable_telegram_log=False)
