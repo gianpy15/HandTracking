@@ -64,7 +64,7 @@ class NameGenerator:
     def __init__(self, prefix, separator):
         self.prefix = prefix
         self.separator = separator
-        self.regex = re.compile("^%s%s" % (self.prefix, self.separator))
+        self.regex = re.compile("^%s%s(?P<key>.*)" % (self.prefix, self.separator))
 
     def __call__(self, iden):
         """
@@ -82,6 +82,22 @@ class NameGenerator:
     def filter(self, names):
         return [name for name in names if re.match(pattern=self.regex,
                                                    string=name)]
+
+    def reverse(self, keys):
+        if isinstance(keys, str):
+            match = self.regex.match(keys)
+            if match is None:
+                raise KeyError("Unable to reverse key %s produced by a different NameGenerator. My keys have form: %s"
+                               % (keys, self.regex))
+            return match.groups("key")[0]
+        ret = []
+        for key in keys:
+            r = self.reverse(key)
+            if isinstance(r, str):
+                ret.append(r)
+            else:
+                ret += r
+        return ret
 
 
 # network input-output conventions
@@ -115,6 +131,12 @@ IN = NameGenerator(prefix='IN',
 # All of them must be named with OUT
 OUT = NameGenerator(prefix='OUT',
                     separator='_')
+
+# This NameGenerator is intended to refer to the runtime outputs of a Model
+# Use it to refer to runtime dynamic computations in contrapposition with OUT
+# that holds the corresponding target outputs.
+NET_OUT = NameGenerator(prefix='NETOUT',
+                        separator='_')
 
 CROPPER = 'cropper'
 JLOCATOR = 'jlocator'
@@ -284,5 +306,5 @@ if __name__ == '__main__':
         print(IN(i+0.))
         print(OUT(i))
 
-    print(IN.filter(['92', 'IN_IN_IN', 'IN_', 'IN_23', 'OUT_O', 'aIN_a']))
+    print(IN.reverse(IN.filter(['92', 'IN_IN_IN', 'IN_', 'IN_23', 'OUT_O', 'aIN_a'])))
 

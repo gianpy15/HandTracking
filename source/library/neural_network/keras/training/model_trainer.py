@@ -5,7 +5,7 @@ import traceback
 
 from data import *
 from library import *
-from library.neural_network.keras.callbacks.image_writer import ImageWriter
+from library.neural_network.keras.callbacks.generalized_image_writer import ImageWriter
 from library.neural_network.keras.callbacks.scalar_writer import ScalarWriter
 from library.neural_network.keras.sequence import BatchGenerator
 from library.neural_network.tensorboard_interface.tensorboard_manager import TensorBoardManager as TBManager
@@ -15,7 +15,7 @@ from library.neural_network.batch_processing.processing_plan import ProcessingPl
 
 
 def train_model(model_generator, dataset_manager: DatasetManager, loss,
-                tb_path=None, model_name=None, model_type=None, data_processing_plan: ProcessingPlan=None,
+                tb_path=None, tb_plots=None, model_name=None, model_type=None, data_processing_plan: ProcessingPlan=None,
                 learning_rate=1e-3, epochs=50, patience=-1,
                 additional_callbacks=None, enable_telegram_log=False):
     """
@@ -31,6 +31,15 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
                     - must return a value to be minimized
     :param tb_path: the path for the tensorboard logging. Avoids tensorboard logging if None.
                     if a model_name is specified, this is appended to the tb_path automatically.
+    :param tb_plots: dictionary of {name: function} to specify what images should be plotted.
+                        name: the name suffix in the tensorboard view
+                        function: a callable that takes one argument feed:
+                                feed: a dictionary containing all the entries of the network
+                                      using naming conventions. Available keys:
+                                      IN(.)         all network inputs
+                                      OUT(.)        all network target outputs
+                                      NET_OUT(.)    all network corresponding real outputs
+                                any extra key in the data_sequence will be added to feed as well.
     :param model_name: the model name used for saving checkpoints and the final model on file.
     :param model_type: a specification of the type of the model to decide its standard destination directory
     :param data_processing_plan: the processing specification to be applied before feeding data to the network.
@@ -92,12 +101,13 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
 
         log("Adding tensorboard callbacks...", level=COMMENTARY)
         callbacks.append(ScalarWriter())
-        callbacks.append(ImageWriter(data=(train_data[0][IN(0)],
-                                           train_data[0][OUT(0)]),
-                                     name='train_output'))
-        callbacks.append(ImageWriter(data=(valid_data[0][IN(0)],
-                                           valid_data[0][OUT(0)]),
-                                     name='valid_output', freq=3))
+        if tb_plots is not None:
+            callbacks.append(ImageWriter(data_sequence=train_data,
+                                         image_generators=tb_plots,
+                                         name='train'))
+            callbacks.append(ImageWriter(data_sequence=valid_data,
+                                         image_generators=tb_plots,
+                                         name='validation'))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
 

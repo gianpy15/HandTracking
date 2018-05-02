@@ -12,9 +12,10 @@ from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
 import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
+from library.utils.visualization_utils import get_image_with_mask
 
-train_samples = 1000
-valid_samples = 250
+train_samples = 2
+valid_samples = 1
 batch_size = 20
 
 if __name__ == '__main__':
@@ -45,21 +46,25 @@ if __name__ == '__main__':
     data_processing_plan = ProcessingPlan(augmenter=Augmenter().shift_hue(.2).shift_sat(.2).shift_val(.2),
                                           # regularizer=Regularizer().normalize(),
                                           keyset={IN(0)})  # Today we just need to augment one input...
-    for _ in [0]:
-        model1 = train_model(model_generator=lambda: eta_net(input_shape=np.shape(generator.train()[0][IN(0)])[1:],
-                                                             weight_decay=weight_decay,
-                                                             dropout_rate=drate,
-                                                             activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
-                             dataset_manager=generator,
-                             loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
-                                                                                       white_priority=white_priority,
-                                                                                       delta=delta)
-                                   },
-                             learning_rate=learning_rate,
-                             patience=10,
-                             data_processing_plan=data_processing_plan,
-                             tb_path="heat_maps/",
-                             model_name=model + "_normlayer",
-                             model_type=CROPPER,
-                             epochs=50,
-                             enable_telegram_log=False)
+    model1 = train_model(model_generator=lambda: eta_net(input_shape=np.shape(generator.train()[0][IN(0)])[1:],
+                                                         weight_decay=weight_decay,
+                                                         dropout_rate=drate,
+                                                         activation=lambda: K.layers.LeakyReLU(alpha=0.1)),
+                         dataset_manager=generator,
+                         loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
+                                                                                   white_priority=white_priority,
+                                                                                   delta=delta)
+                               },
+                         learning_rate=learning_rate,
+                         patience=10,
+                         data_processing_plan=data_processing_plan,
+                         tb_path="heat_maps/",
+                         tb_plots={'plain_input': lambda feed: feed[IN(0)],
+                                   'plain_target': lambda feed: feed[OUT(0)],
+                                   'plain_output': lambda feed: feed[NET_OUT(0)],
+                                   'combined_mask': lambda feed: get_image_with_mask(feed[IN(0)],
+                                                                                     feed[NET_OUT(0)])},
+                         model_name=model + "_normlayer",
+                         model_type=CROPPER,
+                         epochs=50,
+                         enable_telegram_log=False)
