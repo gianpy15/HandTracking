@@ -4,9 +4,10 @@ import tensorflow as tf
 import numpy as np
 from library.utils.visualization_utils import get_image_with_mask
 from library.multi_threading import ThreadPoolManager
-import threading
+from library.utils.deprecation import deprecated_class
 
 
+@deprecated_class(alternative='generalized ImageWriter')
 class ImageWriter(Callback):
     def __init__(self, data: tuple=(None, None), max_imgs=5, name='images', freq=1):
         self.tb_manager = TBManager(scope_name=name)
