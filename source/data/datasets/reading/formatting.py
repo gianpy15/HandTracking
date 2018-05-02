@@ -101,8 +101,8 @@ LOWFMT_CROP_HEATMAP = ['heatmap', lambda x: np.expand_dims(x / 255.0, axis=-1)]
 LOWFMT_CROP_DEPTH = ['depth', lambda x: np.expand_dims(x, axis=-1)]
 
 LOWFMT_JUNC_IMG = ['cut', lambda x: x / 255.0]
-LOWFMT_JUNC_HEATMAP = ['heatmap_array', lambda x: np.expand_dims(x / 255.0, axis=-1)]
-LOWFMT_JUNC_VISIBILITY = ['visible', lambda x: x]
+LOWFMT_JUNC_HEATMAP = ['heatmap_array', lambda x: x / 255.0]
+LOWFMT_JUNC_VISIBILITY = ['visible', lambda x: x[:, 0]]
 
 
 # ######################### SECTION 3: MID-LEVEL STANDARDS #####################
@@ -116,7 +116,7 @@ MIDFMT_CROP_RGBD = [LOWFMT_CROP_IMG, LOWFMT_CROP_DEPTH]
 MIDFMT_CROP_HEATMAP = [LOWFMT_CROP_HEATMAP]
 
 MIDFMT_JUNC_RGB = [LOWFMT_JUNC_IMG]
-MIDFMT_JUNC_HEATMAP = [LOWFMT_JUNC_HEATMAP],
+MIDFMT_JUNC_HEATMAP = [LOWFMT_JUNC_HEATMAP]
 MIDFMT_JUNC_VISIBILITY = [LOWFMT_JUNC_VISIBILITY]
 
 # ######################### SECTION 4: HIGH-LEVEL STANDARDS #####################
