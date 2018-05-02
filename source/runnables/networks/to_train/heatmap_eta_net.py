@@ -12,7 +12,7 @@ from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
 import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
-from library.utils.visualization_utils import get_image_with_mask
+from library.utils.visualization_utils import get_image_with_mask, crop_sprite
 
 train_samples = 2
 valid_samples = 1
@@ -63,7 +63,8 @@ if __name__ == '__main__':
                                    'plain_target': lambda feed: feed[OUT(0)],
                                    'plain_output': lambda feed: feed[NET_OUT(0)],
                                    'combined_mask': lambda feed: get_image_with_mask(feed[IN(0)],
-                                                                                     feed[NET_OUT(0)])},
+                                                                                     feed[NET_OUT(0)]),
+                                   'crops': crop_sprite},
                          model_name=model + "_normlayer",
                          model_type=CROPPER,
                          epochs=50,
