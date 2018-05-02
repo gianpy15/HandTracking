@@ -125,8 +125,8 @@ def high_fov_model(weight_decay=0):
     return model
 
 
-def low_injection_locator(channels=3, name='refiner', dropout_rate=0, activation='relu'):
-    inputs = kl.Input(shape=(None, None, channels), name=IN('img'))
+def low_injection_locator(input_shape, name='refiner', dropout_rate=0, activation='relu'):
+    inputs = kl.Input(shape=input_shape, name=IN('img'))
 
     in1 = kl.BatchNormalization()(inputs)
 

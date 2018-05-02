@@ -58,7 +58,7 @@ def format_set_field_name(name, format, entry, channel_index=0):
     :param channel_index: the channel order where the .mat content to redirect is stored
     :return: the modified format
     """
-    format[entry][channel_index][0] = name
+    format[entry][channel_index] = [name, format[entry][channel_index][1]]
     return format
 
 
@@ -72,7 +72,7 @@ def format_add_inner_func(f, format, entry, channel_index=0):
     :return: the modified format
     """
     old_f = format[entry][channel_index][1]
-    format[entry][channel_index][1] = lambda x: old_f(f(x))
+    format[entry][channel_index] = [format[entry][channel_index][0], lambda x: old_f(f(x))]
     return format
 
 
@@ -86,7 +86,7 @@ def format_add_outer_func(f, format, entry, channel_index=0):
     :return: the modified format
     """
     old_f = format[entry][channel_index][1]
-    format[entry][channel_index][1] = lambda x: f(old_f(x))
+    format[entry][channel_index] = [format[entry][channel_index][0], lambda x: f(old_f(x))]
     return format
 
 # ######################### SECTION 2: LOW-LEVEL STANDARDS #####################

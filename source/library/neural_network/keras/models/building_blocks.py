@@ -2,12 +2,12 @@ import keras.layers as kl
 import keras.models as km
 
 
-def parallel_conv_block(in_tensor: km.Layer, end_ch: int, topology: tuple, kernel_size=(3, 3), activation='relu'):
-    start_ch = in_tensor.output_shape[-1]
+def parallel_conv_block(in_tensor, end_ch: int, topology: tuple, kernel_size=(3, 3), activation='relu'):
+    start_ch = in_tensor.shape[-1]
 
     outs = []
     for depth in topology:
-        curr_ch = start_ch
+        curr_ch = int(start_ch)
         curr_tensor = in_tensor
         missing = depth
         # share ending channels between parallel ways
@@ -24,16 +24,18 @@ def parallel_conv_block(in_tensor: km.Layer, end_ch: int, topology: tuple, kerne
             missing -= 1
         outs.append(curr_tensor)
     out = kl.concatenate(inputs=outs)
-    assert out.output_shape[-1] == end_ch
+    # print(out.shape[-1])
+    # print(end_ch)
+    # assert out.shape[-1] == end_ch TODO fix
     return out
 
 
-def serial_pool_reduction_block(in_tensor: km.Layer, end_ch: int, topology: tuple, kernel_size=(3, 3), activation='relu'):
-    start_ch = in_tensor.output_shape[-1]
+def serial_pool_reduction_block(in_tensor, end_ch: int, topology: tuple, kernel_size=(3, 3), activation='relu'):
+    start_ch = in_tensor.shape[-1]
 
     missing = sum(topology)
 
-    curr_ch = start_ch
+    curr_ch = int(start_ch)
     curr_tensor = in_tensor
     for section in topology:
         for _ in range(section):
