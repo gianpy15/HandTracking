@@ -7,22 +7,23 @@ from data.datasets.crop.hands_locator_from_rgbd import create_dataset_shaded_hea
 from data.regularization import regularizer
 from data.datasets.jlocator.junction_locator_ds_management import create_dataset as jointscreate
 from data.naming import *
+from library.telegram.telegram_bot import send_message
 
 
 # egohands by default have dimension 720x1280
 def build_default_egohands(res_rate=0.5):
     egocreate(savepath=crops_path(),
               resize_rate=res_rate,
-              width_shrink_rate=1,
-              heigth_shrink_rate=1)
+              width_shrink_rate=4,
+              heigth_shrink_rate=4)
 
 
 # our hands by default have dimension 480x640
 def build_default_crops(res_rate=0.5):
-    cropscreate(savepath=crops_path(), fillgaps=True,
+    cropscreate(savepath=crops_path(), fillgaps=False,
                 resize_rate=res_rate,
-                width_shrink_rate=1,
-                heigth_shrink_rate=1)
+                width_shrink_rate=4,
+                heigth_shrink_rate=4)
 
 
 def create_joint_dataset():
@@ -31,11 +32,13 @@ def create_joint_dataset():
     hm_reg = regularizer.Regularizer()
     hm_reg.fixresize(100, 100)
     hm_reg.heatmaps_threshold(.5)
-    jointscreate(savepath=joints_path(), fillgaps=True,
+    jointscreate(savepath=joints_path(), fillgaps=False,
                  im_regularizer=img_reg,
                  heat_regularizer=hm_reg, enlarge=.5, cross_radius=5)
 
 
 if __name__ == '__main__':
-    # build_default_egohands()
+    send_message("Starting building datasets")
+    build_default_egohands()
     build_default_crops()
+    send_message("Build complete!")
