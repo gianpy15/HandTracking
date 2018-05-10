@@ -14,8 +14,8 @@ import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from library.utils.visualization_utils import get_image_with_mask, crop_sprite
 
-train_samples = 2000
-valid_samples = 500
+train_samples = 6000
+valid_samples = 2000
 batch_size = 20
 
 if __name__ == '__main__':
@@ -68,4 +68,4 @@ if __name__ == '__main__':
                          model_name=model + "_normlayer",
                          model_path=croppers_path(),
                          epochs=50,
-                         enable_telegram_log=False)
+                         enable_telegram_log=True)
