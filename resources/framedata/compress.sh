@@ -3,9 +3,9 @@
 # Detecting max num threads
 max_processes=1
 str=$(uname)
-if [ "$str" == 'Linux' ]; then
+if [[ "$str" == 'Linux' ]]; then
    max_processes=$(nproc)
-elif [ "$str" == 'Darwin' ]; then
+elif [[ "$str" == 'Darwin' ]]; then
    max_processes=$(sysctl -n hw.ncpu)
 fi
 
