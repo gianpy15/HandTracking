@@ -12,13 +12,18 @@ fi
 echo "Detected $max_processes cores on your machine"
 echo "I'll compress using $max_processes threads"
 
+function compress() {
+    echo processing frames from $1
+    zip -rq ${1%.*}.zip $1
+}
+
+
 echo compressing files...
 processes=0
 for file in hands*
 do
     processes=$(($processes + 1))
-    echo processing frames from ${file}
-    zip -rq ${file%.*}.zip ${file} & # Parallel execution
+    compress ${file} & # Parallel execution
     # If there are more than 4 thread, wait
     if [ "$processes" -ge ${max_processes} ]; then
         wait

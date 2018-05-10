@@ -8,8 +8,7 @@ def eta_net(input_shape, weight_decay=None, name='u_net', dropout_rate=0, activa
     inputs = kl.Input(shape=input_shape, name=IN(0))
 
     # Encoding part of the network
-    in1 = kl.BatchNormalization()(inputs)
-    conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(in1)
+    conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(inputs)
     act1 = kl.Activation(activation)(conv1) if type(activation) is str else activation()(conv1)
     conv1 = kl.Conv2D(filters=32, kernel_size=[5, 5], padding='same')(act1)
     act1 = kl.Activation(activation)(conv1) if type(activation) is str else activation()(conv1)
