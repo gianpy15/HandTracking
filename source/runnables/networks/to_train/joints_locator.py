@@ -67,6 +67,21 @@ delta = 6  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penal
 # but it will improve generalization a lot. Make it as high as the network is able to handle.
 drate = 0.2
 
+# leaky relu coefficient
+# relu is great, but sometimes it leads to "neuron death": a neuron jumps into the flat zero region, then
+# it will always have zero gradient and will never be able to recover back if needed.
+# For this reason leaky relu exists, and this parameter encodes the slope of the negative part of the activation.
+leaky_slope = 0.1  # >=0, 0 is equivalent to relu, 1 is equivalent to linear, higher is possible but not recommended
+
+# augmentation probability
+# data are shifted in hue, saturation and value with the same probability (but independently)
+augmentation_prob = 0.2
+
+# mean-variance normalization of incoming samples
+# this parameter controls whether mean and variance of images
+# should be normalized or not before feeding them to the network
+normalize = False
+
 
 # #################### TRAINING #########################
 
@@ -104,12 +119,14 @@ if __name__ == '__main__':
                         formatting=JUNC_LOWINJ_FORMAT)
 
     # Plan the processing needed before providing inputs and outputs for training and validation
-    data_processing_plan = ProcessingPlan(augmenter=Augmenter().shift_hue(.2).shift_sat(.2).shift_val(.2),
-                                          # regularizer=Regularizer().normalize(),
+    data_processing_plan = ProcessingPlan(augmenter=Augmenter().shift_hue(augmentation_prob)
+                                          .shift_sat(augmentation_prob)
+                                          .shift_val(augmentation_prob),
+                                          regularizer=Regularizer().normalize() if normalize else None,
                                           keyset={IN('img')})  # Today we just need to augment one input...
     model = train_model(model_generator=lambda: low_injection_locator(input_shape=np.shape(dm.train()[0][IN('img')][0]),
                                                                       dropout_rate=drate,
-                                                                      activation=lambda: K.layers.LeakyReLU(alpha=0.1)
+                                                                      activation=lambda: K.layers.LeakyReLU(alpha=leaky_slope)
                                                                       ),
                         dataset_manager=dm,
                         loss={OUT('heats'): heatmap_loss,
