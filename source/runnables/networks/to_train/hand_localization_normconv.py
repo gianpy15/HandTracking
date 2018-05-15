@@ -131,7 +131,7 @@ if __name__ == '__main__':
                                    'combined_mask': lambda feed: get_image_with_mask(feed[IN(0)],
                                                                                      feed[NET_OUT(0)]),
                                    'crops': crop_sprite},
-                         model_name=model + "_normlayer",
+                         model_name=model,
                          model_path=croppers_path(),
                          epochs=epochs,
                          enable_telegram_log=False)
