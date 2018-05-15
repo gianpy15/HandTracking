@@ -27,11 +27,15 @@ def normalized_convs(input_shape, activation='relu', name='norm_conv',
     second_segment = kl.Dropout(rate=dropout_rate)(second_segment)
     conv_o1 = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay)(second_segment)
+    conv_o1 = kl.Activation(activation)(conv_o1) if type(activation) is str else activation()(conv_o1)
     conv_o1 = kl.Conv2D(filters=64, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay)(conv_o1)
+    conv_o1 = kl.Activation(activation)(conv_o1) if type(activation) is str else activation()(conv_o1)
     conv_o1 = kl.Conv2D(filters=32, kernel_size=[3, 3], padding='same',
                         kernel_regularizer=weight_decay)(conv_o1)
-    out = kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same', name=OUT(0),
+    conv_o1 = kl.Activation(activation)(conv_o1) if type(activation) is str else activation()(conv_o1)
+    out = kl.Conv2D(filters=1, kernel_size=[3, 3], padding='same',
+                    name=OUT(0), activation='sigmoid',
                     kernel_regularizer=weight_decay)(conv_o1)
 
     return km.Model(inputs=[inputs], outputs=[out], name=name)

@@ -91,7 +91,7 @@ normalize = False
 weight_decay = kr.l2(1e-5)
 
 if __name__ == '__main__':
-    set_verbosity(COMMENTARY)
+    set_verbosity(DEBUG)
     m1_path = cropper_h5_path(model)
 
     # We need fixed resizing of heatmaps on data read:
