@@ -30,7 +30,9 @@ def parallel_conv_block(in_tensor, end_ch: int, topology: tuple, kernel_size=(3,
     return out
 
 
-def serial_pool_reduction_block(in_tensor, end_ch: int, topology: tuple, kernel_size=(3, 3), activation='relu'):
+def serial_pool_reduction_block(in_tensor, end_ch: int, topology: tuple,
+                                kernel_size=(3, 3), activation='relu',
+                                normalize=False, kreg=None):
     start_ch = in_tensor.shape[-1]
 
     missing = sum(topology)
@@ -41,9 +43,12 @@ def serial_pool_reduction_block(in_tensor, end_ch: int, topology: tuple, kernel_
         for _ in range(section):
             ch_increment = int((end_ch - curr_ch) / missing)
             curr_ch += ch_increment
-            curr_tensor = kl.Conv2D(filters=curr_ch, padding='same', kernel_size=kernel_size)(curr_tensor)
+            curr_tensor = kl.Conv2D(filters=curr_ch, padding='same',
+                                    kernel_size=kernel_size, kernel_regularizer=kreg)(curr_tensor)
             curr_tensor = kl.Activation(activation)(curr_tensor) \
                 if isinstance(activation, str) else activation()(curr_tensor)
+            if normalize:
+                curr_tensor = kl.BatchNormalization()(curr_tensor)
             missing -= 1
         curr_tensor = kl.MaxPool2D(pool_size=(2, 2))(curr_tensor)
 
