@@ -6,6 +6,7 @@ framedata/*
 !framedata/*.sh
 !framedata/compress.sh
 !framedata/expand.sh
+!framedata/cropExcluded.txt
 
 rawcam
 vids
