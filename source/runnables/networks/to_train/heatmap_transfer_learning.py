@@ -128,6 +128,7 @@ if __name__ == '__main__':
                                           keyset={IN(0)})  # Today we just need to augment one input...
     model1 = train_model(model_generator=lambda: transfer_vgg(  # input_shape=np.shape(generator.train()[0][IN(0)])[1:],
         weight_decay=weight_decay,
+        train_vgg=retrain_vgg_model,
         dropout_rate=drate),
                          dataset_manager=generator,
                          loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
