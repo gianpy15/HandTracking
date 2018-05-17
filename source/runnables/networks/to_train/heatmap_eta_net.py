@@ -24,10 +24,10 @@ model = 'cropper_eta_net_v1'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 1  # >=1
+train_samples = 500  # >=1
 
 # the number of validation samples loaded
-valid_samples = 1  # >=1
+valid_samples = 200  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -40,7 +40,7 @@ patience = 10  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 1  # >=1
+epochs = 20  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
@@ -55,7 +55,7 @@ learning_rate = 1e-4  # >0
 # in the target heatmaps even when they appear in different proportions.
 # This parameter changes a little bit the equilibrium favouring the white (when positive)
 # This may solve the problem of the network outputting either full-black or full-white heatmaps
-white_priority = -2.  # any value, 0 is perfect equilibrium
+white_priority = -1.5  # any value, 0 is perfect equilibrium
 
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
@@ -68,7 +68,7 @@ delta = 6  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penal
 # the dropout rate to be used in the entire network
 # dropout will make training and learning more difficult as it shuts down random units at training time
 # but it will improve generalization a lot. Make it as high as the network is able to handle.
-drate = 0.2
+drate = 0.25
 
 # leaky relu coefficient
 # relu is great, but sometimes it leads to "neuron death": a neuron jumps into the flat zero region, then
