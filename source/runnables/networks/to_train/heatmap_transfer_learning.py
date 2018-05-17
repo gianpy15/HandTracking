@@ -100,17 +100,17 @@ if __name__ == '__main__':
     formatting = format_add_outer_func(f=reg.apply,
                                        format=CROPS_STD_FORMAT,
                                        entry=OUT(0))
-    
+
     formatting = format_add_outer_func(
-                  f = lambda x:255*x,
-                  format = formatting,
-                  entry = IN(0)
-                  )
-	
-	formatting = format_add_outer_func(
-		f = lambda x: preprocess_input(x),
-		format = formatting,
-		entry = IN(0))
+        f=lambda x: 255 * x,
+        format=formatting,
+        entry=IN(0)
+    )
+
+    formatting = format_add_outer_func(
+        f=lambda x: preprocess_input(x),
+        format=formatting,
+        entry=IN(0))
 
     # Load data
     generator = DatasetManager(train_samples=train_samples,
@@ -127,8 +127,8 @@ if __name__ == '__main__':
                                           regularizer=Regularizer().normalize() if normalize else None,
                                           keyset={IN(0)})  # Today we just need to augment one input...
     model1 = train_model(model_generator=lambda: transfer_vgg(  # input_shape=np.shape(generator.train()[0][IN(0)])[1:],
-                                                              weight_decay=weight_decay,
-                                                              dropout_rate=drate),
+        weight_decay=weight_decay,
+        dropout_rate=drate),
                          dataset_manager=generator,
                          loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
                                                                                    white_priority=white_priority,
