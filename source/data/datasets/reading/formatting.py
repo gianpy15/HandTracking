@@ -159,4 +159,5 @@ def confidence_filtered_pb_format(min_confidence):
         return x
 
     return format_add_outer_func(f=check_minconf,
-                                 entry=OUT('conf'))
+                                 entry=OUT('conf'),
+                                 format=PB_STD_FORMAT)
