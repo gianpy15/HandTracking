@@ -22,6 +22,7 @@ valid_samples = 100
 batch_size = 5
 weight_decay = kr.l2(1e-5) # not used yet
 learning_rate = 1e-5
+minconf = 0.999
 
 path = resources_path("palm_back_classification_dataset_rgb")
 
