@@ -1,0 +1,3 @@
+
+class SkipFrameException(Exception):
+    pass
