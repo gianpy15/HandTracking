@@ -24,6 +24,10 @@ train_samples = 200
 valid_samples = 100
 # BATCH SIZE
 batch_size = 5
+# NUMBER OF EPOCHS
+epochs = 50
+# PATIENCE
+patience = 10
 # WEIGHT DECAY "ALPHA" COEFFICIENT (STILL NOT USED)
 weight_decay = kr.l2(1e-5)
 # LEARNING RATE
@@ -38,6 +42,7 @@ learning_rate = 1e-5
 # BASICALLY, THIS PARAMETER CAN BE TUNED TO DECIDE HOW GOOD THE SAMPLES THAT THE NETWORK WILL TRAIN
 # ON WILL BE.
 minconf = 0.999
+
 
 # SET TO TRUE TO CREATE THE DATASET. SET TO FALSE IF THE DATASET IS ALREADY CREATED
 createdataset = True
@@ -64,10 +69,10 @@ if __name__ == '__main__':
                          dataset_manager=generator,
                          loss='binary_crossentropy',
                          learning_rate=learning_rate,
-                         patience=10,
+                         patience=patience,
                          data_processing_plan=data_processing_plan,
                          tb_path='palm_back/',
                          model_name=name,
                          model_path=resources_path(os.path.join("models", "palm_back", name)),
-                         epochs=50,
+                         epochs=epochs,
                          enable_telegram_log=True)
