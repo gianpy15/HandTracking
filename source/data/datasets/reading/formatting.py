@@ -1,5 +1,6 @@
 import numpy as np
 from data.naming import IN, OUT
+from data.datasets.reading.exceptions import SkipFrameException
 
 # Here are specified pre-stored formats used in different context
 # The present file contains:
@@ -104,6 +105,9 @@ LOWFMT_JUNC_IMG = ['cut', lambda x: x / 255.0]
 LOWFMT_JUNC_HEATMAP = ['heatmap_array', lambda x: x / 255.0]
 LOWFMT_JUNC_VISIBILITY = ['visible', lambda x: x[:, 0]]
 
+LOWFMT_PB_IMG = ['cut', lambda x: x / 255.0]
+LOWFMT_PB_LABEL = ['pb', lambda x: x]
+LOWFMT_PB_CONF = ['conf', lambda x: x]
 
 # ######################### SECTION 3: MID-LEVEL STANDARDS #####################
 
@@ -118,6 +122,10 @@ MIDFMT_CROP_HEATMAP = [LOWFMT_CROP_HEATMAP]
 MIDFMT_JUNC_RGB = [LOWFMT_JUNC_IMG]
 MIDFMT_JUNC_HEATMAP = [LOWFMT_JUNC_HEATMAP]
 MIDFMT_JUNC_VISIBILITY = [LOWFMT_JUNC_VISIBILITY]
+
+MIDFMT_PB_IMG = [LOWFMT_PB_IMG]
+MIDFMT_PB_LABEL = [LOWFMT_PB_LABEL]
+MIDFMT_PB_CONF = [LOWFMT_PB_CONF]
 
 # ######################### SECTION 4: HIGH-LEVEL STANDARDS #####################
 
@@ -136,3 +144,19 @@ JUNC_STD_FORMAT = {
     OUT(0): MIDFMT_JUNC_HEATMAP,
     OUT(1): MIDFMT_JUNC_VISIBILITY
 }
+
+PB_STD_FORMAT = {
+    IN(0): MIDFMT_PB_IMG,
+    OUT(0): MIDFMT_PB_LABEL,
+    OUT('conf'): MIDFMT_PB_CONF
+}
+
+
+def confidence_filtered_pb_format(min_confidence):
+    def check_minconf(x):
+        if x < min_confidence:
+            raise SkipFrameException
+        return x
+
+    return format_add_outer_func(f=check_minconf,
+                                 entry=OUT('conf'))

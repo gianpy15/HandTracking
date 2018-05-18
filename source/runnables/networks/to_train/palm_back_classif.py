@@ -4,14 +4,11 @@ import os
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
 from library.neural_network.keras.models.palm_back_classifier import *
-from data.datasets.palm_back_classifier.pb_classifier_ds_management import *
-from keras.models import load_model
 from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
-import keras.optimizers as ko
 import data.regularization.regularizer as reg
-import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
+from data import *
 
 # palm visible (+1.0)
 # back visible (-1.0)
@@ -37,7 +34,7 @@ if __name__ == '__main__':
 
     #create_dataset(savepath=path, im_regularizer=regularizer)
 
-    # TODO formatting
+    formatting = confidence_filtered_pb_format(minconf)
     generator = DatasetManager(train_samples=train_samples,
                                valid_samples=valid_samples,
                                batch_size=batch_size,
