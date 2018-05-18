@@ -6,31 +6,59 @@ sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", 
 from library.neural_network.keras.models.palm_back_classifier import *
 from data.datasets.palm_back_classifier.pb_classifier_ds_management import *
 from keras.models import load_model
-import keras.backend as k
+from library.neural_network.keras.training.model_trainer import train_model
+import keras.regularizers as kr
+import keras.optimizers as ko
 import data.regularization.regularizer as reg
 import numpy as np
-import keras
+from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 
 # palm visible (+1.0)
 # back visible (-1.0)
 
-name = "palm_back_classifier_unseq.h5"
-batch_size = 2
+name = "palm_back_simple_seq"
+train_samples = 200
+valid_samples = 100
+batch_size = 5
+weight_decay = kr.l2(1e-5) # not used yet
+learning_rate = 1e-5
+
 path = resources_path("palm_back_classification_dataset_rgb")
 
 if __name__ == '__main__':
-
-    LOAD_MODEL = False
+    """
+    LOAD_MODEL = True
 
     TRAIN_MODEL = True
-
+    """
     regularizer = reg.Regularizer()
     regularizer.fixresize(200, 200)
 
     #create_dataset(savepath=path, im_regularizer=regularizer)
 
+    # TODO formatting
+    generator = DatasetManager(train_samples=train_samples,
+                               valid_samples=valid_samples,
+                               batch_size=batch_size,
+                               dataset_dir=path,
+                               formatting=formatting)
+
+    data_processing_plan = ProcessingPlan()
+
+    model1 = train_model(model_generator=lambda: simple_classifier_rgb(weight_decay=weight_decay),
+                         dataset_manager=generator,
+                         loss='binary_crossentropy',
+                         learning_rate=learning_rate,
+                         patience=10,
+                         data_processing_plan=data_processing_plan,
+                         tb_path='palm_back/',
+                         model_name=name,
+                         model_path=resources_path(os.path.join("models", "palm_back", name)),
+                         epochs=50,
+                         enable_telegram_log=True)
+
+    """
     x_train, y_train, c_train, x_test, y_test, c_test = read_dataset(path=path, leave_out=['handsMaddalena2',
-                                                                                'handsGianpy',
                                                                                 'handsMatteo'], minconf=0.999)
 
     x_train = np.array(x_train)
@@ -49,16 +77,14 @@ if __name__ == '__main__':
     #x_test, y_test, c_test = shuffle_cut_label_conf(x_test, y_test, c_test)
 
     if LOAD_MODEL:
-        # change the name of the model to be loaded
         model = load_model(resources_path(os.path.join("models", "palm_back", name)))
     else:
-        model = unsequential_model()
+        model = simple_classifier_rgb()
 
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=ko.adam(lr=1e-5), loss='binary_crossentropy', metrics=['accuracy'])
     model.summary()
     if TRAIN_MODEL:
-        model.fit(x=x_train, y=y_train, batch_size=batch_size, epochs=2, verbose=1, class_weight=class_weight,
-                  validation_data=(x_test, y_test))
+        model.fit(x=x_train, y=y_train, batch_size=batch_size, epochs=5, verbose=1, class_weight=class_weight)
 
         # change the name of the model to save
         model.save(resources_path(os.path.join("models", "palm_back", name)))
@@ -81,4 +107,4 @@ if __name__ == '__main__':
             wrong += 1
         print("Expected: ", y_test[i], "|  Predicted: ", ris[i])
     print("Correct: ", correct)
-    print("Wrong: ", wrong)
+    print("Wrong: ", wrong)"""

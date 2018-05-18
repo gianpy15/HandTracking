@@ -369,7 +369,7 @@ def read_dataset(path=None, verbosity=0, leave_out=None, minconf=0.0):
 
 
 @deprecated_fun(alternative=DatasetManager)
-def read_dataset_h(path=None, verbosity=0, leave_out=None):
+def read_dataset_h(path=None, verbosity=0, videos=None, leave_out=None, minconf=0.0):
     """reads the .mat files present at the specified path. Note that those .mat files MUST be created using
     the create_dataset method
     :param verbosity: setting this parameter to True will make the method print the number of .mat files read
@@ -385,6 +385,8 @@ def read_dataset_h(path=None, verbosity=0, leave_out=None):
     else:
         basedir = path
     samples = os.listdir(basedir)
+    if videos is not None:
+        samples = [s for s in samples if __matches(s, videos)]
     i = 0
     tot = len(samples)
     frames = []
@@ -401,16 +403,17 @@ def read_dataset_h(path=None, verbosity=0, leave_out=None):
             i += 1
         realpath = os.path.join(basedir, name)
         readframes, readrl, readconf, rh = __read_frame_h(realpath)
-        if leave_out is None or not __matches(name, leave_out):
-            frames.append(readframes)
-            label.append(readrl)
-            conf.append(readconf)
-            heat.append(rh)
-        else:
-            t_frames.append(readframes)
-            t_label.append(readrl)
-            t_conf.append(readconf)
-            t_heat.append(rh)
+        if readconf >= minconf:
+            if leave_out is None or not __matches(name, leave_out):
+                frames.append(readframes)
+                label.append(readrl)
+                conf.append(readconf)
+                heat.append(rh)
+            else:
+                t_frames.append(readframes)
+                t_label.append(readrl)
+                t_conf.append(readconf)
+                t_heat.append(rh)
     if leave_out is None:
         return frames, label, conf, heat
     return frames, label, conf, heat, t_frames, t_label, t_conf, t_heat

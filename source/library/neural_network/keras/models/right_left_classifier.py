@@ -5,21 +5,7 @@ def simple_classifier():
 
     model = kmod.Sequential()
 
-    model.add(klayers.Conv2D(input_shape=(200, 200, 1), filters=20, kernel_size=[3, 3], activation='relu'))
-
-    model.add(klayers.Conv2D(filters=30, kernel_size=[3, 3], activation='relu'))
-
-    model.add(klayers.Conv2D(filters=40, kernel_size=[3, 3], activation='relu'))
-
-    model.add(klayers.MaxPooling2D(pool_size=[2, 2]))
-
-    model.add(klayers.Conv2D(filters=50, kernel_size=[3, 3], activation='relu'))
-
-    model.add(klayers.Conv2D(filters=70, kernel_size=[3, 3], activation='relu'))
-
-    model.add(klayers.MaxPooling2D(pool_size=[2, 2]))
-
-    model.add(klayers.Conv2D(filters=80, kernel_size=[3, 3], activation='relu'))
+    model.add(klayers.Conv2D(input_shape=(200, 200, 3), filters=50, kernel_size=[3, 3], activation='relu'))
 
     model.add(klayers.MaxPooling2D(pool_size=[2, 2]))
 
@@ -27,9 +13,15 @@ def simple_classifier():
 
     model.add(klayers.MaxPooling2D(pool_size=[2, 2]))
 
-    model.add(klayers.Conv2D(filters=250, kernel_size=[3, 3], activation='relu'))
+    model.add(klayers.Conv2D(filters=150, kernel_size=[3, 3], activation='relu'))
 
     model.add(klayers.MaxPooling2D(pool_size=[2, 2]))
+
+    model.add(klayers.Conv2D(ifilters=170, kernel_size=[3, 3], activation='relu'))
+
+    model.add(klayers.MaxPooling2D(pool_size=[2, 2]))
+
+    model.add(klayers.Conv2D(ifilters=200, kernel_size=[3, 3], activation='relu'))
 
     model.add(klayers.Flatten())
 
