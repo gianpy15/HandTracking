@@ -106,8 +106,8 @@ LOWFMT_JUNC_HEATMAP = ['heatmap_array', lambda x: x / 255.0]
 LOWFMT_JUNC_VISIBILITY = ['visible', lambda x: x[:, 0]]
 
 LOWFMT_PB_IMG = ['cut', lambda x: x / 255.0]
-LOWFMT_PB_LABEL = ['pb', lambda x: x]
-LOWFMT_PB_CONF = ['conf', lambda x: x]
+LOWFMT_PB_LABEL = ['pb', lambda x: x[0]]
+LOWFMT_PB_CONF = ['conf', lambda x: x[0]]
 
 # ######################### SECTION 3: MID-LEVEL STANDARDS #####################
 

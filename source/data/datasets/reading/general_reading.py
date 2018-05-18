@@ -1,5 +1,6 @@
 import scipy.io as scio
 from data import *
+import os
 import numpy as np
 from data.datasets.reading.exceptions import SkipFrameException
 

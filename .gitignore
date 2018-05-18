@@ -9,7 +9,7 @@ web/local_paths.php
 out
 gen
 .venv
-
+venv
 # Pycache files
 source/**/__pycache__
 source/**/*.pyc

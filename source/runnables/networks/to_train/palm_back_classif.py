@@ -9,30 +9,47 @@ import keras.regularizers as kr
 import data.regularization.regularizer as reg
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from data import *
+from data.datasets.palm_back_classifier.pb_classifier_ds_management import *
 
 # palm visible (+1.0)
-# back visible (-1.0)
+# back visible (0.0)
 
-name = "palm_back_simple_seq"
+# ########## HYPERPARAMETERS ################
+
+# MODEL NAME
+name = "palm_back_simple_sequential"
+# NUMBER OF SAMPLES IN TRAIN SET
 train_samples = 200
+# NUMBER OF SAMPLES IN VALIDATION SET
 valid_samples = 100
+# BATCH SIZE
 batch_size = 5
-weight_decay = kr.l2(1e-5) # not used yet
+# WEIGHT DECAY "ALPHA" COEFFICIENT (STILL NOT USED)
+weight_decay = kr.l2(1e-5)
+# LEARNING RATE
 learning_rate = 1e-5
+# CONFIDENCE USED TO CHOOSE ELEMENTS FOR THE TRAIN/TEST SETS.
+# SAMPLES (.mat FILES) ARE PRODUCED BY THE CREATE_DATASET FUNCTION AND
+# EACH CUT IN EACH SAMPLE IS ASSIGNED A "CONFIDENCE" AND A LABEL (PALM=1 BACK=0).
+# THE HIGHER THE CONFIDENCE IS, THE BETTER THE SAMPLE IS. IT MEANS THAT A PERFECT PALM WILL HAVE
+# CONFIDENCE CLOSE TO 1, AS WELL AS A PERFECT BACK WILL HAVE A CONFIDENCE CLOSE TO 1. INSTEAD,
+# HARDLY RECOGNIZABALE HANDS (SUCH AS A HAND THAT IS PERFECLY "LATERAL") WILL BE ASSIGNED A CONFIDENCE
+# CLOSE TO 0 (AND SO WILL BE LESS RECOGNIZABLE AND CLASSIFIABLE BOTH BY HUMANS AND THE NETWORK)
+# BASICALLY, THIS PARAMETER CAN BE TUNED TO DECIDE HOW GOOD THE SAMPLES THAT THE NETWORK WILL TRAIN
+# ON WILL BE.
 minconf = 0.999
 
+# SET TO TRUE TO CREATE THE DATASET. SET TO FALSE IF THE DATASET IS ALREADY CREATED
+createdataset = True
+# PATH AT WHICH THE DATASET WILL BE SAVED/READ
 path = resources_path("palm_back_classification_dataset_rgb")
 
 if __name__ == '__main__':
-    """
-    LOAD_MODEL = True
-
-    TRAIN_MODEL = True
-    """
+    # NO NEED TO TOUCH ANYTHING AFTER THIS, IT'S DELICATE
     regularizer = reg.Regularizer()
     regularizer.fixresize(200, 200)
-
-    #create_dataset(savepath=path, im_regularizer=regularizer)
+    if createdataset:
+        create_dataset(savepath=path, im_regularizer=regularizer)
 
     formatting = confidence_filtered_pb_format(minconf)
     generator = DatasetManager(train_samples=train_samples,
@@ -54,55 +71,3 @@ if __name__ == '__main__':
                          model_path=resources_path(os.path.join("models", "palm_back", name)),
                          epochs=50,
                          enable_telegram_log=True)
-
-    """
-    x_train, y_train, c_train, x_test, y_test, c_test = read_dataset(path=path, leave_out=['handsMaddalena2',
-                                                                                'handsMatteo'], minconf=0.999)
-
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-    c_train = np.array(c_train)
-
-    x_test = np.array(x_test)
-    y_test = np.array(y_test)
-    c_test = np.array(c_test)
-    print(x_train.shape, y_train.shape, c_train.shape, x_test.shape, y_test.shape, c_test.shape)
-
-    class_weight = count_ones_zeros(y_train, y_test)
-    print(class_weight)
-
-   # x_train, y_train, c_train = shuffle_cut_label_conf(x_train, y_train, c_train)
-    #x_test, y_test, c_test = shuffle_cut_label_conf(x_test, y_test, c_test)
-
-    if LOAD_MODEL:
-        model = load_model(resources_path(os.path.join("models", "palm_back", name)))
-    else:
-        model = simple_classifier_rgb()
-
-    model.compile(optimizer=ko.adam(lr=1e-5), loss='binary_crossentropy', metrics=['accuracy'])
-    model.summary()
-    if TRAIN_MODEL:
-        model.fit(x=x_train, y=y_train, batch_size=batch_size, epochs=5, verbose=1, class_weight=class_weight)
-
-        # change the name of the model to save
-        model.save(resources_path(os.path.join("models", "palm_back", name)))
-
-    evaluation_score = model.evaluate(x=x_test, y=y_test, batch_size=batch_size, verbose=1)
-
-    print("Model evaluation:", evaluation_score)
-
-    n = x_test.shape[0]
-    ris = model.predict(x_test, batch_size=batch_size)
-    correct = 0
-    wrong = 0
-    for i in range(n):
-
-        if y_test[i] == 1 and ris[i] >= 0.5 or y_test[i] == 0 and ris[i] < 0.5:
-            correct += 1
-        else:
-            #if wrong < 10:
-                #u.showimage(x_test[i].squeeze())
-            wrong += 1
-        print("Expected: ", y_test[i], "|  Predicted: ", ris[i])
-    print("Correct: ", correct)
-    print("Wrong: ", wrong)"""
