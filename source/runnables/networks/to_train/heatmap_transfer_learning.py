@@ -64,7 +64,7 @@ white_priority = -2  # any value, 0 is perfect equilibrium
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
-delta = 0  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
+delta = 1  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
 
 # NETWORK PARAMETERS
 
@@ -81,7 +81,7 @@ drate = 0.5
 
 # augmentation probability
 # data are shifted in hue, saturation and value with the same probability (but independently)
-augmentation_prob = 0.2
+augmentation_prob = 0.4
 
 # mean-variance normalization of incoming samples
 # this parameter controls whether mean and variance of images
