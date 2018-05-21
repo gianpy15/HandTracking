@@ -46,7 +46,7 @@ epochs = 200  # >=1
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
 # setting a lower learning rate may also allow reaching smaller and deeper minima in the loss
 # use it to save training time, but don't abuse it as you may lose the best solutions
-learning_rate = 1e-4  # >0
+learning_rate = 1e-5  # >0
 
 # If true all the pre trained VGG model will be trained in the learning process (2 million parameters)
 retrain_vgg_model = True
@@ -64,14 +64,14 @@ white_priority = -2  # any value, 0 is perfect equilibrium
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
-delta = 1  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
+delta = 3  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
 
 # NETWORK PARAMETERS
 
 # the dropout rate to be used in the entire network
 # dropout will make training and learning more difficult as it shuts down random units at training time
 # but it will improve generalization a lot. Make it as high as the network is able to handle.
-drate = 0.5
+drate = 0.6
 
 # leaky relu coefficient
 # relu is great, but sometimes it leads to "neuron death": a neuron jumps into the flat zero region, then
@@ -81,7 +81,7 @@ drate = 0.5
 
 # augmentation probability
 # data are shifted in hue, saturation and value with the same probability (but independently)
-augmentation_prob = 0.4
+augmentation_prob = 0.5
 
 # mean-variance normalization of incoming samples
 # this parameter controls whether mean and variance of images
