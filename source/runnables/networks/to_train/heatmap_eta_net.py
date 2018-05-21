@@ -13,6 +13,7 @@ import keras.regularizers as kr
 import numpy as np
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from library.utils.visualization_utils import get_image_with_mask, crop_sprite
+from data.datasets.crop.crop_exclude import multiple_hands_video_list
 
 
 # ####################### HYPERPARAMETERS #######################
@@ -24,10 +25,10 @@ model = 'cropper_eta_net_v1'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 500  # >=1
+train_samples = 5  # >=1
 
 # the number of validation samples loaded
-valid_samples = 200  # >=1
+valid_samples = 2  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -106,7 +107,8 @@ if __name__ == '__main__':
                                valid_samples=valid_samples,
                                batch_size=batch_size,
                                dataset_dir=crops_path(),
-                               formatting=formatting)
+                               formatting=formatting,
+                               exclude_videos=multiple_hands_video_list())
 
     # Plan the processing needed before providing inputs and outputs for training and validation
     data_processing_plan = ProcessingPlan(augmenter=Augmenter()

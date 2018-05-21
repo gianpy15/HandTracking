@@ -13,6 +13,7 @@ from library.utils.visualization_utils import get_image_with_mask, crop_sprite
 from library.neural_network.keras.models.transfer_learning import transfer_vgg, transfer_mobile_net
 from keras.applications.vgg16 import preprocess_input as preprocess_vgg
 from keras.applications.mobilenet import preprocess_input as preprocess_mobile
+from data.datasets.crop.crop_exclude import multiple_hands_video_list
 
 # ####################### HYPERPARAMETERS #######################
 
@@ -125,7 +126,8 @@ if __name__ == '__main__':
                                valid_samples=valid_samples,
                                batch_size=batch_size,
                                dataset_dir=crops_path(),
-                               formatting=formatting)
+                               formatting=formatting,
+                               exclude_videos=multiple_hands_video_list())
 
     # Plan the processing needed before providing inputs and outputs for training and validation
     data_processing_plan = ProcessingPlan(augmenter=Augmenter()
