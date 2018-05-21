@@ -24,10 +24,10 @@ _model = 'transfer_mobilenet'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 5000  # >=1
+train_samples = 500  # >=1
 
 # the number of validation samples loaded
-valid_samples = 2000  # >=1
+valid_samples = 200  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
