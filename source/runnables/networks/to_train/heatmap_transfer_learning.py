@@ -10,27 +10,28 @@ from library.neural_network.keras.training.model_trainer import train_model
 import keras.regularizers as kr
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from library.utils.visualization_utils import get_image_with_mask, crop_sprite
-from library.neural_network.keras.models.transfer_learning import transfer_vgg
-from keras.applications.vgg16 import preprocess_input
+from library.neural_network.keras.models.transfer_learning import transfer_vgg, transfer_mobile_net
+from keras.applications.vgg16 import preprocess_input as preprocess_vgg
+from keras.applications.mobilenet import preprocess_input as preprocess_mobile
 
 # ####################### HYPERPARAMETERS #######################
 
 # NETWORK NAME (used for naming saved files)
 # play with this adding extentions when saving models with different hyperparameter configurations
-model = 'transfer_vgg16'
+_model = 'transfer_mobilenet'
 
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 500  # >=1
+train_samples = 5000  # >=1
 
 # the number of validation samples loaded
-valid_samples = 200  # >=1
+valid_samples = 2000  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 20  # >=1
+batch_size = 40  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -38,7 +39,7 @@ patience = 10  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 20  # >=1
+epochs = 200  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
@@ -56,12 +57,13 @@ retrain_vgg_model = True
 # in the target heatmaps even when they appear in different proportions.
 # This parameter changes a little bit the equilibrium favouring the white (when positive)
 # This may solve the problem of the network outputting either full-black or full-white heatmaps
+# Leave this value -2, try to improve performance with delta
 white_priority = -2  # any value, 0 is perfect equilibrium
 
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
-delta = 5  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
+delta = 0  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
 
 # NETWORK PARAMETERS
 
@@ -93,13 +95,19 @@ weight_decay = kr.l2(1e-5)
 
 if __name__ == '__main__':
     set_verbosity(COMMENTARY)
-    m1_path = cropper_h5_path(model)
+    m1_path = cropper_h5_path(_model)
 
     # We need fixed resizing of heatmaps on data read:
     reg = Regularizer().fixresize(60, 80)
-    formatting = format_add_outer_func(f=reg.apply,
+    reg_1 = Regularizer().fixresize(56, 56)
+    reg_2 = Regularizer().fixresize(224, 224)
+    formatting = format_add_outer_func(f=reg_1.apply,
                                        format=CROPS_STD_FORMAT,
                                        entry=OUT(0))
+
+    formatting = format_add_outer_func(f=reg_2.apply,
+                                       format=formatting,
+                                       entry=IN(0))
 
     formatting = format_add_outer_func(
         f=lambda x: 255 * x,
@@ -108,7 +116,7 @@ if __name__ == '__main__':
     )
 
     formatting = format_add_outer_func(
-        f=lambda x: preprocess_input(x),
+        f=lambda x: preprocess_mobile(x),
         format=formatting,
         entry=IN(0))
 
@@ -126,9 +134,12 @@ if __name__ == '__main__':
                                           .shift_val(augmentation_prob),
                                           regularizer=Regularizer().normalize() if normalize else None,
                                           keyset={IN(0)})  # Today we just need to augment one input...
-    model1 = train_model(model_generator=lambda: transfer_vgg(  # input_shape=np.shape(generator.train()[0][IN(0)])[1:],
-        weight_decay=weight_decay,
-        train_vgg=retrain_vgg_model,
+
+    model = _model
+    model1 = train_model(model_generator=lambda: transfer_mobile_net(  # input_shape=np.shape(generator.train()[0][IN(0)])[1:],
+        # weight_decay=weight_decay,
+        # train_vgg=retrain_vgg_model,
+        train_mobilenet=retrain_vgg_model,
         dropout_rate=drate),
                          dataset_manager=generator,
                          loss={OUT(0): lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
