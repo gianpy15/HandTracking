@@ -24,10 +24,10 @@ _model = 'transfer_mobilenet'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 500  # >=1
+train_samples = 2000  # >=1
 
 # the number of validation samples loaded
-valid_samples = 200  # >=1
+valid_samples = 800  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -71,7 +71,7 @@ delta = 0  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penal
 # the dropout rate to be used in the entire network
 # dropout will make training and learning more difficult as it shuts down random units at training time
 # but it will improve generalization a lot. Make it as high as the network is able to handle.
-drate = 0.25
+drate = 0.5
 
 # leaky relu coefficient
 # relu is great, but sometimes it leads to "neuron death": a neuron jumps into the flat zero region, then
@@ -158,7 +158,7 @@ if __name__ == '__main__':
                                    'combined_mask': lambda feed: get_image_with_mask(feed[IN(0)],
                                                                                      feed[NET_OUT(0)]),
                                    'crops': crop_sprite},
-                         model_name=model + "_normlayer",
+                         model_name=model,
                          model_path=croppers_path(),
                          epochs=epochs,
                          enable_telegram_log=True)
