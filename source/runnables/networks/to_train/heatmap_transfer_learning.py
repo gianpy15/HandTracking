@@ -46,7 +46,7 @@ epochs = 200  # >=1
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
 # setting a lower learning rate may also allow reaching smaller and deeper minima in the loss
 # use it to save training time, but don't abuse it as you may lose the best solutions
-learning_rate = 1e-5  # >0
+learning_rate = 1e-4  # >0
 
 # If true all the pre trained VGG model will be trained in the learning process (2 million parameters)
 retrain_vgg_model = True
