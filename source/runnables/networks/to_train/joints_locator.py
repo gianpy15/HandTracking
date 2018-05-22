@@ -21,10 +21,10 @@ model = 'jlocator_lowinj'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 500  # >=1
+train_samples = 700  # >=1
 
 # the number of validation samples loaded
-valid_samples = 200  # >=1
+valid_samples = 300  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -37,7 +37,7 @@ patience = 10  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 50  # >=1
+epochs = 20  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
