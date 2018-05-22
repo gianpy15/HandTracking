@@ -19,13 +19,13 @@ from data.datasets.palm_back_classifier.pb_classifier_ds_management import *
 # MODEL NAME
 name = "palm_back_simple_sequential"
 # NUMBER OF SAMPLES IN TRAIN SET
-train_samples = 200
+train_samples = 700
 # NUMBER OF SAMPLES IN VALIDATION SET
-valid_samples = 100
+valid_samples = 300
 # BATCH SIZE
-batch_size = 5
+batch_size = 20
 # NUMBER OF EPOCHS
-epochs = 50
+epochs = 20
 # PATIENCE
 patience = 10
 # WEIGHT DECAY "ALPHA" COEFFICIENT (STILL NOT USED)
