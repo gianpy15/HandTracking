@@ -10,6 +10,7 @@ import data.regularization.regularizer as reg
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from data import *
 from data.datasets.palm_back_classifier.pb_classifier_ds_management import *
+from data.naming import *
 
 # palm visible (+1.0)
 # back visible (0.0)
@@ -45,9 +46,9 @@ minconf = 0.999
 
 
 # SET TO TRUE TO CREATE THE DATASET. SET TO FALSE IF THE DATASET IS ALREADY CREATED
-createdataset = True
+createdataset = False
 # PATH AT WHICH THE DATASET WILL BE SAVED/READ
-path = resources_path("palm_back_classification_dataset_rgb")
+path = palmback_path()
 
 if __name__ == '__main__':
     # NO NEED TO TOUCH ANYTHING AFTER THIS, IT'S DELICATE

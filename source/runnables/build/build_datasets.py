@@ -6,6 +6,7 @@ from data.datasets.crop.egohand_dataset_manager import create_dataset as egocrea
 from data.datasets.crop.hands_locator_from_rgbd import create_dataset_shaded_heatmaps as cropscreate
 from data.regularization import regularizer
 from data.datasets.jlocator.junction_locator_ds_management import create_dataset as jointscreate
+from data.datasets.palm_back_classifier.pb_classifier_ds_management import create_dataset as pbcreate
 from data.naming import *
 from library.telegram.telegram_bot import send_message
 
@@ -35,6 +36,12 @@ def create_joint_dataset():
     jointscreate(savepath=joints_path(), fillgaps=False,
                  im_regularizer=img_reg,
                  heat_regularizer=hm_reg, enlarge=.5, cross_radius=5)
+
+
+def create_palmback_dataset():
+    img_reg = regularizer.Regularizer()
+    img_reg.fixresize(200, 200)
+    pbcreate(savepath=palmback_path(), im_regularizer=img_reg)
 
 
 if __name__ == '__main__':
