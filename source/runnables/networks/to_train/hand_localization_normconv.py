@@ -137,4 +137,4 @@ if __name__ == '__main__':
                          model_name=model,
                          model_path=croppers_path(),
                          epochs=epochs,
-                         enable_telegram_log=False)
+                         enable_telegram_log=True)

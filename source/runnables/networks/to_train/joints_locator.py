@@ -152,4 +152,4 @@ if __name__ == '__main__':
                         model_name=model,
                         model_path=joint_locators_path(),
                         epochs=epochs,
-                        enable_telegram_log=False)
+                        enable_telegram_log=True)
