@@ -41,6 +41,7 @@ DATASETSFOLDER = "datasets"
 CROPSDATAFOLDER = os.path.join(DATASETSFOLDER, "crops")
 JOINTSDATAFOLDER = os.path.join(DATASETSFOLDER, "joints")
 PALMBACKFOLDER = os.path.join(DATASETSFOLDER, "palmback")
+JSONHANDSFOLDER = os.path.join(DATASETSFOLDER, "jsonhands")
 
 # #################### DATASET-COMPONENT DEFINES ###############
 
@@ -233,6 +234,15 @@ def palmback_path(*paths):
     :return: The path relative to this standard folder
     """
     return resources_path(PALMBACKFOLDER, *paths)
+
+
+def jsonhands_path(*paths):
+    """
+    Builds the path starting where all datasets about palm/back classificators should be.
+    :param paths: sequence of directories to be joined after the standard base.
+    :return: The path relative to this standard folder
+    """
+    return resources_path(JSONHANDSFOLDER, *paths)
 
 # ######################### MODEL NAME CONVENTIONS ###################
 

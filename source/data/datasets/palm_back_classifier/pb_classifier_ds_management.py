@@ -581,19 +581,19 @@ def count_ones_zeros(y_train, y_test):
 
 
 if __name__ == '__main__':
-    #im_r = reg.Regularizer()
-    #im_r.fixresize(200, 200)
-    #h_r = reg.Regularizer()
-    #h_r.fixresize(200, 200)
-    #create_dataset_w_heatmaps(im_regularizer=im_r, h_r=h_r)
-    #c, r, co, h = read_dataset_h()
-    #print(r[1], co[1])
-    #u.showimage(c[1].squeeze())
+    im_r = reg.Regularizer()
+    im_r.fixresize(200, 200)
+    h_r = reg.Regularizer()
+    h_r.fixresize(200, 200)
+    create_dataset(im_regularizer=im_r, savepath=palmback_path())
+    c, r, co = read_dataset(path=palmback_path())
+    print(r[1], co[1])
+    u.showimage(c[1].squeeze())
     #u.showimage(u.heatmap_to_rgb(h[1]))
-    vidname = "handsStefano1"
-    path = resources_path(os.path.join("framedata", vidname, vidname))
-    files = os.listdir(path)
-    i = 50
-    matcont = scio.loadmat(os.path.join(path, files[i]))['data']
-    u.showimage(matcont)
+    #vidname = "handsStefano1"
+    #path = resources_path(os.path.join("framedata", vidname, vidname))
+    #files = os.listdir(path)
+    #i = 50
+    #matcont = scio.loadmat(os.path.join(path, files[i]))['data']
+    #u.showimage(matcont)
 
