@@ -97,10 +97,12 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
         if tb_plots is not None:
             callbacks.append(ImageWriter(data_sequence=train_data,
                                          image_generators=tb_plots,
-                                         name='train'))
+                                         name='train',
+                                         max_items=10))
             callbacks.append(ImageWriter(data_sequence=valid_data,
                                          image_generators=tb_plots,
-                                         name='validation'))
+                                         name='validation',
+                                         max_items=10))
     if additional_callbacks is not None:
         callbacks += additional_callbacks
 
