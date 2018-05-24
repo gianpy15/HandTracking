@@ -24,7 +24,7 @@ train_samples = 700
 # NUMBER OF SAMPLES IN VALIDATION SET
 valid_samples = 300
 # BATCH SIZE
-batch_size = 20
+batch_size = 11
 # NUMBER OF EPOCHS
 epochs = 20
 # PATIENCE
