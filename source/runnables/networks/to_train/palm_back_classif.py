@@ -20,11 +20,11 @@ from data.naming import *
 # MODEL NAME
 name = "palm_back_simple_sequential"
 # NUMBER OF SAMPLES IN TRAIN SET
-train_samples = 700
+train_samples = 1000
 # NUMBER OF SAMPLES IN VALIDATION SET
-valid_samples = 300
+valid_samples = 500
 # BATCH SIZE
-batch_size = 11
+batch_size = 12
 # NUMBER OF EPOCHS
 epochs = 20
 # PATIENCE
@@ -32,7 +32,7 @@ patience = 10
 # WEIGHT DECAY "ALPHA" COEFFICIENT (STILL NOT USED)
 weight_decay = kr.l2(1e-5)
 # LEARNING RATE
-learning_rate = 1e-5
+learning_rate = 1e-4
 # CONFIDENCE USED TO CHOOSE ELEMENTS FOR THE TRAIN/TEST SETS.
 # SAMPLES (.mat FILES) ARE PRODUCED BY THE CREATE_DATASET FUNCTION AND
 # EACH CUT IN EACH SAMPLE IS ASSIGNED A "CONFIDENCE" AND A LABEL (PALM=1 BACK=0).
