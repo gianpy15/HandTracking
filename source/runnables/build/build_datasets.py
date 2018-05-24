@@ -48,5 +48,6 @@ if __name__ == '__main__':
     send_message("Starting building datasets")
     # build_default_egohands()
     # build_default_crops()
-    create_joint_dataset()
+    # create_joint_dataset()
+    create_palmback_dataset()
     send_message("Build complete!")
