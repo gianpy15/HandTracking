@@ -11,27 +11,28 @@ from data.naming import *
 from library.utils.visualization_utils import get_image_with_mask
 import numpy as np
 
-# pls specify the name of the image, (png, jpg)
-image_name = "test.png"
+if __name__ == '__main__':
+    # pls specify the name of the image, (png, jpg)
+    image_name = "hands.png"
 
-dataset_path = resources_path("hands_bounding_dataset", "network_test")
-png_path = resources_path("gui", image_name)
-model_path = models_path('deployment', 'transfer_mobilenet.h5')
+    dataset_path = resources_path("hands_bounding_dataset", "network_test")
+    png_path = resources_path("gui", image_name)
+    model_path = models_path('deployment', 'transfer_mobilenet.h5')
 
-read_from_png = True
-preprocessing = True
+    read_from_png = True
+    preprocessing = True
 
-height = 224
-width = 224
-if read_from_png:
-    images = load(png_path, force_format=(height, width, 3))
-    if preprocessing:
-        images_ = preprocess_input(images)
+    height = 224
+    width = 224
+    if read_from_png:
+        images = load(png_path, force_format=(height, width, 3))
+        if preprocessing:
+            images_ = preprocess_input(images * 255)
 
-# Build up the model
-model = km.load_model(model_path, custom_objects={'relu6': relu6})
+    # Build up the model
+    model = km.load_model(model_path, custom_objects={'relu6': relu6})
 
-# Testing the model getting some outputs
-net_out = model.predict(images if preprocessing else images_)
-imgs = get_image_with_mask(images, net_out)
-u.showimage(255 * imgs[0])
+    # Testing the model getting some outputs
+    net_out = model.predict(images_ if preprocessing else images)
+    imgs = get_image_with_mask(images, net_out)
+    u.showimage(imgs[0])
