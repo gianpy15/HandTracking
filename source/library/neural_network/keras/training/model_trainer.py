@@ -17,7 +17,7 @@ from library.neural_network.batch_processing.processing_plan import ProcessingPl
 def train_model(model_generator, dataset_manager: DatasetManager, loss,
                 tb_path=None, tb_plots=None, model_name=None, model_path=None, data_processing_plan: ProcessingPlan=None,
                 learning_rate=1e-3, epochs=50, patience=-1,
-                additional_callbacks=None, enable_telegram_log=False):
+                additional_callbacks=None, enable_telegram_log=False, class_weight=None):
     """
     Train a model with all kinds of log services and optimizations we could come up with.
     Clears completely the session at each call to have separated training sessions of different models
@@ -130,7 +130,8 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
                                                            process_plan=data_processing_plan),
                                   epochs=epochs, verbose=1, callbacks=callbacks,
                                   validation_data=BatchGenerator(data_sequence=valid_data,
-                                                                 process_plan=data_processing_plan))
+                                                                 process_plan=data_processing_plan),
+                                  class_weight=class_weight)
 
     if h5model_path is not None:
         log("Saving H5 model...", level=COMMENTARY)
