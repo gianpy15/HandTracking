@@ -4,6 +4,7 @@ import sys
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..", "..")))
 
 import keras as K
+import keras.models as km
 from data import *
 from keras.applications.mobilenet import MobileNet
 
@@ -60,6 +61,37 @@ def transfer_mobile_net(dropout_rate=0.0, activation=K.layers.activations.relu, 
 
     transferred_net.layers[-1].name = OUT(0)
     return transferred_net
+
+
+def transfer_mobile_net_joints(dropout_rate=0.0, activation=K.layers.activations.relu, train_mobilenet=False):
+
+    net_in = K.layers.Input(shape=[224, 224, 3], name=IN(0))
+    mobile_net = MobileNet(include_top=False,
+                           weights='imagenet',
+                           dropout=0.0,
+                           input_tensor=net_in,
+                           input_shape=[224, 224, 3])
+    layers = mobile_net.layers[:26]
+    for layer in layers:
+        layer.trainable = train_mobilenet
+
+    c1 = K.layers.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(layers[-1])
+    c1 = K.layers.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(c1)
+    c1 = K.layers.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c1)
+
+    c2 = K.layers.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c1)
+    c2 = K.layers.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c2)
+    d2 = K.layers.SpatialDropout2D(rate=dropout_rate)(c2)
+
+    c3 = K.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=activation)(d2)
+    c3 = K.layers.Conv2D(filters=21, kernel_size=[3, 3], padding='same', activation='sigmoid', name=OUT(0))(c3)
+
+    base_fc = K.layers.Flatten(d2)
+    fc1 = K.layers.Dense(units=64, activation=activation)(base_fc)
+    fc2 = K.layers.Dense(units=21, activation='sigmoid')(fc1)
+
+    model = km.Model(inputs=(net_in,), outputs=(c3, fc2))
+    return model
 
 
 if __name__ == "__main__":
