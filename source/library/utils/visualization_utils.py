@@ -170,14 +170,18 @@ def get_image_with_mask(image, mask, k=0.15):
 
         for i in range(len(image)):
             tmp_mask = mask[i]
+            im_min = np.min(image[i])
+            im_max = np.max(image[i])
             if np.shape(image[i])[:-1] != np.shape(mask[i])[:-1]:
                 tmp_mask = resize(mask[i], output_shape=np.shape(image[i])[:-1])
-            images.append((k + (1 - k) * tmp_mask) * (image[i] - np.min(image[i])))
+            images.append(255*(k + (1 - k) * tmp_mask) * (image[i] - im_min) / (im_max-im_min))
         return np.array(images)
 
+    im_min = np.min(image)
+    im_max = np.max(image)
     if np.shape(image)[:-1] != np.shape(mask)[:-1]:
         mask = resize(mask, output_shape=np.shape(image)[:-1])
-    return (k + ((1 - k) * mask)) * (image - np.min(image))
+    return 255*(k + ((1 - k) * mask)) * (image - im_min) / (im_max-im_min)
 
 
 @batch_tb_logging
