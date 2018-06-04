@@ -1,3 +1,1 @@
-import sys
-import os
-sys.path.append(os.path.realpath("./neural_network"))
+from library.neural_network.keras.trained_models import *

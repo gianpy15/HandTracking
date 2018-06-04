@@ -10,6 +10,7 @@ from library.neural_network.keras.models.heatmap import *
 from data.naming import *
 from library.utils.visualization_utils import get_image_with_mask
 import numpy as np
+from library.utils.hsv import rgb2hsv, hsv2rgb
 
 if __name__ == '__main__':
     # pls specify the name of the image, (png, jpg)
@@ -26,6 +27,10 @@ if __name__ == '__main__':
     width = 224
     if read_from_png:
         images = load(png_path, force_format=(height, width, 3))
+        print("Saturation mean: {}".format(np.mean(rgb2hsv(images[0])[:, :, 1])))
+        print("Value mean: {}".format(np.mean(images[0, :, :, 2])))
+        print("Hue mean: {}".format(np.mean(images[0, :, :, 0])))
+        hsv2rgb(images[0])
         if preprocessing:
             images_ = preprocess_input(images * 255)
 
@@ -35,4 +40,4 @@ if __name__ == '__main__':
     # Testing the model getting some outputs
     net_out = model.predict(images_ if preprocessing else images)
     imgs = get_image_with_mask(images, net_out)
-    u.showimage(imgs[0])
+    u.showimage(imgs[0]/255)
