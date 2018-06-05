@@ -459,7 +459,7 @@ def read_dataset_random(path=None, number=1, verbosity=0, leave_out=None):
 
 
 def shuffle_cut_label_conf(ri, di, ci):
-    n = np.shape(ri)[0]
+    n = len(ri)
     pos = list(range(0, n))
     n -= 0.01
     r1 = []
