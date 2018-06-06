@@ -24,15 +24,15 @@ _model = 'transfer_mobilenet'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 10000  # >=1
+train_samples = 4  # >=1
 
 # the number of validation samples loaded
-valid_samples = 1000  # >=1
+valid_samples = 1  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 50  # >=1
+batch_size = 5  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -81,7 +81,11 @@ drate = 0.5
 
 # augmentation probability
 # data are shifted in hue, saturation and value with the same probability (but independently)
-augmentation_prob = 0.4
+augmentation_prob = 1
+
+# augmentation variance
+# data re shifted in hue, saturation and value with this variance
+augmentation_var = 1
 
 # mean-variance normalization of incoming samples
 # this parameter controls whether mean and variance of images
@@ -131,9 +135,9 @@ if __name__ == '__main__':
 
     # Plan the processing needed before providing inputs and outputs for training and validation
     data_processing_plan = ProcessingPlan(augmenter=Augmenter()
-                                          .shift_hue(augmentation_prob)
-                                          .shift_sat(augmentation_prob)
-                                          .shift_val(augmentation_prob),
+                                          .shift_hue(augmentation_prob, augmentation_var)
+                                          .shift_sat(augmentation_prob, augmentation_var)
+                                          .shift_val(augmentation_prob, augmentation_var),
                                           regularizer=Regularizer().normalize() if normalize else None,
                                           keyset={IN(0)})  # Today we just need to augment one input...
 
