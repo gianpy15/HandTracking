@@ -28,11 +28,11 @@ batch_size = 12
 # NUMBER OF EPOCHS
 epochs = 25
 # PATIENCE
-patience = 10
+patience = 20
 # WEIGHT DECAY "ALPHA" COEFFICIENT (STILL NOT USED)
 weight_decay = kr.l2(1e-5)
 # LEARNING RATE
-learning_rate = 1e-4
+learning_rate = 1e-5
 # CONFIDENCE USED TO CHOOSE ELEMENTS FOR THE TRAIN/TEST SETS.
 # SAMPLES (.mat FILES) ARE PRODUCED BY THE CREATE_DATASET FUNCTION AND
 # EACH CUT IN EACH SAMPLE IS ASSIGNED A "CONFIDENCE" AND A LABEL (PALM=1 BACK=0).
@@ -42,13 +42,27 @@ learning_rate = 1e-4
 # CLOSE TO 0 (AND SO WILL BE LESS RECOGNIZABLE AND CLASSIFIABLE BOTH BY HUMANS AND THE NETWORK)
 # BASICALLY, THIS PARAMETER CAN BE TUNED TO DECIDE HOW GOOD THE SAMPLES THAT THE NETWORK WILL TRAIN
 # ON WILL BE.
-minconf = 0.9
+minconf = 0.99
 
 
 # SET TO TRUE TO CREATE THE DATASET. SET TO FALSE IF THE DATASET IS ALREADY CREATED
 createdataset = False
 # PATH AT WHICH THE DATASET WILL BE SAVED/READ
 path = palmback_path()
+
+
+def create_weights(gt):
+    outs = []
+    for i in range(len(gt)):
+        try:
+            outs = outs + list(np.array(gt[i]['OUT_0000']).squeeze())
+        except Exception:
+            continue
+    outs = np.array(outs).flatten()
+    print(outs)
+    weights = count_ones_zeros(outs, outs)
+    return weights
+
 
 if __name__ == '__main__':
     # NO NEED TO TOUCH ANYTHING AFTER THIS, IT'S DELICATE
@@ -63,7 +77,8 @@ if __name__ == '__main__':
                                batch_size=batch_size,
                                dataset_dir=path,
                                formatting=formatting)
-
+    gt = generator.train()
+    cw = create_weights(gt)
     data_processing_plan = ProcessingPlan()
 
     model1 = train_model(model_generator=lambda: simple_classifier_rgb(weight_decay=weight_decay),
@@ -76,4 +91,7 @@ if __name__ == '__main__':
                          model_name=name,
                          model_path=resources_path(os.path.join("models", "palm_back", name)),
                          epochs=epochs,
-                         enable_telegram_log=True)
+                         enable_telegram_log=False,
+                         class_weight=cw)
+
+
