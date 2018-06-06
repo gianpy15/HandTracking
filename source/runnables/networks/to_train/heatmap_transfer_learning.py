@@ -114,16 +114,16 @@ if __name__ == '__main__':
                                        format=formatting,
                                        entry=IN(0))
 
-    formatting = format_add_outer_func(
-        f=lambda x: 255 * x,
-        format=formatting,
-        entry=IN(0)
-    )
+    #formatting = format_add_outer_func(
+    #    f=lambda x: 255 * x,
+    #    format=formatting,
+    #    entry=IN(0)
+    #)
 
-    formatting = format_add_outer_func(
-        f=lambda x: preprocess_mobile(x),
-        format=formatting,
-        entry=IN(0))
+    #formatting = format_add_outer_func(
+    #    f=lambda x: preprocess_mobile(x),
+    #    format=formatting,
+    #    entry=IN(0))
 
     # Load data
     generator = DatasetManager(train_samples=train_samples,
@@ -140,7 +140,7 @@ if __name__ == '__main__':
                                           .shift_val(augmentation_prob, augmentation_var),
                                           regularizer=Regularizer().normalize() if normalize else None,
                                           keyset={IN(0)})  # Today we just need to augment one input...
-
+    data_processing_plan.add_outer(key=IN(0), fun=lambda x: preprocess_mobile(255*x))
     model = _model
     model1 = train_model(model_generator=lambda: transfer_mobile_net(  # input_shape=np.shape(generator.train()[0][IN(0)])[1:],
         # weight_decay=weight_decay,
