@@ -65,17 +65,21 @@ def transfer_mobile_net(dropout_rate=0.0, activation=K.layers.activations.relu, 
 
 def transfer_mobile_net_joints(dropout_rate=0.0, activation=K.layers.activations.relu, train_mobilenet=False):
 
-    net_in = K.layers.Input(shape=[224, 224, 3], name=IN(0))
+    # net_in = K.layers.Input(shape=[224, 224, 3], name=IN('img'))
+    # print(net_in._op.__dict__)
+
     mobile_net = MobileNet(include_top=False,
                            weights='imagenet',
-                           dropout=0.0,
-                           input_tensor=net_in,
+                           dropout=dropout_rate,
+                           # input_tensor=net_in._op,
                            input_shape=[224, 224, 3])
     layers = mobile_net.layers[:26]
     for layer in layers:
         layer.trainable = train_mobilenet
+    layers[0].name = IN('img')
 
-    c1 = K.layers.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(layers[-1])
+    transferred_net = K.models.Sequential(layers=layers)
+    c1 = K.layers.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(transferred_net.output)
     c1 = K.layers.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(c1)
     c1 = K.layers.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c1)
 
@@ -84,13 +88,17 @@ def transfer_mobile_net_joints(dropout_rate=0.0, activation=K.layers.activations
     d2 = K.layers.SpatialDropout2D(rate=dropout_rate)(c2)
 
     c3 = K.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=activation)(d2)
-    c3 = K.layers.Conv2D(filters=21, kernel_size=[3, 3], padding='same', activation='sigmoid', name=OUT(0))(c3)
+    c3 = K.layers.Conv2D(filters=21, kernel_size=[3, 3], padding='same', activation='sigmoid', name=OUT('heats'))(c3)
 
-    base_fc = K.layers.Flatten(d2)
-    fc1 = K.layers.Dense(units=64, activation=activation)(base_fc)
-    fc2 = K.layers.Dense(units=21, activation='sigmoid')(fc1)
+    # before the fully connected is built, cut down the dimensionality of the data
+    bfc1 = K.layers.MaxPool2D(padding='valid', pool_size=(2, 2))(d2)
+    bfc2 = K.layers.Conv2D(filters=32, kernel_size=[3, 3], padding='valid', activation=activation)(bfc1)
+    base_fc = K.layers.Flatten()(bfc2)
+    fc1 = K.layers.Dense(units=32, activation=activation)(base_fc)
+    fc2 = K.layers.Dense(units=21, activation='sigmoid', name=OUT('vis'))(fc1)
 
-    model = km.Model(inputs=(net_in,), outputs=(c3, fc2))
+    model = km.Model(inputs=(transferred_net.input,), outputs=(c3, fc2))
+    print("############### SHAPE " + str(model.output_shape))
     return model
 
 
