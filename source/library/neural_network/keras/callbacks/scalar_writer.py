@@ -45,8 +45,14 @@ class ScalarWriter(Callback):
     def __write_step(self, logs, epoch, cur_graph):
         train_loss = logs['loss']
         valid_loss = logs['val_loss']
-        train_acc = logs['acc']
-        valid_acc = logs['val_acc']
+        if 'acc' in logs.keys():
+            train_acc = logs['acc']
+        else:
+            train_acc = .0
+        if 'val_acc' in logs.keys():
+            valid_acc = logs['val_acc']
+        else:
+            valid_acc = .0
 
         with tf.Session(graph=cur_graph) as s:
             summary = s.run(self.tb_manager.get_runnable(),

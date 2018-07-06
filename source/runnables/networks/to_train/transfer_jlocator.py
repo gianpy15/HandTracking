@@ -55,6 +55,10 @@ learning_rate = 1e-4  # >0
 # This may solve the problem of the network outputting either full-black or full-white heatmaps
 white_priority = -.5  # any value, 0 is perfect equilibrium
 
+# how much the heatmap loss is scaled up against the visibility loss.
+# makes sure that the algorithm gives the right priority to losses
+heat_priority = 100
+
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
@@ -90,11 +94,11 @@ retrain = True
 # #################### TRAINING #########################
 
 if __name__ == '__main__':
-    set_verbosity(COMMENTARY)
+    # set_verbosity(COMMENTARY)
 
-    heatmap_loss = lambda x, y: prop_heatmap_penalized_fp_loss(x, y,
-                                                               white_priority=white_priority,
-                                                               delta=delta)
+    heatmap_loss = lambda x, y: heat_priority*prop_heatmap_penalized_fp_loss(x, y,
+                                                                             white_priority=white_priority,
+                                                                             delta=delta)
 
     formatting = {
         IN('img'): MIDFMT_JUNC_RGB,
