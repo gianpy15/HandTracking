@@ -189,6 +189,9 @@ def joint_skeleton_impression(feed, img_key=IN(0),
                               heats_key=NET_OUT(0),
                               vis_key=NET_OUT(1)):
     img = feed[img_key]
+    imgmin = np.min(img)
+    imgmax = np.max(img)
+    img = (img - imgmin)/(imgmax-imgmin)
     heats = feed[heats_key]
     vis = feed[vis_key]
     hand = heatmaps_to_hand(joints=heats,

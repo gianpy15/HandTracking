@@ -146,8 +146,14 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
         log('Fitting completed!', level=COMMENTARY)
         loss_ = "{:.5f}".format(history.history['loss'][-1])
         valid_loss = "{:.5f}".format(history.history['val_loss'][-1])
-        accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
-        valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
+        if 'acc' in history.history.keys():
+            accuracy = "{:.2f}%".format(100 * history.history['acc'][-1])
+        else:
+            accuracy = "not available"
+        if 'val_acc' in history.history.keys():
+            valid_accuracy = "{:.2f}%".format(100 * history.history['val_acc'][-1])
+        else:
+            valid_accuracy = "not available"
         try:
             tele.notify_training_end(model_name=model_name,
                                      final_loss=str(loss_),

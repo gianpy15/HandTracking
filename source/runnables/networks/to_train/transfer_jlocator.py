@@ -38,7 +38,7 @@ patience = 10  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 20  # >=1
+epochs = 2  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     model = train_model(model_generator=lambda: transfer_mobile_net_joints(# input_shape=np.shape(dm.train()[0][IN('img')][0]),
                                                                           dropout_rate=drate,
                                                                           train_mobilenet=retrain,
-                                                                          activation=K.layers.LeakyReLU(alpha=leaky_slope)
+                                                                          # activation=K.layers.LeakyReLU(alpha=leaky_slope)
                                                                           ),
                         dataset_manager=dm,
                         loss={OUT('heats'): heatmap_loss,
