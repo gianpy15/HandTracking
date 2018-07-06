@@ -30,7 +30,7 @@ valid_samples = 10  # >=1
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 15 # >=1
+batch_size = 15  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -53,7 +53,7 @@ learning_rate = 1e-4  # >0
 # in the target heatmaps even when they appear in different proportions.
 # This parameter changes a little bit the equilibrium favouring the white (when positive)
 # This may solve the problem of the network outputting either full-black or full-white heatmaps
-white_priority = -.3  # any value, 0 is perfect equilibrium
+white_priority = -.5  # any value, 0 is perfect equilibrium
 
 # how much the heatmap loss is scaled up against the visibility loss.
 # makes sure that the algorithm gives the right priority to losses
@@ -62,7 +62,7 @@ heat_priority = 100
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
-delta = 16  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
+delta = 10  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
 
 
 # NETWORK PARAMETERS
