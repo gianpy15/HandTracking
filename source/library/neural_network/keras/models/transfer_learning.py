@@ -87,8 +87,8 @@ def transfer_mobile_net_joints(dropout_rate=0.0, activation=K.layers.activations
     c2 = K.layers.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c2)
     d2 = K.layers.SpatialDropout2D(rate=dropout_rate)(c2)
 
-    c3 = K.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='same', activation=activation)(d2)
-    c3 = K.layers.Conv2D(filters=21, kernel_size=[3, 3], padding='same', activation='sigmoid', name=OUT('heats'))(c3)
+    c3 = K.layers.Conv2D(filters=64, kernel_size=[3, 3], padding='valid', activation=activation)(d2)
+    c3 = K.layers.Conv2D(filters=21, kernel_size=[3, 3], padding='valid', activation='sigmoid', name=OUT('heats'))(c3)
 
     # before the fully connected is built, cut down the dimensionality of the data
     bfc1 = K.layers.MaxPool2D(padding='valid', pool_size=(2, 2))(d2)

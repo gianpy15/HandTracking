@@ -22,10 +22,10 @@ model = 'transfer_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 500  # >=1
+train_samples = 1  # >=1
 
 # the number of validation samples loaded
-valid_samples = 10  # >=1
+valid_samples = 1  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     }
 
     # We need fixed resizing of heatmaps on data read:
-    reg_1 = Regularizer().fixresize(56, 56)
+    reg_1 = Regularizer().fixresize(52, 52)
     reg_2 = Regularizer().fixresize(224, 224)
     formatting = format_add_outer_func(f=reg_1.apply,
                                        format=formatting,
