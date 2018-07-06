@@ -22,7 +22,7 @@ model = 'transfer_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 10  # >=1
+train_samples = 500  # >=1
 
 # the number of validation samples loaded
 valid_samples = 10  # >=1
@@ -53,7 +53,7 @@ learning_rate = 1e-4  # >0
 # in the target heatmaps even when they appear in different proportions.
 # This parameter changes a little bit the equilibrium favouring the white (when positive)
 # This may solve the problem of the network outputting either full-black or full-white heatmaps
-white_priority = -.5  # any value, 0 is perfect equilibrium
+white_priority = -1.  # any value, 0 is perfect equilibrium
 
 # how much the heatmap loss is scaled up against the visibility loss.
 # makes sure that the algorithm gives the right priority to losses
