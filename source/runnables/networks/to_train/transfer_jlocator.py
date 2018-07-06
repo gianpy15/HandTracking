@@ -62,7 +62,7 @@ heat_priority = 100
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
-delta = 10  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
+delta = 8  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
 
 
 # NETWORK PARAMETERS
