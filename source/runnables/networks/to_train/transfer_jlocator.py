@@ -22,15 +22,15 @@ model = 'transfer_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 2000  # >=1
+train_samples = 10  # >=1
 
 # the number of validation samples loaded
-valid_samples = 500  # >=1
+valid_samples = 10  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 15  # >=1
+batch_size = 15 # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -38,13 +38,13 @@ patience = 10  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 20  # >=1
+epochs = 50  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
 # setting a lower learning rate may also allow reaching smaller and deeper minima in the loss
 # use it to save training time, but don't abuse it as you may lose the best solutions
-learning_rate = 1e-4  # >0
+learning_rate = 1e-3  # >0
 
 # LOSS PARAMETERS
 
@@ -62,7 +62,7 @@ heat_priority = 100
 # the extra importance to give to false positives.
 # Use this parameter to increase the penalty of saying there is a hand where there is not.
 # The penalty is proportional and additive: delta=6 means we will add 6 times the penalty for false positives.
-delta = 8  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
+delta = 16  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penalty. delta<=-1 PROMOTES MISTAKES.
 
 
 # NETWORK PARAMETERS
@@ -70,7 +70,7 @@ delta = 8  # >=-1, 0 is not additional penalty, -1<delta<0 values discount penal
 # the dropout rate to be used in the entire network
 # dropout will make training and learning more difficult as it shuts down random units at training time
 # but it will improve generalization a lot. Make it as high as the network is able to handle.
-drate = 0.2
+drate = 0.1
 
 # leaky relu coefficient
 # relu is great, but sometimes it leads to "neuron death": a neuron jumps into the flat zero region, then
@@ -80,7 +80,7 @@ leaky_slope = 0.1  # >=0, 0 is equivalent to relu, 1 is equivalent to linear, hi
 
 # augmentation probability
 # data are shifted in hue, saturation and value with the same probability (but independently)
-augmentation_prob = 0.2
+augmentation_prob = 0.
 
 # mean-variance normalization of incoming samples
 # this parameter controls whether mean and variance of images
