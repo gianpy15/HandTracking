@@ -22,10 +22,10 @@ model = 'transfer_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 1  # >=1
+train_samples = 500  # >=1
 
 # the number of validation samples loaded
-valid_samples = 1  # >=1
+valid_samples = 10  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
