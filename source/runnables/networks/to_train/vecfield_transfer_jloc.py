@@ -23,7 +23,7 @@ model = 'transfer_vector_field_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 500 # >=1
+train_samples = 500  # >=1
 
 # the number of validation samples loaded
 valid_samples = 100  # >=1
@@ -39,13 +39,13 @@ patience = 1000  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 20  # >=1
+epochs = 50  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
 # setting a lower learning rate may also allow reaching smaller and deeper minima in the loss
 # use it to save training time, but don't abuse it as you may lose the best solutions
-learning_rate = 1e-4  # >0
+learning_rate = 5e-5  # >0
 
 # LOSS PARAMETERS
 
@@ -162,7 +162,10 @@ if __name__ == '__main__':
                                                                                    vis_key=NET_OUT('vis')),
                                   'field_output': lambda feed: finger_field_impression(feed,
                                                                                        img_key=IN('img'),
-                                                                                       field_key=NET_OUT('field'))
+                                                                                       field_key=NET_OUT('field')),
+                                  'field_target': lambda feed: finger_field_impression(feed,
+                                                                                       img_key=IN('img'),
+                                                                                       field_key=OUT('field')),
                                   },
                         model_name=model,
                         model_path=joint_locators_path(),
