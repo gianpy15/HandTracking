@@ -46,7 +46,7 @@ minconf = 0.99
 
 
 # SET TO TRUE TO CREATE THE DATASET. SET TO FALSE IF THE DATASET IS ALREADY CREATED
-createdataset = False
+createdataset = True
 # PATH AT WHICH THE DATASET WILL BE SAVED/READ
 path = palmback_path()
 
@@ -59,7 +59,6 @@ def create_weights(gt):
         except Exception:
             continue
     outs = np.array(outs).flatten()
-    print(outs)
     weights = count_ones_zeros(outs, outs)
     return weights
 
@@ -79,8 +78,9 @@ if __name__ == '__main__':
                                formatting=formatting)
     gt = generator.train()
     cw = create_weights(gt)
+    print(1)
     data_processing_plan = ProcessingPlan()
-
+    print(1)
     model1 = train_model(model_generator=lambda: simple_classifier_rgb(weight_decay=weight_decay),
                          dataset_manager=generator,
                          loss='binary_crossentropy',
