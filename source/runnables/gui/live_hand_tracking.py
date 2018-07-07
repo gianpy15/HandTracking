@@ -12,7 +12,8 @@ from library.utils.hsv import rgb2hsv, hsv2rgb
 def preprocess_frame(frame):
     _frame = resize(frame, output_shape=(224, 224))
     rgb2hsv(_frame)
-    _frame[:, :, 1] += 0.4
+    _frame[:, :, 1] += 0.65
+    _frame[:, :, 0] += 0.25
     _frame = np.clip(_frame, a_min=0, a_max=1)
     print("Saturation mean: {}".format(np.mean(_frame[:, :, 1])))
     print("Hue mean: {}".format(np.mean(_frame[:, :, 0])))

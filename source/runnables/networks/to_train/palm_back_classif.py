@@ -78,9 +78,9 @@ if __name__ == '__main__':
                                formatting=formatting)
     gt = generator.train()
     cw = create_weights(gt)
-    print(1)
+
     data_processing_plan = ProcessingPlan()
-    print(1)
+
     model1 = train_model(model_generator=lambda: simple_classifier_rgb(weight_decay=weight_decay),
                          dataset_manager=generator,
                          loss='binary_crossentropy',

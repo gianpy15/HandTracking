@@ -31,6 +31,7 @@ resources/rawcam/
 resources/vids/
 resources/hands_bounding_dataset/
 resources/datasets
+resources/hand_labels_synth
 
 !resources/framedata/*.sh
 !resources/framedata/contributors.txt

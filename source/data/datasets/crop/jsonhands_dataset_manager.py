@@ -8,81 +8,170 @@ import data.datasets.crop.utils as u
 from data.naming import *
 import data.regularization.regularizer as reg
 from data.datasets.reading.dataset_manager import DatasetManager
+from library.utils.deprecation import deprecated_fun
 
 
 def create_dataset_shaded_heatmaps(dspath=None, savepath=jsonhands_path(), heigth_shrink_rate=4, width_shrink_rate=4,
-                                enlarge_heat=0.3, im_reg=reg.Regularizer(), he_r=reg.Regularizer(),
+                                   enlarge_heat=0.3, im_reg=reg.Regularizer(), he_r=reg.Regularizer(),
                                    resize_rate=1.0):
-        if dspath is None:
-            dspath = resources_path("jsonHands")
-        if not os.path.exists(savepath):
-            os.makedirs(savepath)
-        dspath = resources_path(dspath)
-        labels_dir = os.path.join(dspath, "labels")
-        framesdir = os.path.join(dspath, "images")
-        frameslist = os.listdir(framesdir)
-        final_base_path = resources_path(savepath)
-        done_dict = dict()
-        for frame in tqdm.tqdm(frameslist):
+    if dspath is None:
+        dspath = resources_path("jsonHands")
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
+    dspath = resources_path(dspath)
+    labels_dir = os.path.join(dspath, "labels")
+    framesdir = os.path.join(dspath, "images")
+    frameslist = os.listdir(framesdir)
+    final_base_path = resources_path(savepath)
+    done_dict = dict()
+    for frame in tqdm.tqdm(frameslist):
+        try:
+            fr_to_save = {}
+            f_pruned_name = __remove_lr(frame)
             try:
-                fr_to_save = {}
-                f_pruned_name = __remove_lr(frame)
-                try:
-                    _ = done_dict[f_pruned_name]
-                    continue
-                except KeyError:
-                    done_dict[f_pruned_name] = 1
+                _ = done_dict[f_pruned_name]
+                continue
+            except KeyError:
+                done_dict[f_pruned_name] = 1
 
-                frame_l = __read_frame(os.path.join(framesdir, f_pruned_name + "_l.jpg"))
-                frame_r = __read_frame(os.path.join(framesdir, f_pruned_name + "_r.jpg"))
-                label_l = __read_label(os.path.join(labels_dir, f_pruned_name + "_l.json"))
-                label_r = __read_label(os.path.join(labels_dir, f_pruned_name + "_r.json"))
-                if frame_r is None and frame_l is None:
-                    continue
-                if frame_l is None:
-                    res_h = frame_r.shape[0]/480
-                    res_w = frame_r.shape[1]/640
-                else:
-                    res_h = frame_l.shape[0] / 480
-                    res_w = frame_l.shape[1] / 640
-                if frame_l is not None:
-                    frame_l = imresize(frame_l, (480, 640))
-                elif frame_r is not None:
-                    frame_l = imresize(frame_r, (480, 640))
+            frame_l = __read_frame(os.path.join(framesdir, f_pruned_name + "_l.jpg"))
+            frame_r = __read_frame(os.path.join(framesdir, f_pruned_name + "_r.jpg"))
+            label_l = __read_label(os.path.join(labels_dir, f_pruned_name + "_l.json"))
+            label_r = __read_label(os.path.join(labels_dir, f_pruned_name + "_r.json"))
+            if frame_r is None and frame_l is None:
+                continue
+            if frame_l is None:
+                res_h = frame_r.shape[0] / 480
+                res_w = frame_r.shape[1] / 640
+            else:
+                res_h = frame_l.shape[0] / 480
+                res_w = frame_l.shape[1] / 640
+            if frame_l is not None:
+                frame_l = imresize(frame_l, (480, 640))
+            elif frame_r is not None:
+                frame_l = imresize(frame_r, (480, 640))
 
-                frame_l = imresize(frame_l, resize_rate)
-                label_l = [[p[1] * resize_rate / res_h, p[0] * resize_rate / res_w] for p in label_l]
-                label_r = [[p[1] * resize_rate / res_h, p[0] * resize_rate / res_w] for p in label_r]
+            frame_l = imresize(frame_l, resize_rate)
+            label_l = [[p[1] * resize_rate / res_h, p[0] * resize_rate / res_w] for p in label_l]
+            label_r = [[p[1] * resize_rate / res_h, p[0] * resize_rate / res_w] for p in label_r]
 
-                frame_l = __add_padding(frame_l, frame_l.shape[1] - (frame_l.shape[1]//width_shrink_rate)*width_shrink_rate,
-                                        frame_l.shape[0] - (frame_l.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+            frame_l = __add_padding(frame_l,
+                                    frame_l.shape[1] - (frame_l.shape[1] // width_shrink_rate) * width_shrink_rate,
+                                    frame_l.shape[0] - (frame_l.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
 
-                frame_l = im_reg.apply(frame_l)
-                fr_to_save['frame'] = frame_l
-                coords_r = [__get_coord_from_labels(label_r)]
-                coords_l = [__get_coord_from_labels(label_l)]
-                heat1 = np.zeros([frame_l.shape[0]//heigth_shrink_rate, frame_l.shape[1]//width_shrink_rate])
-                heat2 = np.zeros([frame_l.shape[0]//heigth_shrink_rate, frame_l.shape[1]//width_shrink_rate])
-                coords_r = coords_r[0]
-                coords_l = coords_l[0]
-                res_coords_r = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in coords_r]
-                res_coords_r = __enlarge_coords(res_coords_r, enlarge_heat, np.shape(heat2))
-                res_coords_l = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in coords_l]
-                res_coords_l = __enlarge_coords(res_coords_l, enlarge_heat, np.shape(heat1))
+            frame_l = im_reg.apply(frame_l)
+            fr_to_save['frame'] = frame_l
+            coords_r = [__get_coord_from_labels(label_r)]
+            coords_l = [__get_coord_from_labels(label_l)]
+            heat1 = np.zeros([frame_l.shape[0] // heigth_shrink_rate, frame_l.shape[1] // width_shrink_rate])
+            heat2 = np.zeros([frame_l.shape[0] // heigth_shrink_rate, frame_l.shape[1] // width_shrink_rate])
+            coords_r = coords_r[0]
+            coords_l = coords_l[0]
+            res_coords_r = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in coords_r]
+            res_coords_r = __enlarge_coords(res_coords_r, enlarge_heat, np.shape(heat2))
+            res_coords_l = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in coords_l]
+            res_coords_l = __enlarge_coords(res_coords_l, enlarge_heat, np.shape(heat1))
 
-                res_labels_l = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in label_l]
-                res_labels_r = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in label_r]
-                heat1 = __shade_heatmap(heat1, res_coords_l, res_labels_l)
-                heat2 = __shade_heatmap(heat2, res_coords_r, res_labels_r)
-                heat = heat1 + heat2
-                heat[heat > 1] = 1
-                heat = he_r.apply(heat)
-                heat = __heatmap_to_uint8(heat)
-                fr_to_save['heatmap'] = heat
-                path = os.path.join(final_base_path, f_pruned_name + ".mat")
-                scio.savemat(path, fr_to_save)
-            except Exception:
-                print(frame)
+            res_labels_l = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in label_l]
+            res_labels_r = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in label_r]
+            heat1 = __shade_heatmap(heat1, res_coords_l, res_labels_l)
+            heat2 = __shade_heatmap(heat2, res_coords_r, res_labels_r)
+            heat = heat1 + heat2
+            heat[heat > 1] = 1
+            heat = he_r.apply(heat)
+            heat = __heatmap_to_uint8(heat)
+            fr_to_save['heatmap'] = heat
+            path = os.path.join(final_base_path, f_pruned_name + ".mat")
+            scio.savemat(path, fr_to_save)
+        except Exception:
+            print(frame)
+
+
+
+def create_dataset_shaded_heatmaps_synth(dspath=None, savepath=jsonhands_path(), heigth_shrink_rate=4,
+                                   width_shrink_rate=4,
+                                   enlarge_heat=0.3, im_reg=reg.Regularizer(), he_r=reg.Regularizer(),
+                                   resize_rate=1.0):
+    if dspath is None:
+        dspath = resources_path("jsonHands")
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
+    dspath = resources_path(dspath)
+    labels_dir = os.path.join(dspath, "labels")
+    framesdir = os.path.join(dspath, "images") 
+    frameslist = os.listdir(framesdir)
+    final_base_path = resources_path(savepath)
+    for frame in tqdm.tqdm(frameslist):
+        try:
+            fr_to_save = {}
+            f_pruned_name = __remove_ext(frame)
+
+            frame_read = __read_frame(os.path.join(framesdir, frame))
+
+            res_h = frame_read.shape[0] / 480
+            res_w = frame_read.shape[1] / 640
+            frame_read = imresize(frame_read, (480, 640))
+            label_l = __read_label(os.path.join(labels_dir, f_pruned_name + ".json"))
+            frame_read = imresize(frame_read, resize_rate)
+            label_l = [[p[1] * resize_rate / res_h, p[0] * resize_rate / res_w] for p in label_l]
+
+            frame_l = __add_padding(frame_read,
+                                    frame_read.shape[1] - (frame_read.shape[1] // width_shrink_rate) * width_shrink_rate,
+                                    frame_read.shape[0] - (
+                                            frame_read.shape[0] // heigth_shrink_rate) * heigth_shrink_rate)
+
+            frame_l = im_reg.apply(frame_l)
+            fr_to_save['frame'] = frame_l
+            coords_l = [__get_coord_from_labels(label_l)]
+            heat1 = np.zeros([frame_l.shape[0] // heigth_shrink_rate, frame_l.shape[1] // width_shrink_rate])
+            coords_l = coords_l[0]
+            res_coords_l = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in coords_l]
+            res_coords_l = __enlarge_coords(res_coords_l, enlarge_heat, np.shape(heat1))
+
+            res_labels_l = [[l[0] // heigth_shrink_rate, l[1] // width_shrink_rate] for l in label_l]
+            heat1 = __shade_heatmap(heat1, res_coords_l, res_labels_l)
+            heat = heat1
+            heat[heat > 1] = 1
+            heat = he_r.apply(heat)
+            heat = __heatmap_to_uint8(heat)
+            fr_to_save['heatmap'] = heat
+            path = os.path.join(final_base_path, f_pruned_name + ".mat")
+            scio.savemat(path, fr_to_save)
+        except Exception:
+            print(frame)
+
+
+@deprecated_fun(alternative=DatasetManager)
+def read_dataset(path=jsonhands_path(), verbosity=0, test_vids=None):
+    if path is None:
+        basedir = crops_path()
+    else:
+        basedir = path
+    samples = os.listdir(basedir)
+    frames = []
+    heatmaps = []
+    t_frames = []
+    t_heatmaps = []
+    iterator = tqdm.tqdm(samples) if verbosity == 1 else samples
+    for name in iterator:
+        realpath = os.path.join(basedir, name)
+        matcontent = scio.loadmat(realpath)
+        if test_vids is None or not __matches(name, test_vids):
+            frames.append(matcontent['frame'])
+            heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
+        else:
+            t_frames.append(matcontent['frame'])
+            t_heatmaps.append(__heatmap_uint8_to_float32(matcontent['heatmap']))
+    if test_vids is None:
+        return frames, heatmaps
+    return frames, heatmaps, t_frames, t_heatmaps
+
+
+def __matches(s, leave_out):
+    for stri in leave_out:
+        if s.startswith(stri + "_"):
+            return True
+    return False
 
 
 def __read_frame(path):
@@ -109,6 +198,17 @@ def __remove_lr(name):
         ris += split[i]
         if i != tot - 1:
             ris += "_"
+    return ris
+
+
+def __remove_ext(name):
+    split = name.split(".")
+    ris = ""
+    tot = len(split) - 1
+    for i in range(tot):
+        ris += split[i]
+        if i != tot - 1:
+            ris += "."
     return ris
 
 
