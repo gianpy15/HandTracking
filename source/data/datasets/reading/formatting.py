@@ -1,6 +1,7 @@
 import numpy as np
 from data.naming import IN, OUT
 from data.datasets.reading.exceptions import SkipFrameException
+from library.hand_vector_field.field_builder import build_hand_fields
 
 # Here are specified pre-stored formats used in different context
 # The present file contains:
@@ -104,6 +105,7 @@ LOWFMT_CROP_DEPTH = ['depth', lambda x: np.expand_dims(x, axis=-1)]
 LOWFMT_JUNC_IMG = ['cut', lambda x: x / 255.0]
 LOWFMT_JUNC_HEATMAP = ['heatmap_array', lambda x: x / 255.0]
 LOWFMT_JUNC_VISIBILITY = ['visible', lambda x: x[:, 0]]
+LOWFMT_JUNC_VEC_FIELD = ['heatmap_array', lambda x: build_hand_fields(x / 255.0)]
 
 LOWFMT_PB_IMG = ['cut', lambda x: x / 255.0]
 LOWFMT_PB_LABEL = ['pb', lambda x: x[0]]
@@ -122,6 +124,7 @@ MIDFMT_CROP_HEATMAP = [LOWFMT_CROP_HEATMAP]
 MIDFMT_JUNC_RGB = [LOWFMT_JUNC_IMG]
 MIDFMT_JUNC_HEATMAP = [LOWFMT_JUNC_HEATMAP]
 MIDFMT_JUNC_VISIBILITY = [LOWFMT_JUNC_VISIBILITY]
+MIDFMT_JUNC_VEC_FIELD = [LOWFMT_JUNC_VEC_FIELD]
 
 MIDFMT_PB_IMG = [LOWFMT_PB_IMG]
 MIDFMT_PB_LABEL = [LOWFMT_PB_LABEL]
@@ -143,6 +146,13 @@ JUNC_STD_FORMAT = {
     IN(0): MIDFMT_JUNC_RGB,
     OUT(0): MIDFMT_JUNC_HEATMAP,
     OUT(1): MIDFMT_JUNC_VISIBILITY
+}
+
+JUNC_VECFIELD_STD_FORMAT = {
+    IN('img'): MIDFMT_JUNC_RGB,
+    OUT('heat'): MIDFMT_JUNC_HEATMAP,
+    OUT('vis'): MIDFMT_JUNC_VISIBILITY,
+    OUT('field'): MIDFMT_JUNC_VEC_FIELD
 }
 
 PB_STD_FORMAT = {

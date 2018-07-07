@@ -185,6 +185,23 @@ def get_image_with_mask(image, mask, k=0.15):
 
 
 @batch_tb_logging
+def finger_field_impression(feed, img_key=IN(0),
+                            field_key=NET_OUT('field')):
+    img = feed[img_key]
+    imgmin = np.min(img)
+    imgmax = np.max(img)
+    img = (img - imgmin) / (imgmax - imgmin)
+    fields = feed[field_key]
+
+    f_repr = np.sum([fields[:, :, 2*i:2*i+2] for i in range(fields.shape[-1]//2)], axis=0)
+    f_repr = np.concatenate([f_repr, np.zeros(shape=f_repr.shape[:-1]+(1,))], axis=2)
+    # f_repr[f_repr != 0] += 1.0
+    # f_repr /= 2
+
+    return img+resize(f_repr, output_shape=img.shape)
+
+
+@batch_tb_logging
 def joint_skeleton_impression(feed, img_key=IN(0),
                               heats_key=NET_OUT(0),
                               vis_key=NET_OUT(1)):

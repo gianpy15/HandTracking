@@ -98,7 +98,6 @@ def transfer_mobile_net_joints(dropout_rate=0.0, activation=K.layers.activations
     fc2 = K.layers.Dense(units=21, activation='sigmoid', name=OUT('vis'))(fc1)
 
     model = km.Model(inputs=(transferred_net.input,), outputs=(c3, fc2))
-    print("############### SHAPE " + str(model.output_shape))
     return model
 
 

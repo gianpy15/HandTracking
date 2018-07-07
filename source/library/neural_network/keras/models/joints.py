@@ -1,5 +1,8 @@
 from data import *
 from library.neural_network.keras.models.building_blocks import *
+import keras.layers as kl
+import keras.models as km
+from keras.applications.mobilenet import MobileNet
 
 
 def uniform_model(kernel, num_filters):
@@ -172,4 +175,61 @@ def low_injection_locator(input_shape, name='refiner', dropout_rate=0, activatio
 
     model = km.Model(inputs=[inputs], outputs=[heats1, heats2, out_vis], name=name)
 
+    return model
+
+
+def finger_field_injection(dropout_rate=0.0, activation=kl.activations.relu, train_mobilenet=False):
+
+    # net_in = kl.Input(shape=[224, 224, 3], name=IN('img'))
+    # print(net_in._op.__dict__)
+
+    mobile_net = MobileNet(include_top=False,
+                           weights='imagenet',
+                           dropout=dropout_rate,
+                           # input_tensor=net_in._op,
+                           input_shape=[224, 224, 3])
+    layers = mobile_net.layers[:26]
+    for layer in layers:
+        layer.trainable = train_mobilenet
+    layers[0].name = IN('img')
+
+    transferred_net = km.Sequential(layers=layers)
+
+    # alternative path from input
+    c_alt = kl.Conv2D(filters=64, kernel_size=[7, 7], padding='same', activation=activation)(transferred_net.input)
+    c_alt = kl.Conv2D(filters=256, kernel_size=[5, 5], padding='same', activation=activation)(c_alt)
+    c_alt = kl.MaxPool2D(padding='same', pool_size=(2, 2))(c_alt)
+
+    c_alt = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
+    c_alt = kl.Conv2D(filters=transferred_net.output_shape[-1], kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
+    c_alt = kl.MaxPool2D(padding='same', pool_size=(2, 2))(c_alt)
+
+    base_in = kl.concatenate([transferred_net.output, c_alt], axis=-1)
+    c1 = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(base_in)
+    c1 = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(c1)
+    c1 = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c1)
+
+    c_vec = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(base_in)
+    c_vec = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_vec)
+    c_vec_out = kl.Conv2D(filters=10, kernel_size=[3, 3], padding='same', activation='tanh', name=OUT('field'))(c_vec)
+
+    c_vec = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_vec_out)
+
+    c2_in = kl.concatenate([c1, c_vec], axis=-1)
+
+    c2 = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c2_in)
+    c2 = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c2)
+    d2 = kl.SpatialDropout2D(rate=dropout_rate)(c2)
+
+    c3 = kl.Conv2D(filters=64, kernel_size=[3, 3], padding='valid', activation=activation)(d2)
+    c3 = kl.Conv2D(filters=21, kernel_size=[3, 3], padding='valid', activation='sigmoid', name=OUT('heat'))(c3)
+
+    # before the fully connected is built, cut down the dimensionality of the data
+    bfc1 = kl.MaxPool2D(padding='valid', pool_size=(2, 2))(d2)
+    bfc2 = kl.Conv2D(filters=32, kernel_size=[3, 3], padding='valid', activation=activation)(bfc1)
+    base_fc = kl.Flatten()(bfc2)
+    fc1 = kl.Dense(units=32, activation=activation)(base_fc)
+    fc2 = kl.Dense(units=21, activation='sigmoid', name=OUT('vis'))(fc1)
+
+    model = km.Model(inputs=(transferred_net.input,), outputs=(c3, fc2, c_vec_out))
     return model
