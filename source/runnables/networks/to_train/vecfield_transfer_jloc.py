@@ -93,7 +93,7 @@ augmentation_prob = 0.2
 normalize = False
 
 # decide whether to retrain transfered mobilenet weights (heavier, more accurate) or not (faster training)
-retrain = False
+retrain = True
 
 
 # #################### TRAINING #########################
