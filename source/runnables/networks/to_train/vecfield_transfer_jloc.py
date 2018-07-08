@@ -109,7 +109,7 @@ if __name__ == '__main__':
     formatting = JUNC_VECFIELD_STD_FORMAT
 
     # We need fixed resizing of heatmaps on data read:
-    reg_1 = Regularizer().fixresize(37, 37)
+    reg_1 = Regularizer().fixresize(32, 32)
     reg_2 = Regularizer().fixresize(224, 224)
     reg_3 = Regularizer().fixresize(36, 36)
     formatting = format_add_outer_func(f=reg_1.apply,
