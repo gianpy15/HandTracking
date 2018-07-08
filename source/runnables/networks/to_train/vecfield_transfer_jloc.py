@@ -85,7 +85,7 @@ leaky_slope = 0.1  # >=0, 0 is equivalent to relu, 1 is equivalent to linear, hi
 
 # augmentation probability
 # data are shifted in hue, saturation and value with the same probability (but independently)
-augmentation_prob = 0.
+augmentation_prob = 0.2
 
 # mean-variance normalization of incoming samples
 # this parameter controls whether mean and variance of images
@@ -93,7 +93,7 @@ augmentation_prob = 0.
 normalize = False
 
 # decide whether to retrain transfered mobilenet weights (heavier, more accurate) or not (faster training)
-retrain = True
+retrain = False
 
 
 # #################### TRAINING #########################
@@ -109,9 +109,9 @@ if __name__ == '__main__':
     formatting = JUNC_VECFIELD_STD_FORMAT
 
     # We need fixed resizing of heatmaps on data read:
-    reg_1 = Regularizer().fixresize(52, 52)
+    reg_1 = Regularizer().fixresize(46, 46)
     reg_2 = Regularizer().fixresize(224, 224)
-    reg_3 = Regularizer().fixresize(56, 56)
+    reg_3 = Regularizer().fixresize(50, 50)
     formatting = format_add_outer_func(f=reg_1.apply,
                                        format=formatting,
                                        entry=OUT('heat'))
