@@ -205,11 +205,11 @@ def finger_field_injection(dropout_rate=0.0, activation=kl.activations.relu, tra
     c_alt = kl.MaxPool2D(padding='same', pool_size=(2, 2))(c_alt)
 
     base_in = kl.concatenate([transferred_net.output, c_alt], axis=-1)
-    c1 = kl.Conv2D(filters=256, kernel_size=[5, 5], padding='valid', activation=activation)(base_in)
+    c1 = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='valid', activation=activation)(base_in)
     c1 = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='valid', activation=activation)(c1)
     c1 = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='valid', activation=activation)(c1)
 
-    c_vec = kl.Conv2D(filters=256, kernel_size=[5, 5], padding='valid', activation=activation)(base_in)
+    c_vec = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='valid', activation=activation)(base_in)
     c_vec = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='valid', activation=activation)(c_vec)
     c_vec_out = kl.Conv2D(filters=10, kernel_size=[3, 3], padding='valid', activation='tanh', name=OUT('field'))(c_vec)
 
