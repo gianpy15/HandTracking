@@ -1,5 +1,5 @@
 import numpy as np
-from threading import RLock
+from threading import Condition
 
 
 class Interpolator:
@@ -11,11 +11,11 @@ class Interpolator:
         self.time_features = None
         self.coeff_matrix = None
         self.need_refresh = False
-        self.coeff_matrix_lock = RLock()
+        self.coeff_matrix_lock = Condition()
 
     def feed(self, time, value):
         lock_taken = False
-        if not self.need_refresh:
+        if not self.need_refresh or self.coeff_matrix is None:
             self.coeff_matrix_lock.acquire()
             lock_taken = True
 
@@ -33,6 +33,8 @@ class Interpolator:
             self.need_refresh = True
 
         if lock_taken:
+            if self.need_refresh:
+                self.coeff_matrix_lock.notify(n=1)
             self.coeff_matrix_lock.release()
 
     def refresh_coeff_matrix(self):
@@ -44,6 +46,7 @@ class Interpolator:
                 self.coeff_matrix = np.zeros(shape=coeff_shape)
             np.matmul(np.linalg.inv(feats @ feats.T), feats, out=self.coeff_matrix)
             self.need_refresh = False
+            self.coeff_matrix_lock.notify_all()
 
     def current_order(self):
         return min(self.order, self.current_samples())
@@ -52,6 +55,9 @@ class Interpolator:
         return len(self.values)
 
     def get(self, time):
+        if self.coeff_matrix is None:
+            with self.coeff_matrix_lock:
+                self.coeff_matrix_lock.wait()
         if self.need_refresh:
             self.refresh_coeff_matrix()
         feats = np.array([(time-self.base_time)**i for i in range(self.current_order())])

@@ -11,6 +11,8 @@ from library.utils.hsv import rgb2hsv, hsv2rgb
 
 def preprocess_frame(frame):
     _frame = resize(frame, output_shape=(224, 224))
+    # in case your webcam is BGR...
+    # _frame = np.flip(_frame, axis=2)
     rgb2hsv(_frame)
     _frame[:, :, 1] += 0.65
     _frame[:, :, 0] += 0.25
