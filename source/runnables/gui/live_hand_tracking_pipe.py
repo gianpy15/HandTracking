@@ -31,13 +31,6 @@ def preprocess_frame(frame):
     _frame = resize(frame, output_shape=(224, 224))
     _frame = np.flip(_frame, axis=2)
     _frame = equalize(_frame)
-    #rgb2hsv(_frame)
-    #_frame[:, :, 1] += 0.65
-    #_frame[:, :, 0] += 0.25
-    #np.clip(_frame, a_min=0, a_max=1, out=_frame)
-    # print("Saturation mean: {}".format(np.mean(_frame[:, :, 1])))
-    # print("Hue mean: {}".format(np.mean(_frame[:, :, 0])))
-    #hsv2rgb(_frame)
     _frame = np.expand_dims(_frame, axis=0)
     _frame = preprocess_input(_frame * 255)
     return _frame
@@ -90,12 +83,12 @@ if __name__ == '__main__':
             return [preprocess_frame(cv2.flip(frame, 1))], {}
         return None
 
-    tracker = OperationalModule(func=net.predict, workers=10,
+    tracker = OperationalModule(func=net.predict, workers=os.cpu_count(),
                                 input_source=provide_cap,
                                 output_adapter=extract_position,
                                 working_frequency=working_frequency,
-                                interp_order=0,
-                                interp_samples=1,
+                                interp_order=1,
+                                interp_samples=2,
                                 controller=Ctrl())
     tracker.start()
     while cap.isOpened():
@@ -110,6 +103,11 @@ if __name__ == '__main__':
 
             cv2.putText(frame, "Net operating frequency: %.2f Hz" % working_frequency,
                         org=(20, height-20),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5,
+                        color=(0, 0, 255))
+            cv2.putText(frame, "Net latency: %.2f s" % tracker.scheduler.avg_exec_time,
+                        org=(20, height - 40),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=0.5,
                         color=(0, 0, 255))
