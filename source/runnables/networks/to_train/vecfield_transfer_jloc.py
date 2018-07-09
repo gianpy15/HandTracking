@@ -23,10 +23,10 @@ model = 'transfer_vector_field_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 100  # >=1
+train_samples = 1  # >=1
 
 # the number of validation samples loaded
-valid_samples = 10  # >=1
+valid_samples = 1  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -109,9 +109,9 @@ if __name__ == '__main__':
     formatting = JUNC_VECFIELD_STD_FORMAT
 
     # We need fixed resizing of heatmaps on data read:
-    reg_1 = Regularizer().fixresize(32, 32)
+    reg_1 = Regularizer().fixresize(42, 42)
     reg_2 = Regularizer().fixresize(224, 224)
-    reg_3 = Regularizer().fixresize(36, 36)
+    reg_3 = Regularizer().fixresize(46, 46)
     formatting = format_add_outer_func(f=reg_1.apply,
                                        format=formatting,
                                        entry=OUT('heat'))

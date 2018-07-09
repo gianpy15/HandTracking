@@ -196,10 +196,14 @@ def finger_field_injection(dropout_rate=0.0, activation=kl.activations.relu, tra
     transferred_net = km.Sequential(layers=layers)
 
     # alternative path from input
-    c_alt = kl.Conv2D(filters=64, kernel_size=[7, 7], padding='same', activation=activation)(transferred_net.input)
+    c_alt = kl.Conv2D(filters=128, kernel_size=[7, 7], padding='same', activation=activation)(transferred_net.input)
     c_alt = kl.Conv2D(filters=256, kernel_size=[5, 5], padding='same', activation=activation)(c_alt)
+    c_alt = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
+    c_alt = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
     c_alt = kl.MaxPool2D(padding='same', pool_size=(2, 2))(c_alt)
 
+    c_alt = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
+    c_alt = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
     c_alt = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
     c_alt = kl.Conv2D(filters=transferred_net.output_shape[-1], kernel_size=[3, 3], padding='same', activation=activation)(c_alt)
     c_alt = kl.MaxPool2D(padding='same', pool_size=(2, 2))(c_alt)
@@ -211,9 +215,12 @@ def finger_field_injection(dropout_rate=0.0, activation=kl.activations.relu, tra
 
     c_vec = kl.Conv2D(filters=256, kernel_size=[3, 3], padding='same', activation=activation)(base_in)
     c_vec = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_vec)
-    c_vec = kl.Lambda(lambda x: x[:, 10:-10, 10:-10, :])(c_vec)
-    c_vec_out = kl.Conv2D(filters=10, kernel_size=[3, 3], padding='same', activation='tanh', name=OUT('field'))(c_vec)
-    c_vec = kl.ZeroPadding2D(padding=(10, 10))(c_vec_out)
+    c_vec = kl.Lambda(lambda x: x[:, 5:-5, 5:-5, :])(c_vec)
+    c_vec_out_a = kl.Conv2D(filters=10, kernel_size=[3, 3], padding='same', activation='sigmoid')(c_vec)
+    c_vec_out_b = kl.Conv2D(filters=10, kernel_size=[3, 3], padding='same', activation='sigmoid')(c_vec)
+    c_vec_out = kl.subtract([c_vec_out_a, c_vec_out_b], name=OUT('field'))
+
+    c_vec = kl.ZeroPadding2D(padding=(5, 5))(c_vec_out)
     c_vec = kl.Conv2D(filters=128, kernel_size=[3, 3], padding='same', activation=activation)(c_vec)
 
     c2_in = kl.concatenate([c1, c_vec], axis=-1)
@@ -223,7 +230,7 @@ def finger_field_injection(dropout_rate=0.0, activation=kl.activations.relu, tra
     d2 = kl.SpatialDropout2D(rate=dropout_rate)(c2)
 
     c3 = kl.Conv2D(filters=64, kernel_size=[3, 3], padding='valid', activation=activation)(d2)
-    c3 = kl.Lambda(lambda x: x[:, 10:-10, 10:-10, :])(c3)
+    c3 = kl.Lambda(lambda x: x[:, 5:-5, 5:-5, :])(c3)
     c3 = kl.Conv2D(filters=21, kernel_size=[3, 3], padding='valid', activation='sigmoid', name=OUT('heat'))(c3)
     # before the fully connected is built, cut down the dimensionality of the data
     bfc1 = kl.MaxPool2D(padding='valid', pool_size=(2, 2))(d2)
