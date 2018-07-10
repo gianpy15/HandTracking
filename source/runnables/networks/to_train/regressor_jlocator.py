@@ -3,40 +3,13 @@ import sys
 
 sys.path.append(os.path.realpath(os.path.join(os.path.split(__file__)[0], "..", "..", "..")))
 
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import random
-
-from sklearn import datasets
-from sklearn import linear_model
-from sklearn import naive_bayes
-from sklearn import neighbors
-from sklearn import linear_model
-from sklearn.ensemble import ExtraTreesRegressor
-
-from sklearn.feature_selection import SelectFromModel
-from sklearn.feature_selection import VarianceThreshold
-
-from sklearn.decomposition import PCA
-
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_val_score
-
-from data.naming import *
 from keras.losses import mean_squared_error
-from data.datasets.data_loader import *
+from tensorflow.python.client import device_lib
 from data.datasets.jlocator.heatmaps_to_hand import heatmaps_to_hand
 from library.geometry.formatting import *
-from library.neural_network.keras.custom_layers.heatmap_loss import *
 from data import *
-from library import *
-import keras as K
-from library.neural_network.keras.models.transfer_learning import transfer_mobile_net_joints
 from library.neural_network.keras.training.model_trainer import train_model
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
-from library.utils.visualization_utils import joint_skeleton_impression
 from keras.applications.mobilenet import preprocess_input as preprocess_mobile
 from library.neural_network.keras.models.joints_regressor import regressor
 
@@ -49,15 +22,15 @@ model = 'regressor_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 2  # >=1
+train_samples = 300  # >=1
 
 # the number of validation samples loaded
-valid_samples = 2  # >=1
+valid_samples = 100  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 2  # >=1
+batch_size = 10  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -65,7 +38,7 @@ patience = 1000  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 10  # >=1
+epochs = 20  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
@@ -101,23 +74,11 @@ def get_values(hand: dict):
     return hand_
 
 
-data = DatasetManager(train_samples=10, valid_samples=0, batch_size=10,
-                      dataset_dir=joints_path(), formatting=JUNC_STD_FORMAT)
-
-data = data.train()
-input_data = data[0][IN(0)]
-output_data_heatmaps = data[0][OUT(0)][0]
-output_data_visibility = data[0][OUT(1)][0]
-print(np.shape(output_data_heatmaps))
-print(np.shape(output_data_visibility))
-output_data = heatmaps_to_hand(output_data_heatmaps, output_data_visibility)
-output_data = get_values(output_data)
-
-print(np.shape(input_data))
-print(np.shape(output_data))
-
 if __name__ == '__main__':
     # set_verbosity(COMMENTARY)
+
+    local_devices_proto = device_lib.list_local_devices()
+    print([x.name for x in local_devices_proto])
 
     loss = mean_squared_error
 
