@@ -51,10 +51,10 @@ def create_jsonhands_dataset(res_rate=0.5):
 
 
 if __name__ == '__main__':
-    send_message("Starting building datasets")
+    # send_message("Starting building datasets")
     # build_default_egohands()
     # build_default_crops()
-    # create_joint_dataset()
+    create_joint_dataset()
     # create_palmback_dataset()
-    create_jsonhands_dataset()
-    send_message("Build complete!")
+    # create_jsonhands_dataset()
+    # send_message("Build complete!")
