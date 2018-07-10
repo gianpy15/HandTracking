@@ -12,6 +12,7 @@ from library.neural_network.keras.training.model_trainer import train_model
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from keras.applications.mobilenet import preprocess_input as preprocess_mobile
 from library.neural_network.keras.models.joints_regressor import regressor
+from library.utils.visualization_utils import joint_skeleton_regressor
 
 # ####################### HYPERPARAMETERS #######################
 
@@ -22,10 +23,10 @@ model = 'regressor_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 300  # >=1
+train_samples = 1  # >=1
 
 # the number of validation samples loaded
-valid_samples = 100  # >=1
+valid_samples = 1  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
@@ -64,14 +65,15 @@ normalize = False
 
 
 def get_values(hand: dict):
-    wrist = np.array([[x[0], x[1]] for x in hand[WRIST]]).flatten()
-    thumb = np.array([[x[0], x[1]] for x in hand[THUMB]]).flatten()
-    index = np.array([[x[0], x[1]] for x in hand[INDEX]]).flatten()
-    middle = np.array([[x[0], x[1]] for x in hand[MIDDLE]]).flatten()
-    ring = np.array([[x[0], x[1]] for x in hand[RING]]).flatten()
-    pinkie = np.array([[x[0], x[1]] for x in hand[BABY]]).flatten()
-    hand_ = np.concatenate((wrist, thumb, index, middle, ring, pinkie)).flatten()
-    return hand_
+    return raw(hand)[:, :2].flatten()
+    # wrist = np.array([[x[0], x[1]] for x in hand[WRIST]]).flatten()
+    # thumb = np.array([[x[0], x[1]] for x in hand[THUMB]]).flatten()
+    # index = np.array([[x[0], x[1]] for x in hand[INDEX]]).flatten()
+    # middle = np.array([[x[0], x[1]] for x in hand[MIDDLE]]).flatten()
+    # ring = np.array([[x[0], x[1]] for x in hand[RING]]).flatten()
+    # pinkie = np.array([[x[0], x[1]] for x in hand[BABY]]).flatten()
+    # hand_ = np.concatenate((wrist, thumb, index, middle, ring, pinkie)).flatten()
+    # return hand_
 
 
 if __name__ == '__main__':
@@ -115,7 +117,7 @@ if __name__ == '__main__':
                                           .shift_val(augmentation_prob),
                                           regularizer=Regularizer().normalize() if normalize else None,
                                           keyset={IN('img')})
-    data_processing_plan.add_outer(key=IN('img'), fun=lambda x: preprocess_mobile(255*x))
+    data_processing_plan.add_outer(key=IN('img'), fun=lambda x: preprocess_mobile(255 * x))
 
     model = train_model(model_generator=lambda: regressor(input_shape=np.shape(dm.train()[0][IN('img')][0])),
                         dataset_manager=dm,
@@ -124,6 +126,13 @@ if __name__ == '__main__':
                         patience=patience,
                         data_processing_plan=data_processing_plan,
                         tb_path="joints",
+                        tb_plots={'target': lambda feed: joint_skeleton_regressor(feed,
+                                                                                  img_key=IN('img'),
+                                                                                  joints_key=OUT('heats')),
+                                  'output': lambda feed: joint_skeleton_regressor(feed,
+                                                                                  img_key=IN('img'),
+                                                                                  joints_key=NET_OUT('heats'))
+                                  },
                         model_name=model,
                         model_path=joint_locators_path(),
                         epochs=epochs,

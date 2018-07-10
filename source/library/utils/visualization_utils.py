@@ -201,19 +201,7 @@ def finger_field_impression(feed, img_key=IN(0),
     return img+resize(f_repr, output_shape=img.shape)
 
 
-@batch_tb_logging
-def joint_skeleton_impression(feed, img_key=IN(0),
-                              heats_key=NET_OUT(0),
-                              vis_key=NET_OUT(1)):
-    img = feed[img_key]
-    imgmin = np.min(img)
-    imgmax = np.max(img)
-    img = (img - imgmin)/(imgmax-imgmin)
-    heats = feed[heats_key]
-    vis = feed[vis_key]
-    hand = heatmaps_to_hand(joints=heats,
-                            visibility=vis)
-    hand = raw(hand)
+def produce_skeleton_image(img, hand):
     out = np.array(img)
     outshape = np.shape(out)
     green = np.array([0, 1, 0])
@@ -226,11 +214,41 @@ def joint_skeleton_impression(feed, img_key=IN(0),
             coords2 = int(joint2[0] * outshape[0]), int(joint2[1] * outshape[1])
             rr, cc, val = line_aa(coords[0], coords[1],
                                   coords2[0], coords2[1])
-            out[rr, cc] = np.array([col * v + out[r, c] * (1-v) for (r, c, v) in zip(rr, cc, val)])
-        col = joint[2] * green + (1-joint[2]) * blue
+            out[rr, cc] = np.array([col * v + out[r, c] * (1 - v) for (r, c, v) in zip(rr, cc, val)])
+        col = joint[2] * green + (1 - joint[2]) * blue
         cir = circle(coords[0], coords[1], 2, shape=outshape)
         out[cir] = col
     return out
+
+
+@batch_tb_logging
+def joint_skeleton_regressor(feed, img_key=IN('img'),
+                             joints_key=NET_OUT('joints')):
+    img = feed[img_key]
+    imgmin = np.min(img)
+    imgmax = np.max(img)
+    img = (img - imgmin)/(imgmax-imgmin)
+    joints = feed[joints_key]
+
+    rawhand = np.reshape(joints, newshape=(21, np.size(joints) // 21))
+    if rawhand.shape[1] == 2:
+        rawhand = np.concatenate([rawhand, np.zeros(shape=(21, 1))], axis=1)
+    return produce_skeleton_image(img, rawhand)
+
+
+@batch_tb_logging
+def joint_skeleton_impression(feed, img_key=IN(0),
+                              heats_key=NET_OUT(0),
+                              vis_key=NET_OUT(1)):
+    img = feed[img_key]
+    imgmin = np.min(img)
+    imgmax = np.max(img)
+    img = (img - imgmin)/(imgmax-imgmin)
+    heats = feed[heats_key]
+    vis = feed[vis_key]
+    hand = heatmaps_to_hand(joints=heats,
+                            visibility=vis)
+    return produce_skeleton_image(img, raw(hand))
 
 
 if __name__ == '__main__':
