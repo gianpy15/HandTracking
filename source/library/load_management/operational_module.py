@@ -11,21 +11,19 @@ class NoOutputException(Exception):
 class OperationalModule:
     def __init__(self, func: callable, workers: int,
                  input_source: callable, output_adapter: callable,
-                 working_frequency: float, controller=None,
+                 working_frequency: float,
                  interp_order=0, interp_samples=1):
 
         self.interpolator = Interpolator(order=interp_order, samples=interp_samples)
         self.executor_pool = ThreadPoolExecutor(max_workers=workers)
         self.output_adapter = output_adapter
-        self.controller = controller
 
         self.scheduler = ModuleScheduler(func=func,
                                          workers=self.executor_pool,
                                          max_overlaps=workers,
                                          input_producer=input_source,
                                          output_consumer=self.feed_to_interpolator,
-                                         working_frequency=working_frequency,
-                                         controller=controller)
+                                         target_frequency=working_frequency)
 
     def feed_to_interpolator(self, time, input, output):
         try:
@@ -47,3 +45,15 @@ class OperationalModule:
 
     def shutdown(self):
         self.scheduler.shutdown()
+
+    @property
+    def frequency(self):
+        return self.scheduler.frequency
+
+    @property
+    def latency(self):
+        return self.scheduler.avg_exec_time
+
+    @frequency.setter
+    def frequency(self, value):
+        self.scheduler.target_frequency = value

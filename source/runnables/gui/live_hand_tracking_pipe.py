@@ -12,7 +12,7 @@ from time import time
 
 from skimage.segmentation import clear_border
 from skimage.measure import label, regionprops
-from skimage.morphology import closing, square
+from skimage.morphology import closing, disk
 from skimage.draw import polygon_perimeter
 from skimage.exposure import equalize_hist as equalize
 
@@ -38,7 +38,7 @@ def preprocess_frame(frame):
 
 def extract_position(input, output):
     output = output[0, :, :, 0]
-    bw = closing(output > 0.1, square(8))
+    bw = closing(output > 0.15, disk(5))
 
     # remove artifacts connected to image border
     cleared = clear_border(bw)
@@ -51,6 +51,8 @@ def extract_position(input, output):
     if not len(areas):
         raise NoOutputException
     maxarea = areas[-1]
+    if maxarea.area < 20:
+        raise NoOutputException
     bbox = np.array(maxarea.bbox).reshape(2, 2).T
     outputshape = np.array(output.shape[:2])
     bbox = np.divide(bbox, outputshape[:, None].T)
@@ -72,41 +74,35 @@ if __name__ == '__main__':
     recording = False
     working_frequency = 5.0
 
-    class Ctrl:
-        def notify_frequency(self, freq):
-            global working_frequency
-            working_frequency = freq
-
     def provide_cap(time):
         ret, frame = cap.read()
         if ret:
             return [preprocess_frame(cv2.flip(frame, 1))], {}
         return None
 
-    tracker = OperationalModule(func=net.predict, workers=os.cpu_count(),
+    tracker = OperationalModule(func=net.predict, workers=3,
                                 input_source=provide_cap,
                                 output_adapter=extract_position,
                                 working_frequency=working_frequency,
-                                interp_order=1,
-                                interp_samples=2,
-                                controller=Ctrl())
+                                interp_order=0,
+                                interp_samples=1)
     tracker.start()
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
             t = time()
             frame = cv2.flip(frame, 1)
-            bbox = tracker[t]
+            bbox = tracker[t-tracker.latency]
             border = build_border(bbox, frame.shape)
             # print(border)
             frame[border] = (0, 0, 255)
 
-            cv2.putText(frame, "Net operating frequency: %.2f Hz" % working_frequency,
+            cv2.putText(frame, "Net operating frequency: %.2f Hz" % tracker.frequency,
                         org=(20, height-20),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=0.5,
                         color=(0, 0, 255))
-            cv2.putText(frame, "Net latency: %.2f s" % tracker.scheduler.avg_exec_time,
+            cv2.putText(frame, "Net latency: %.2f s" % tracker.latency,
                         org=(20, height - 40),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                         fontScale=0.5,
