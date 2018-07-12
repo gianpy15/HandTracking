@@ -23,15 +23,15 @@ model = 'regressor_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 1  # >=1
+train_samples = 2000  # >=1
 
 # the number of validation samples loaded
-valid_samples = 1  # >=1
+valid_samples = 500  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 10  # >=1
+batch_size = 40  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -39,7 +39,7 @@ patience = 1000  # >=1
 
 # the maximum number of epochs to perform before stopping.
 # notice: usually this term is not influential because early stopping triggers first
-epochs = 20  # >=1
+epochs = 50  # >=1
 
 # learning rate used for optimization
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
