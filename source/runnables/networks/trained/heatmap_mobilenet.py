@@ -19,7 +19,6 @@ if __name__ == '__main__':
     dataset_path = resources_path("hands_bounding_dataset", "network_test")
     png_path = resources_path("gui", image_name)
     model_path = models_path('deployment', 'transfer_mobilenet.h5')
-
     read_from_png = True
     preprocessing = True
 

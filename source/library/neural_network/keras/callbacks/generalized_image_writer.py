@@ -56,7 +56,7 @@ class ImageWriter(Callback):
         # Now we can execute generators and setup the correct datatypes and shapes for their placeholders
         for name in self.image_generators:
             sample_out = self.image_generators[name](generator_feed)
-            self.placeholders[name] = tf.placeholder(dtype=sample_out.dtype,
+            self.placeholders[name] = tf.placeholder(dtype=tf.float32,
                                                      shape=np.shape(sample_out))
             self.tb_manager.add_images(imgs=self.placeholders[name],
                                        name=self.basename+'_'+name,
