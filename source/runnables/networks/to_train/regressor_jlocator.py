@@ -11,7 +11,7 @@ from data import *
 from library.neural_network.keras.training.model_trainer import train_model
 from library.neural_network.batch_processing.processing_plan import ProcessingPlan
 from keras.applications.mobilenet import preprocess_input as preprocess_mobile
-from library.neural_network.keras.models.joints_regressor import regressor
+from library.neural_network.keras.models.joints_regressor import regressor, regressor_2
 from library.utils.visualization_utils import joint_skeleton_regressor
 
 # ####################### HYPERPARAMETERS #######################
@@ -23,15 +23,15 @@ model = 'regressor_jlocator'
 # TRAINING PARAMETERS:
 
 # the number of training samples loaded
-train_samples = 1  # >=1
+train_samples = 1000  # >=1
 
 # the number of validation samples loaded
-valid_samples = 1  # >=1
+valid_samples = 100  # >=1
 
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 10  # >=1
+batch_size = 5  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     # We need fixed resizing of heatmaps on data read:
     reg_1 = Regularizer().fixresize(52, 52)
-    reg_2 = Regularizer().fixresize(200, 200)
+    reg_2 = Regularizer().fixresize(256, 256)
     formatting = format_add_outer_func(f=reg_1.apply,
                                        format=formatting,
                                        entry=OUT('heats'))
@@ -119,7 +119,7 @@ if __name__ == '__main__':
                                           keyset={IN('img')})
     data_processing_plan.add_outer(key=IN('img'), fun=lambda x: preprocess_mobile(255 * x))
 
-    model = train_model(model_generator=lambda: regressor(input_shape=np.shape(dm.train()[0][IN('img')][0])),
+    model = train_model(model_generator=lambda: regressor_2(input_shape=np.shape(dm.train()[0][IN('img')][0])),
                         dataset_manager=dm,
                         loss={OUT('heats'): loss},
                         learning_rate=learning_rate,
