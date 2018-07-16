@@ -48,12 +48,12 @@ if __name__ == '__main__':
     import library.geometry.label_depth_mesh as ldm
     import numpy as np
     from data.naming import *
-    REPETITIONS = 1
+    REPETITIONS = 100
     EXTRATHREADS = 0
     PRESLEEP = 1
     PROTOTYPE_FILE = "calibration_test.mat"
     INFILE = "calibration_apply_test.mat"
-    INFILE = resources_path("framedata", "handsBorgo2", "handsBorgo20224.mat")
+    # INFILE = resources_path("framedata", "handsBorgo2", "handsBorgo20224.mat")
     root = tk.Tk()
     frame = tk.Frame(root)
     frame.pack()
