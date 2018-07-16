@@ -31,7 +31,7 @@ valid_samples = 100  # >=1
 # the number of samples used for each batch
 # higher batch size leads to more significant gradient (less variance in gradient)
 # but a batch size too high may not fit into the graphics video memory.
-batch_size = 5  # >=1
+batch_size = 1  # >=1
 
 # the number of epochs to perform without improvements in validation accuracy before triggering early stopping
 # higher patience allows bridging greater "hills" but with obvious downsides in case the overfitting hill never ends
@@ -45,7 +45,7 @@ epochs = 20  # >=1
 # higher learning rates lead to definitely faster convergence but possibly unstable behaviour
 # setting a lower learning rate may also allow reaching smaller and deeper minima in the loss
 # use it to save training time, but don't abuse it as you may lose the best solutions
-learning_rate = 1e-4  # >0
+learning_rate = 1e-5  # >0
 
 # NETWORK PARAMETERS
 
