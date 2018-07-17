@@ -1,3 +1,5 @@
+import time
+
 import cv2
 import sys
 import os
@@ -38,8 +40,12 @@ if __name__ == '__main__':
     out = cv2.VideoWriter('output.mp4', fourcc, 5.0, (width, height))
 
     recording = False
+    i_time = time.time()
+    count = 0
 
     while cap.isOpened():
+        l_time = time.time()
+        count += 1
         ret, frame = cap.read()
         if ret:
             frame = cv2.flip(frame, 1)
@@ -61,6 +67,7 @@ if __name__ == '__main__':
                 break
         else:
             break
+        print("{} fps (mean {} fps)".format(1/(time.time()-l_time), 1/((time.time()-i_time)/count)))
 
     # Release everything if job is finished
     out.release()
