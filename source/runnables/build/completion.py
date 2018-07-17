@@ -8,6 +8,8 @@ if __name__ == '__main__':
     videos = os.listdir(framebase)
     videos = [nm for nm in videos if os.path.isdir(os.path.join(framebase, nm))]
     compls = {}
+    lbld = {}
+    tot = {}
     for vid in videos:
         idxcontent = get_index_content(vid)
         count = 0
@@ -16,7 +18,10 @@ if __name__ == '__main__':
                 count += 1
         completion = count / len(idxcontent)
         compls[vid] = completion
+        lbld[vid] = count
+        tot[vid] = len(idxcontent)
 
     compls_sorted = sorted(compls, key=compls.__getitem__, reverse=True)
     for vid in compls_sorted:
-        print("Video completion for {}: {:.2f}%".format(vid, compls[vid]*100))
+        print("Video completion for {}: {:.2f}% ({}/{})".format(vid, compls[vid]*100, lbld[vid], tot[vid]))
+    print("Total labeled frames: {:.2f}% ({}/{})".format(sum(lbld.values())/sum(tot.values())*100, sum(lbld.values()), sum(tot.values())))
