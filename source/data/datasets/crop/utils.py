@@ -16,6 +16,10 @@ def read_image(path):
     return np.array(sio.imread(path))
 
 
+def save_image(path, image):
+    sio.imsave(path, image)
+
+
 def __read_mat_hand_bounding(path, structasrecord=True):
     """opens & reads the .mat file at the specified path and returns the present structures"""
     return np.squeeze(np.array(scio.loadmat(path, struct_as_record=structasrecord)['boxes']))

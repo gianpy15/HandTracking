@@ -174,3 +174,5 @@ def train_model(model_generator, dataset_manager: DatasetManager, loss,
             traceback.print_exc()
 
     return model
+
+

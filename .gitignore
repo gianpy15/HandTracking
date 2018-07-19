@@ -23,6 +23,7 @@ resources/palm_back_classification_dataset_h/**/**
 resources/palm_back_classification_dataset_rgb/**/**
 resources/palm_back_classification_dataset_gray/**/**
 resources/jsonHands
+resources/saves_for_report
 
 
 resources/hands_locator_dataset/**/**

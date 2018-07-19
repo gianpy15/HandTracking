@@ -241,3 +241,151 @@ def finger_field_injection(dropout_rate=0.0, activation=kl.activations.relu, tra
 
     model = km.Model(inputs=(transferred_net.input,), outputs=(c3, fc2, c_vec_out))
     return model
+
+
+def uniform_seq_model(kernel, num_filters):
+    model = km.Sequential()
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        input_shape=(None, None, 3),
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.MaxPool2D(pool_size=[2, 2]))
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=num_filters,
+                        kernel_size=kernel,
+                        activation='relu',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    model.add(kl.Conv2D(filters=21,
+                        kernel_size=kernel,
+                        activation='sigmoid',
+                        data_format="channels_last",
+                        padding="same"
+                        )
+              )
+
+    # model.add(kl.MaxPooling2D(pool_size=pool))
+
+    return model
+
+
+def uniform_unseq_model(kernel, num_filters):
+    inputs = kl.Input(shape=(None, None, 3))
+
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(inputs)
+    x = kl.Concatenate(axis=3)([x, inputs])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+    x = kl.Concatenate(axis=3)([x, inputs])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.MaxPool2D(pool_size=[2, 2])(x)
+    inputs2 = kl.MaxPool2D(pool_size=[2, 2])(inputs)
+
+    x = kl.Concatenate(axis=3)([x, inputs2])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs2])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs2])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs2])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs2])
+    x = kl.Conv2D(filters=num_filters, kernel_size=kernel, activation='relu', padding="same")(x)
+
+    x = kl.Concatenate(axis=3)([x, inputs2])
+    x = kl.Conv2D(filters=21, kernel_size=kernel, activation='sigmoid', padding="same")(x)
+
+    return km.Model(inputs=(inputs,), outputs=(x,))

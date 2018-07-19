@@ -49,3 +49,4 @@ def log(message, level=DEBUG):
         LOGFILE.write(str(message) + '\n')
         if level >= IMPORTANT_WARNINGS:
             LOGFILE.flush()
+

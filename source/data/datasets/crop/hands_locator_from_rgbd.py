@@ -645,22 +645,56 @@ def timetest():
     print(tm(realtest, number=1))
 
 
-if __name__ == '__main__':
-    # firstframe, firstdepth = get_numbered_frame("rawcam/out-1520009971", 214)
+def save_some_frames_with_heatmap_and_crops(n):
+    f, h, _ = read_dataset()
+    path = resources_path("saves_for_report")
+    os.makedirs(path, exist_ok=True)
+    for i in range(n):
+        os.makedirs(os.path.join(path, str(i)), exist_ok=True)
+        pos = np.random.randint(0, len(f))
+        f_ts = f[pos]
+        h_ts = h[pos]
+        f.pop(pos)
+        h.pop(pos)
+        u.save_image(os.path.join(path, str(i), "frame.jpg"), f_ts)
+        heat_im = np.array(np.dstack((h_ts, h_ts, h_ts)) * 255, dtype=np.uint8)
+        u.save_image(os.path.join(path, str(i), "heatmap.jpg"), heat_im)
+        crop = u.get_crops_from_heatmap(image=f_ts, heatmap=h_ts, height_shrink_rate=4, width_shrink_rate=4)[0]
+        u.save_image(os.path.join(path, str(i), "crop.jpg"), np.array(crop))
 
-    # firstframe1, firstdepth1 = transorm_rgd_depth(firstframe, firstdepth, showimages=True)
 
-    # timetest() , 'handsMatteo'
-    create_dataset_shaded_heatmaps(videos_list=['HandsEverton', 'handsMattia'], resize_rate=0.5,
-                                   heigth_shrink_rate=4, width_shrink_rate=4)
-    f, h, d = read_dataset_random(number=1)
+def create_sprite(n, num=0):
+    f, h, _ = read_dataset(path=resources_path("datasets/dataset_for_report"))
+    from data.datasets.crop.egohand_dataset_manager import read_dataset as r_ego
+    f1, h1 = r_ego(path=resources_path("datasets/dataset_for_report2"))
     f = np.array(f)
     h = np.array(h)
-    d = np.array(d)
+    f1 = np.array(f1)
+    h1 = np.array(h1)
+    f = np.concatenate((f, f1))
+    h = np.concatenate((h, h1))
+    path = resources_path(os.path.join("saves_for_report", "sprite"))
+    os.makedirs(path, exist_ok=True)
+    sprite = None
+    for i in range(n):
+        row = None
+        for j in range(n):
+            pos = np.random.randint(0, len(f))
+            f_ts = f[pos]
+            h_ts = h[pos]
+            heat3d = np.dstack((h_ts, h_ts, h_ts))
+            heat3d[heat3d == 0] = 0.3
+            if row is None:
+                row = heat3d * f_ts
+            else:
+                row = np.array(np.hstack((row, heat3d * f_ts)), dtype=np.uint8)
+        if sprite is None:
+            sprite = row
+        else:
+            sprite = np.vstack((sprite, row))
 
-    print(f.shape, h.shape, d.shape)
-    u.showimage(f[0])
-    u.showimage(h[0])
-    #u.showimage(d[0])
-    u.showimages(u.get_crops_from_heatmap(f[0], h[0], height_shrink_rate=4, width_shrink_rate=4,
-                                          accept_crop_minimum_dimension_pixels=200))
+    u.save_image(os.path.join(path, str(num) + ".jpg"), sprite)
+
+
+if __name__ == '__main__':
+    create_sprite(25)
