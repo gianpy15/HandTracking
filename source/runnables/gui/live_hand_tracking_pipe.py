@@ -69,10 +69,10 @@ if __name__ == '__main__':
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Be sure to use the lower case
-    out = cv2.VideoWriter('output.mp4', fourcc, 5.0, (width, height))
+    out = cv2.VideoWriter('output.mp4', fourcc, 50.0, (width, height))
 
     recording = False
-    working_frequency = 5.0
+    working_frequency = 50.0
 
     def provide_cap(time):
         ret, frame = cap.read()
@@ -80,19 +80,19 @@ if __name__ == '__main__':
             return [preprocess_frame(cv2.flip(frame, 1))], {}
         return None
 
-    tracker = OperationalModule(func=net.predict, workers=3,
+    tracker = OperationalModule(func=net.predict, workers=100,
                                 input_source=provide_cap,
                                 output_adapter=extract_position,
                                 working_frequency=working_frequency,
-                                interp_order=0,
-                                interp_samples=1)
+                                interp_order=1,
+                                interp_samples=4)
     tracker.start()
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
             t = time()
             frame = cv2.flip(frame, 1)
-            bbox = tracker[t-tracker.latency]
+            bbox = tracker[t]
             border = build_border(bbox, frame.shape)
             # print(border)
             frame[border] = (0, 0, 255)

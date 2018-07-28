@@ -54,8 +54,8 @@ def precision(yt, yp, thr=0.5, verb=True):
 @jit
 def __precision(h1, h2, thr):
     h1 = 1 - (1 - h1)**5
-    h1[h1 > thr] = 1
-    h2[h2 > thr] = 1
+    h1[h1 >= thr] = 1
+    h2[h2 >= thr] = 1
     h1[h1 < thr] = 0
     h2[h2 < thr] = 0
     if np.sum(h1) == 0:
@@ -80,8 +80,8 @@ def recall(yt, yp, thr=0.5, verb=True):
 @jit
 def __recall(h1, h2, thr):
     h1 = 1 - (1 - h1) ** 5
-    h1[h1 > thr] = 1
-    h2[h2 > thr] = 1
+    h1[h1 >= thr] = 1
+    h2[h2 >= thr] = 1
     h1[h1 < thr] = 0
     h2[h2 < thr] = 0
     return np.sum(h1*h2)/np.sum(h2)
@@ -92,7 +92,7 @@ def pixel_avg_dist_euclidean(yt, yp, thr=0.5, verb=True):
     dists = []
     for i in tqdm.tqdm(range(len(yt))):
         try:
-            yp[i][yp[i] > thr] = 1
+            yp[i][yp[i] >= thr] = 1
             tcx, tcy = __heatmap_centroid(yt[i])
             pcx, pcy = __heatmap_centroid(yp[i])
             dist = np.sqrt(((tcx - pcx)**2) + ((tcy - pcy)**2))
