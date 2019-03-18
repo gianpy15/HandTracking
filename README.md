@@ -3,10 +3,10 @@ Our objective is to train a deep neural network able to recognize hands'
 movement and provide a real time 3D recostruction of it.
 
 ## Roadmap
-- [ ] [Acquire data](#__Acquire-data.__-_A-lot-of-data._)
-- [ ] [Find hands in a picture](#__Find-hands-in-a-picture.__-_Bounding-boxes._)
-- [ ] [The pure deep learning step](#__The-pure-deep-learning-step.__-_Training-and-prediction._)
-- [x] [The reconstruction](#__The-reconstruction.__)
+- [x] [Acquire data](#__Acquire-data.__-_A-lot-of-data._)
+- [x] [Find hands in a picture](#__Find-hands-in-a-picture.__-_Bounding-boxes._)
+- [x] [The pure deep learning step](#__The-pure-deep-learning-step.__-_Training-and-prediction._)
+- [ ] [The reconstruction](#__The-reconstruction.__)
 
 ## __Acquire data.__ _A lot of data._
 The first step of each machine learning project is to find a data set.
